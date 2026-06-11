@@ -1,0 +1,127 @@
+import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'package:pedometer/common/config/app_colors.dart';
+import 'package:pedometer/common/config/app_dimens.dart';
+import 'package:pedometer/feature/home/components/kpi_card.dart';
+import 'package:pedometer/feature/home/components/mini_analysis_card.dart';
+import 'package:pedometer/feature/home/components/step_ring_hero_card.dart';
+import 'package:pedometer/feature/home/components/top_entry_card.dart';
+import 'package:pedometer/feature/home/components/trend_chart_card.dart';
+import 'package:pedometer/feature/home/resources/home_resource.dart';
+import 'package:pedometer/feature/home/viewmodel/home_view_model.dart';
+
+/// 首页：暗色霓虹森林运动 Dashboard。
+class HomePage extends GetView<HomeViewModel> {
+  static const String routeName = HomeRouteTable.pathHome;
+  const HomePage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: HomeResource.background,
+      body: Stack(
+        children: [
+          _background(),
+          SafeArea(
+            bottom: false,
+            child: SingleChildScrollView(
+              padding: EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.md, AppSpacing.lg, 120),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  _topEntries(),
+                  SizedBox(height: AppSpacing.lg),
+                  _mainRow(),
+                  SizedBox(height: AppSpacing.lg),
+                  Obx(() => TrendChartCard(points: controller.trend.toList())),
+                  SizedBox(height: AppSpacing.lg),
+                  _analysisRow(),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _background() {
+    return Positioned.fill(
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          gradient: RadialGradient(
+            center: const Alignment(0, -0.6),
+            radius: 1.2,
+            colors: [AppColors.bgRadialBlue, AppColors.bgPrimary],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _topEntries() {
+    return Row(
+      children: [
+        Expanded(
+          child: TopEntryCard(
+            icon: Icons.directions_run_rounded,
+            iconColor: AppColors.brandGreen,
+            label: HomeResource.entryOverview,
+          ),
+        ),
+        SizedBox(width: AppSpacing.md),
+        Expanded(
+          child: TopEntryCard(
+            icon: Icons.favorite_rounded,
+            iconColor: AppColors.accentPink,
+            label: HomeResource.entryHealthSync,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _mainRow() {
+    return IntrinsicHeight(
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Expanded(
+            flex: 5,
+            child: Obx(() => StepRingHeroCard(step: controller.step.value)),
+          ),
+          SizedBox(width: AppSpacing.md),
+          Expanded(
+            flex: 4,
+            child: Obx(
+              () => Column(
+                children: [
+                  for (var i = 0; i < controller.kpis.length; i++) ...[
+                    Expanded(child: KpiCard(item: controller.kpis[i])),
+                    if (i != controller.kpis.length - 1)
+                      SizedBox(height: AppSpacing.md),
+                  ],
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _analysisRow() {
+    return Obx(() {
+      final list = controller.analyses;
+      if (list.length < 2) return const SizedBox.shrink();
+      return Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Expanded(child: MiniAnalysisCard(data: list[0], icon: Icons.local_fire_department_rounded)),
+          SizedBox(width: AppSpacing.md),
+          Expanded(child: MiniAnalysisCard(data: list[1], icon: Icons.timer_rounded)),
+        ],
+      );
+    });
+  }
+}

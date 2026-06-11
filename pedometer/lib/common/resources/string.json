@@ -1,0 +1,6 @@
+{
+  "app_name": "Pedometer",
+  "loading": "加载中...",
+  "error": "加载失败",
+  "coming_soon": "{{label}}：敬请期待"
+}

@@ -1,0 +1,102 @@
+import 'dart:convert';
+
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+
+/// 从各模块 resources 目录下的 color.json / string.json 加载静态资源。
+class ResourceLoader {
+  ResourceLoader._();
+
+  static final Map<String, Map<String, String>> _colors = {};
+  static final Map<String, Map<String, String>> _strings = {};
+  static bool _initialized = false;
+
+  static const _modules = <(String module, String assetDir)>[
+    ('common', 'lib/common/resources'),
+    ('home', 'lib/feature/home/resources'),
+    ('phone', 'lib/products/phone/resources'),
+  ];
+
+  static Future<void> init() async {
+    if (_initialized) return;
+    for (final (module, assetDir) in _modules) {
+      _colors[module] = await _loadJsonMap('$assetDir/color.json');
+      _strings[module] = await _loadJsonMap('$assetDir/string.json');
+    }
+    _initialized = true;
+  }
+
+  /// 仅供测试：用内存数据直接装载，跳过 rootBundle。
+  @visibleForTesting
+  static void loadForTest({
+    Map<String, Map<String, String>> colors = const {},
+    Map<String, Map<String, String>> strings = const {},
+  }) {
+    _colors
+      ..clear()
+      ..addAll(colors);
+    _strings
+      ..clear()
+      ..addAll(strings);
+    _initialized = true;
+  }
+
+  static Future<Map<String, String>> _loadJsonMap(String assetPath) async {
+    try {
+      final raw = await rootBundle.loadString(assetPath);
+      final decoded = jsonDecode(raw);
+      if (decoded is! Map) return {};
+      return decoded.map((key, value) => MapEntry('$key', '$value'));
+    } catch (_) {
+      return {};
+    }
+  }
+
+  static Color color(
+    String module,
+    String key, {
+    String? fallbackModule,
+    Color fallback = Colors.transparent,
+  }) {
+    _ensureInit();
+    var value = _colors[module]?[key];
+    if ((value == null || value.isEmpty) && fallbackModule != null) {
+      value = _colors[fallbackModule]?[key];
+    }
+    if (value == null || value.isEmpty) return fallback;
+    return _parseColor(value);
+  }
+
+  static String string(
+    String module,
+    String key, {
+    String? fallbackModule,
+    String fallback = '',
+  }) {
+    _ensureInit();
+    var value = _strings[module]?[key];
+    if ((value == null || value.isEmpty) && fallbackModule != null) {
+      value = _strings[fallbackModule]?[key];
+    }
+    return value ?? fallback;
+  }
+
+  static Color _parseColor(String value) {
+    if (value == 'transparent') return Colors.transparent;
+    final hex = value.replaceFirst('#', '');
+    if (hex.length == 6) {
+      return Color(int.parse('FF$hex', radix: 16));
+    }
+    if (hex.length == 8) {
+      return Color(int.parse(hex, radix: 16));
+    }
+    return Colors.transparent;
+  }
+
+  static void _ensureInit() {
+    assert(
+      _initialized,
+      'ResourceLoader.init() must be called before using module resources.',
+    );
+  }
+}
