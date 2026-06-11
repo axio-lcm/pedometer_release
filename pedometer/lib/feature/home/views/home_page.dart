@@ -9,6 +9,7 @@ import 'package:pedometer/feature/home/components/top_entry_card.dart';
 import 'package:pedometer/feature/home/components/trend_chart_card.dart';
 import 'package:pedometer/feature/home/resources/home_resource.dart';
 import 'package:pedometer/feature/home/viewmodel/home_view_model.dart';
+import 'package:pedometer/feature/home/views/sport_detail_page.dart';
 
 /// 首页：暗色霓虹森林运动 Dashboard。
 class HomePage extends GetView<HomeViewModel> {
@@ -25,7 +26,12 @@ class HomePage extends GetView<HomeViewModel> {
           SafeArea(
             bottom: false,
             child: SingleChildScrollView(
-              padding: EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.md, AppSpacing.lg, 120),
+              padding: EdgeInsets.fromLTRB(
+                AppSpacing.lg,
+                AppSpacing.md,
+                AppSpacing.lg,
+                120,
+              ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
@@ -67,6 +73,7 @@ class HomePage extends GetView<HomeViewModel> {
             icon: Icons.directions_run_rounded,
             iconColor: AppColors.brandGreen,
             label: HomeResource.entryOverview,
+            onTap: () => Get.toNamed(SportDetailPage.routeName),
           ),
         ),
         SizedBox(width: AppSpacing.md),
@@ -117,9 +124,16 @@ class HomePage extends GetView<HomeViewModel> {
       return Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Expanded(child: MiniAnalysisCard(data: list[0], icon: Icons.local_fire_department_rounded)),
+          Expanded(
+            child: MiniAnalysisCard(
+              data: list[0],
+              icon: Icons.local_fire_department_rounded,
+            ),
+          ),
           SizedBox(width: AppSpacing.md),
-          Expanded(child: MiniAnalysisCard(data: list[1], icon: Icons.timer_rounded)),
+          Expanded(
+            child: MiniAnalysisCard(data: list[1], icon: Icons.timer_rounded),
+          ),
         ],
       );
     });

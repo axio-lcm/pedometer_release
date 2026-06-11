@@ -25,7 +25,7 @@ class _MainPageState extends State<MainPage> {
         index: _index,
         children: [
           const HomePage(),
-          _Placeholder(label: MainResource.tabActivity),
+          _Placeholder(label: MainResource.tabSport),
           _Placeholder(label: MainResource.tabMine),
         ],
       ),

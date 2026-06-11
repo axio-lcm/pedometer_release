@@ -24,3 +24,15 @@ class AppSpacing {
   static double get xxl => 24.w;
   static double get xxxl => 32.w;
 }
+
+/// 底部胶囊 Tab 统一尺寸：首页主 Tab 与详情页日/周/月 Tab 共用。
+class AppBottomTabBarMetrics {
+  AppBottomTabBarMetrics._();
+
+  static const double width = 300;
+  static const double height = 62;
+  static const double bottomOffset = 28;
+  static const double selectedWidth = 64;
+  static const double itemExtent = 44;
+  static const double iconSize = 24;
+}
