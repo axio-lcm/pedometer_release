@@ -11,13 +11,17 @@ import 'package:pedometer/feature/workout/resources/workout_resource.dart';
 
 /// 运动完成 Hero：发光六边形 + 勾选 + 彩纸，主副标题。
 class ExerciseCompleteHero extends StatelessWidget {
-  const ExerciseCompleteHero({super.key});
+  /// 图标区域 key：供页面定位礼花发射点。
+  final Key? iconAreaKey;
+
+  const ExerciseCompleteHero({super.key, this.iconAreaKey});
 
   @override
   Widget build(BuildContext context) {
     return Column(
       children: [
         SizedBox(
+          key: iconAreaKey,
           height: 180,
           child: Stack(
             alignment: Alignment.center,

@@ -44,6 +44,8 @@ dependencies:
   flutter_screenutil: ^5.9.3
   # 折线图 / 面积图（趋势、卡路里、活动时间分析）
   fl_chart: ^0.69.0
+  # 运动完成礼花效果
+  flutter_confetti: ^0.5.1
 
 dev_dependencies:
   flutter_test:
