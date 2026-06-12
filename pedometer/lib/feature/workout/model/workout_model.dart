@@ -43,6 +43,72 @@ class Achievement {
   });
 }
 
+/// 运动记录状态。
+enum WorkoutStatus { ready, running, paused, ended }
+
+/// 开始运动后的实时记录展示数据。
+class WorkoutTrackingData {
+  final String workoutTitle;
+  final WorkoutStatus status;
+  final String gpsLabel;
+  final String gpsStatus;
+  final String distanceKm;
+  final String targetKm;
+  final String duration;
+  final String calories;
+  final String pace;
+  final String endHint;
+  final String musicTitle;
+  final String musicStatus;
+
+  const WorkoutTrackingData({
+    required this.workoutTitle,
+    required this.status,
+    required this.gpsLabel,
+    required this.gpsStatus,
+    required this.distanceKm,
+    required this.targetKm,
+    required this.duration,
+    required this.calories,
+    required this.pace,
+    required this.endHint,
+    required this.musicTitle,
+    required this.musicStatus,
+  });
+
+  static const mock = WorkoutTrackingData(
+    workoutTitle: '户外跑步',
+    status: WorkoutStatus.ready,
+    gpsLabel: 'GPS',
+    gpsStatus: '信号良好',
+    distanceKm: '2.35',
+    targetKm: '8.00',
+    duration: '00:18:36',
+    calories: '186',
+    pace: "07'54''",
+    endHint: '长按结束',
+    musicTitle: '运动音乐',
+    musicStatus: '播放中',
+  );
+
+  WorkoutTrackingData copyWith({WorkoutStatus? status}) {
+    return WorkoutTrackingData(
+      workoutTitle: workoutTitle,
+      status: status ?? this.status,
+      gpsLabel: gpsLabel,
+      gpsStatus: gpsStatus,
+      distanceKm: distanceKm,
+      targetKm: targetKm,
+      duration: duration,
+      calories: calories,
+      pace: pace,
+      endHint: endHint,
+      musicTitle: musicTitle,
+      musicStatus: musicStatus,
+    );
+  }
+}
+
 /// 运动 / 训练页展示数据。
 class WorkoutPageData {
   final String heroTitle;

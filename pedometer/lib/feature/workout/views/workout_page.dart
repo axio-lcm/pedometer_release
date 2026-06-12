@@ -6,6 +6,7 @@ import 'package:pedometer/feature/workout/components/workout_components.dart';
 import 'package:pedometer/feature/workout/model/workout_model.dart';
 import 'package:pedometer/feature/workout/resources/workout_resource.dart';
 import 'package:pedometer/feature/workout/views/edit_sport_goal_page.dart';
+import 'package:pedometer/feature/workout/views/workout_tracking_page.dart';
 
 /// 运动 / 训练页：运动类型选择 + Hero 入口 + 目标与成就。
 ///
@@ -70,8 +71,7 @@ class _WorkoutPageState extends State<WorkoutPage> {
     );
   }
 
-  // TODO: 接入真实开始运动逻辑（GPS / 记录）。
-  void _onStart() {}
+  void _onStart() => Get.toNamed(WorkoutTrackingPage.routeName);
 
   void _onEdit() => Get.toNamed(EditSportGoalPage.routeName);
 

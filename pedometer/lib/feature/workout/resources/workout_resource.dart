@@ -19,4 +19,5 @@ class WorkoutRouteTable {
   WorkoutRouteTable._();
 
   static const String pathEditGoal = '/workout/edit-goal';
+  static const String pathTracking = '/workout/tracking';
 }
