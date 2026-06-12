@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pedometer/feature/workout/resources/workout_resource.dart';
 
 /// 运动类型（户外跑步 / 室内跑步 / 健走 / 徒步）。
 class WorkoutType {
@@ -77,18 +78,18 @@ class WorkoutTrackingData {
   });
 
   static const mock = WorkoutTrackingData(
-    workoutTitle: '户外跑步',
+    workoutTitle: WorkoutText.outdoorRun,
     status: WorkoutStatus.ready,
     gpsLabel: 'GPS',
-    gpsStatus: '信号良好',
+    gpsStatus: WorkoutText.trackingGpsGood,
     distanceKm: '2.35',
     targetKm: '8.00',
     duration: '00:18:36',
     calories: '186',
     pace: "07'54''",
-    endHint: '长按结束',
-    musicTitle: '运动音乐',
-    musicStatus: '播放中',
+    endHint: WorkoutText.trackingEndHint,
+    musicTitle: WorkoutText.trackingMusicTitle,
+    musicStatus: WorkoutText.trackingMusicStatus,
   );
 
   WorkoutTrackingData copyWith({WorkoutStatus? status}) {
@@ -132,64 +133,72 @@ class WorkoutPageData {
   static const _orange = Color(0xFFFF9F12);
 
   static const mock = WorkoutPageData(
-    heroTitle: '准备开始今天的训练',
-    heroSubtitle: '连接 GPS / 开启记录',
+    heroTitle: WorkoutText.heroTitle,
+    heroSubtitle: WorkoutText.heroSubtitle,
     workoutTypes: [
       WorkoutType(
-        title: '户外跑步',
+        title: WorkoutText.outdoorRun,
         icon: Icons.directions_run_rounded,
         color: _green,
       ),
       WorkoutType(
-        title: '室内跑步',
+        title: WorkoutText.indoorRun,
         icon: Icons.fitness_center_rounded,
         color: _cyan,
       ),
       WorkoutType(
-        title: '健走',
+        title: WorkoutText.fitnessWalk,
         icon: Icons.directions_walk_rounded,
         color: _purple,
       ),
-      WorkoutType(title: '徒步', icon: Icons.hiking_rounded, color: _orange),
+      WorkoutType(
+        title: WorkoutText.hiking,
+        icon: Icons.hiking_rounded,
+        color: _orange,
+      ),
     ],
     goalMetrics: [
       GoalMetric(
-        title: '公里数',
+        title: WorkoutText.goalKm,
         value: '8.00 / 8.00',
-        unit: '公里',
+        unit: WorkoutText.distanceUnit,
         icon: Icons.adjust_rounded,
         color: _green,
       ),
       GoalMetric(
-        title: '时长',
+        title: WorkoutText.goalDuration,
         value: '60 / 60',
-        unit: '分钟',
+        unit: WorkoutText.durationUnit,
         icon: Icons.timer_outlined,
         color: _cyan,
       ),
       GoalMetric(
-        title: '消耗',
+        title: WorkoutText.goalCalorie,
         value: '500 / 500',
         unit: 'kcal',
         icon: Icons.local_fire_department_rounded,
         color: _orange,
       ),
       GoalMetric(
-        title: '自由训练',
-        value: '不设定目标',
+        title: WorkoutText.freeTraining,
+        value: WorkoutText.noGoal,
         icon: Icons.all_inclusive_rounded,
         color: _purple,
       ),
     ],
     achievements: [
       Achievement(
-        title: '初级跑者',
+        title: WorkoutText.beginnerRunner,
         icon: Icons.directions_run_rounded,
         color: _green,
       ),
-      Achievement(title: '坚持不懈', icon: Icons.flag_rounded, color: _cyan),
       Achievement(
-        title: '百公里',
+        title: WorkoutText.persistent,
+        icon: Icons.flag_rounded,
+        color: _cyan,
+      ),
+      Achievement(
+        title: WorkoutText.hundredKm,
         icon: Icons.military_tech_rounded,
         color: _purple,
       ),

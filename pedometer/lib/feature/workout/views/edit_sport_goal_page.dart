@@ -38,9 +38,9 @@ class _EditSportGoalPageState extends State<EditSportGoalPage> {
   static const int _caloriesStep = 50;
 
   static const List<String> _suggestions = [
-    '距离：初学者建议 3–5 公里，进阶者 5–10 公里',
-    '时长：建议 30–60 分钟，有助于提升心肺能力',
-    '消耗：建议 300–600 kcal，保持健康体重',
+    WorkoutText.suggestionDistance,
+    WorkoutText.suggestionDuration,
+    WorkoutText.suggestionCalorie,
   ];
 
   double _distance = _defaultDistance;
@@ -114,10 +114,13 @@ class _EditSportGoalPageState extends State<EditSportGoalPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  AppTopNavigationBar(title: '编辑运动目标', onBack: _back),
+                  AppTopNavigationBar(
+                    title: WorkoutResource.editGoalTitle,
+                    onBack: _back,
+                  ),
                   SizedBox(height: AppSpacing.sm),
                   Text(
-                    '设定目标，激励自己，每天进步一点点 💪',
+                    WorkoutResource.editGoalSubtitle,
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                     textAlign: TextAlign.center,
@@ -130,10 +133,10 @@ class _EditSportGoalPageState extends State<EditSportGoalPage> {
                   GoalAdjustCard(
                     icon: Icons.adjust_rounded,
                     color: AppColors.brandGreen,
-                    title: '目标距离',
+                    title: WorkoutResource.targetDistance,
                     value: _distance.toStringAsFixed(2),
-                    unit: '公里',
-                    suggestion: '建议 3.00 - 20.00 公里',
+                    unit: WorkoutResource.distanceUnit,
+                    suggestion: WorkoutResource.targetDistanceSuggestion,
                     enabled: enabled,
                     onDecrease: () => _changeDistance(-_distanceStep),
                     onIncrease: () => _changeDistance(_distanceStep),
@@ -142,10 +145,10 @@ class _EditSportGoalPageState extends State<EditSportGoalPage> {
                   GoalAdjustCard(
                     icon: Icons.timer_outlined,
                     color: AppColors.accentCyan,
-                    title: '目标时长',
+                    title: WorkoutResource.targetDuration,
                     value: '$_duration',
-                    unit: '分钟',
-                    suggestion: '建议 10 - 300 分钟',
+                    unit: WorkoutResource.durationUnit,
+                    suggestion: WorkoutResource.targetDurationSuggestion,
                     enabled: enabled,
                     onDecrease: () => _changeDuration(-_durationStep),
                     onIncrease: () => _changeDuration(_durationStep),
@@ -154,10 +157,10 @@ class _EditSportGoalPageState extends State<EditSportGoalPage> {
                   GoalAdjustCard(
                     icon: Icons.local_fire_department_rounded,
                     color: AppColors.accentOrange,
-                    title: '目标消耗',
+                    title: WorkoutResource.targetCalorie,
                     value: '$_calories',
                     unit: 'kcal',
-                    suggestion: '建议 100 - 2000 kcal',
+                    suggestion: WorkoutResource.targetCalorieSuggestion,
                     enabled: enabled,
                     onDecrease: () => _changeCalories(-_caloriesStep),
                     onIncrease: () => _changeCalories(_caloriesStep),
@@ -170,7 +173,10 @@ class _EditSportGoalPageState extends State<EditSportGoalPage> {
                   SizedBox(height: AppSpacing.lg),
                   const GoalSuggestionCard(suggestions: _suggestions),
                   SizedBox(height: AppSpacing.xl),
-                  GradientActionButton(label: '保存目标', onTap: _save),
+                  GradientActionButton(
+                    label: WorkoutResource.saveGoal,
+                    onTap: _save,
+                  ),
                   SizedBox(height: AppSpacing.md),
                   Center(
                     child: GestureDetector(
@@ -179,7 +185,7 @@ class _EditSportGoalPageState extends State<EditSportGoalPage> {
                       child: Padding(
                         padding: EdgeInsets.symmetric(vertical: AppSpacing.sm),
                         child: Text(
-                          '恢复默认',
+                          WorkoutResource.restoreDefault,
                           style: TextStyle(
                             color: AppColors.textTertiary,
                             fontSize: 15,

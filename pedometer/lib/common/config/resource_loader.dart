@@ -14,6 +14,7 @@ class ResourceLoader {
   static const _modules = <(String module, String assetDir)>[
     ('common', 'lib/common/resources'),
     ('home', 'lib/feature/home/resources'),
+    ('workout', 'lib/feature/workout/resources'),
     ('phone', 'lib/products/phone/resources'),
   ];
 

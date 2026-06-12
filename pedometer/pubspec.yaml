@@ -70,6 +70,7 @@ flutter:
   assets:
     - lib/common/resources/
     - lib/feature/home/resources/
+    - lib/feature/workout/resources/
     - lib/products/phone/resources/
     - assets/images/
 

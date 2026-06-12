@@ -5,6 +5,7 @@ import 'package:pedometer/common/component/glass_card.dart';
 import 'package:pedometer/common/config/app_colors.dart';
 import 'package:pedometer/common/config/app_dimens.dart';
 import 'package:pedometer/feature/workout/model/workout_model.dart';
+import 'package:pedometer/feature/workout/resources/workout_resource.dart';
 
 /// 红框标准区域对应的地图容器：底层后续替换为真实地图，浮层保持不变。
 class WorkoutMapSection extends StatelessWidget {
@@ -223,7 +224,7 @@ class WorkoutDistanceOverlay extends StatelessWidget {
           children: [
             Flexible(
               child: Text(
-                '累计距离（公里）',
+                WorkoutResource.trackingDistanceLabel,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: TextStyle(
@@ -258,7 +259,7 @@ class WorkoutDistanceOverlay extends StatelessWidget {
                 children: [
                   Flexible(
                     child: Text(
-                      '目标 ${data.targetKm} 公里',
+                      WorkoutResource.trackingTarget(data.targetKm),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
@@ -288,7 +289,7 @@ class WorkoutDistanceOverlay extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           Text(
-            '累计距离（公里）',
+            WorkoutResource.trackingDistanceLabel,
             style: TextStyle(
               color: AppColors.textSecondary,
               fontSize: 14,
@@ -321,7 +322,7 @@ class WorkoutDistanceOverlay extends StatelessWidget {
             children: [
               Flexible(
                 child: Text(
-                  '目标 ${data.targetKm} 公里',
+                  WorkoutResource.trackingTarget(data.targetKm),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
@@ -355,13 +356,22 @@ class WorkoutEndedMapSummary extends StatelessWidget {
       child: Row(
         children: [
           Expanded(
-            child: _EndedMetric(label: '距离', value: data.distanceKm),
+            child: _EndedMetric(
+              label: WorkoutResource.metricDistance,
+              value: data.distanceKm,
+            ),
           ),
           Expanded(
-            child: _EndedMetric(label: '时长', value: data.duration),
+            child: _EndedMetric(
+              label: WorkoutResource.metricDuration,
+              value: data.duration,
+            ),
           ),
           Expanded(
-            child: _EndedMetric(label: '配速', value: data.pace),
+            child: _EndedMetric(
+              label: WorkoutResource.metricPace,
+              value: data.pace,
+            ),
           ),
         ],
       ),
@@ -428,7 +438,7 @@ class WorkoutMetricPanel extends StatelessWidget {
             child: WorkoutMetricItem(
               icon: Icons.schedule_rounded,
               iconColor: AppColors.brandGreen,
-              label: '时长',
+              label: WorkoutResource.metricDuration,
               value: data.duration,
             ),
           ),
@@ -437,7 +447,7 @@ class WorkoutMetricPanel extends StatelessWidget {
             child: WorkoutMetricItem(
               icon: Icons.local_fire_department_rounded,
               iconColor: AppColors.accentOrange,
-              label: '消耗 (kcal)',
+              label: WorkoutResource.metricCalorieKcal,
               value: data.calories,
             ),
           ),
@@ -446,7 +456,7 @@ class WorkoutMetricPanel extends StatelessWidget {
             child: WorkoutMetricItem(
               icon: Icons.speed_rounded,
               iconColor: AppColors.accentCyan,
-              label: '配速 (min/km)',
+              label: WorkoutResource.metricPaceMinKm,
               value: data.pace,
             ),
           ),
@@ -523,7 +533,7 @@ class WorkoutControlPanel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final hintText = switch (data.status) {
-      WorkoutStatus.ready => '开始',
+      WorkoutStatus.ready => WorkoutResource.trackingStartHint,
       WorkoutStatus.running => data.endHint,
       WorkoutStatus.paused => data.endHint,
       WorkoutStatus.ended => null,

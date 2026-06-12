@@ -3,6 +3,7 @@ import 'package:pedometer/common/component/glass_card.dart';
 import 'package:pedometer/common/config/app_colors.dart';
 import 'package:pedometer/common/config/app_dimens.dart';
 import 'package:pedometer/feature/workout/model/workout_model.dart';
+import 'package:pedometer/feature/workout/resources/workout_resource.dart';
 
 /// 绿色渐变胶囊主按钮，带轻微发光。
 class GradientActionButton extends StatelessWidget {
@@ -217,14 +218,14 @@ class _IconBadge extends StatelessWidget {
 class WorkoutHeroCard extends StatelessWidget {
   final String title;
   final String subtitle;
-  final String actionLabel;
+  final String? actionLabel;
   final VoidCallback? onStart;
 
   const WorkoutHeroCard({
     super.key,
     required this.title,
     required this.subtitle,
-    this.actionLabel = '开始运动',
+    this.actionLabel,
     this.onStart,
   });
 
@@ -285,7 +286,7 @@ class WorkoutHeroCard extends StatelessWidget {
                 Align(
                   alignment: Alignment.centerLeft,
                   child: GradientActionButton(
-                    label: actionLabel,
+                    label: actionLabel ?? WorkoutResource.startWorkout,
                     icon: Icons.play_arrow_rounded,
                     onTap: onStart,
                   ),
@@ -367,7 +368,7 @@ class GoalAchievementCard extends StatelessWidget {
             children: [
               Expanded(
                 child: Text(
-                  '运动目标与成就',
+                  WorkoutResource.goalAchievementTitle,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
@@ -381,10 +382,10 @@ class GoalAchievementCard extends StatelessWidget {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
-                  _TextAction(label: '编辑', onTap: onEdit),
+                  _TextAction(label: WorkoutResource.edit, onTap: onEdit),
                   SizedBox(height: AppSpacing.xxs),
                   Text(
-                    '达成目标后自动点亮成就徽章',
+                    WorkoutResource.goalAchievementHint,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
@@ -415,7 +416,7 @@ class GoalAchievementCard extends StatelessWidget {
             children: [
               Expanded(
                 child: Text(
-                  '成就徽章',
+                  WorkoutResource.achievementBadge,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
@@ -426,7 +427,7 @@ class GoalAchievementCard extends StatelessWidget {
                 ),
               ),
               SizedBox(width: AppSpacing.sm),
-              _TextAction(label: '查看更多', onTap: onViewMore),
+              _TextAction(label: WorkoutResource.viewMore, onTap: onViewMore),
             ],
           ),
           SizedBox(height: AppSpacing.lg),

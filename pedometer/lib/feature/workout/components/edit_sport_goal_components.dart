@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:pedometer/common/component/glass_card.dart';
 import 'package:pedometer/common/config/app_colors.dart';
 import 'package:pedometer/common/config/app_dimens.dart';
+import 'package:pedometer/feature/workout/resources/workout_resource.dart';
 
 /// 圆形玻璃底座图标：深色玻璃 + 功能色描边与柔和发光。
 class CircleIconBadge extends StatelessWidget {
@@ -208,10 +209,7 @@ class GoalAdjustCard extends StatelessWidget {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   textAlign: TextAlign.end,
-                  style: TextStyle(
-                    color: AppColors.textTertiary,
-                    fontSize: 12,
-                  ),
+                  style: TextStyle(color: AppColors.textTertiary, fontSize: 12),
                 ),
               ),
             ],
@@ -247,7 +245,7 @@ class FreeTrainingCard extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  '自由训练',
+                  WorkoutResource.freeTraining,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
@@ -258,7 +256,7 @@ class FreeTrainingCard extends StatelessWidget {
                 ),
                 SizedBox(height: AppSpacing.xxs),
                 Text(
-                  '不设定目标',
+                  WorkoutResource.noGoal,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
@@ -269,13 +267,10 @@ class FreeTrainingCard extends StatelessWidget {
                 ),
                 SizedBox(height: AppSpacing.xxs),
                 Text(
-                  '开启后将不设定任何目标',
+                  WorkoutResource.freeTrainingTip,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    color: AppColors.textTertiary,
-                    fontSize: 12,
-                  ),
+                  style: TextStyle(color: AppColors.textTertiary, fontSize: 12),
                 ),
               ],
             ),
@@ -315,7 +310,7 @@ class GoalSuggestionCard extends StatelessWidget {
               ),
               SizedBox(width: AppSpacing.xs),
               Text(
-                '目标建议',
+                WorkoutResource.goalSuggestionTitle,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: TextStyle(

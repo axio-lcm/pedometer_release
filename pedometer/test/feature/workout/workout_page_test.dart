@@ -168,11 +168,11 @@ void main() {
     final runningTargetText = tester.widget<Text>(find.text('目标 8.00 公里'));
     expect(
       runningValueText.style?.fontSize,
-      runningLabelText.style!.fontSize! + 5,
+      runningLabelText.style!.fontSize! + 10,
     );
     expect(
       runningValueText.style?.fontSize,
-      runningTargetText.style!.fontSize! + 5,
+      runningTargetText.style!.fontSize! + 10,
     );
     final runningValueCenterY = tester.getCenter(find.text('2.35')).dy;
     final runningLabelCenterY = tester.getCenter(find.text('累计距离（公里）')).dy;

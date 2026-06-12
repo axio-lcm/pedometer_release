@@ -12,6 +12,163 @@ class WorkoutResource {
     fallbackModule: 'common',
     fallback: AppColors.bgPrimary,
   );
+
+  static String get heroTitle => _string('hero_title', WorkoutText.heroTitle);
+  static String get heroSubtitle =>
+      _string('hero_subtitle', WorkoutText.heroSubtitle);
+  static String get startWorkout =>
+      _string('start_workout', WorkoutText.startWorkout);
+  static String get outdoorRun =>
+      _string('outdoor_run', WorkoutText.outdoorRun);
+  static String get indoorRun => _string('indoor_run', WorkoutText.indoorRun);
+  static String get fitnessWalk =>
+      _string('fitness_walk', WorkoutText.fitnessWalk);
+  static String get hiking => _string('hiking', WorkoutText.hiking);
+  static String get goalKm => _string('goal_km', WorkoutText.goalKm);
+  static String get distanceUnit =>
+      _string('distance_unit', WorkoutText.distanceUnit);
+  static String get goalDuration =>
+      _string('goal_duration', WorkoutText.goalDuration);
+  static String get durationUnit =>
+      _string('duration_unit', WorkoutText.durationUnit);
+  static String get goalCalorie =>
+      _string('goal_calorie', WorkoutText.goalCalorie);
+  static String get freeTraining =>
+      _string('free_training', WorkoutText.freeTraining);
+  static String get noGoal => _string('no_goal', WorkoutText.noGoal);
+  static String get beginnerRunner =>
+      _string('beginner_runner', WorkoutText.beginnerRunner);
+  static String get persistent => _string('persistent', WorkoutText.persistent);
+  static String get hundredKm => _string('hundred_km', WorkoutText.hundredKm);
+  static String get trackingGpsGood =>
+      _string('tracking_gps_good', WorkoutText.trackingGpsGood);
+  static String get trackingEndHint =>
+      _string('tracking_end_hint', WorkoutText.trackingEndHint);
+  static String get trackingMusicTitle =>
+      _string('tracking_music_title', WorkoutText.trackingMusicTitle);
+  static String get trackingMusicStatus =>
+      _string('tracking_music_status', WorkoutText.trackingMusicStatus);
+  static String get trackingDistanceLabel =>
+      _string('tracking_distance_label', WorkoutText.trackingDistanceLabel);
+  static String get trackingStartHint =>
+      _string('tracking_start_hint', WorkoutText.trackingStartHint);
+  static String get metricDistance =>
+      _string('metric_distance', WorkoutText.metricDistance);
+  static String get metricDuration =>
+      _string('metric_duration', WorkoutText.metricDuration);
+  static String get metricPace =>
+      _string('metric_pace', WorkoutText.metricPace);
+  static String get metricCalorieKcal =>
+      _string('metric_calorie_kcal', WorkoutText.metricCalorieKcal);
+  static String get metricPaceMinKm =>
+      _string('metric_pace_min_km', WorkoutText.metricPaceMinKm);
+  static String get goalAchievementTitle =>
+      _string('goal_achievement_title', WorkoutText.goalAchievementTitle);
+  static String get edit => _string('edit', WorkoutText.edit);
+  static String get goalAchievementHint =>
+      _string('goal_achievement_hint', WorkoutText.goalAchievementHint);
+  static String get achievementBadge =>
+      _string('achievement_badge', WorkoutText.achievementBadge);
+  static String get viewMore => _string('view_more', WorkoutText.viewMore);
+  static String get editGoalTitle =>
+      _string('edit_goal_title', WorkoutText.editGoalTitle);
+  static String get editGoalSubtitle =>
+      _string('edit_goal_subtitle', WorkoutText.editGoalSubtitle);
+  static String get targetDistance =>
+      _string('target_distance', WorkoutText.targetDistance);
+  static String get targetDistanceSuggestion => _string(
+    'target_distance_suggestion',
+    WorkoutText.targetDistanceSuggestion,
+  );
+  static String get targetDuration =>
+      _string('target_duration', WorkoutText.targetDuration);
+  static String get targetDurationSuggestion => _string(
+    'target_duration_suggestion',
+    WorkoutText.targetDurationSuggestion,
+  );
+  static String get targetCalorie =>
+      _string('target_calorie', WorkoutText.targetCalorie);
+  static String get targetCalorieSuggestion =>
+      _string('target_calorie_suggestion', WorkoutText.targetCalorieSuggestion);
+  static String get saveGoal => _string('save_goal', WorkoutText.saveGoal);
+  static String get restoreDefault =>
+      _string('restore_default', WorkoutText.restoreDefault);
+  static String get freeTrainingTip =>
+      _string('free_training_tip', WorkoutText.freeTrainingTip);
+  static String get goalSuggestionTitle =>
+      _string('goal_suggestion_title', WorkoutText.goalSuggestionTitle);
+  static String get suggestionDistance =>
+      _string('suggestion_distance', WorkoutText.suggestionDistance);
+  static String get suggestionDuration =>
+      _string('suggestion_duration', WorkoutText.suggestionDuration);
+  static String get suggestionCalorie =>
+      _string('suggestion_calorie', WorkoutText.suggestionCalorie);
+
+  static String trackingTarget(String value) {
+    return _string(
+      'tracking_target_template',
+      WorkoutText.trackingTargetTemplate,
+    ).replaceAll('{{value}}', value);
+  }
+
+  static String _string(String key, String fallback) {
+    return ResourceLoader.string('workout', key, fallback: fallback);
+  }
+}
+
+/// 运动模块 const 文案。供 const mock / 默认数据使用；动态读取请走 [WorkoutResource]。
+class WorkoutText {
+  WorkoutText._();
+
+  static const heroTitle = '准备开始今天的训练';
+  static const heroSubtitle = '连接 GPS / 开启记录';
+  static const startWorkout = '开始运动';
+  static const outdoorRun = '户外跑步';
+  static const indoorRun = '室内跑步';
+  static const fitnessWalk = '健走';
+  static const hiking = '徒步';
+  static const goalKm = '公里数';
+  static const distanceUnit = '公里';
+  static const goalDuration = '时长';
+  static const durationUnit = '分钟';
+  static const goalCalorie = '消耗';
+  static const freeTraining = '自由训练';
+  static const noGoal = '不设定目标';
+  static const beginnerRunner = '初级跑者';
+  static const persistent = '坚持不懈';
+  static const hundredKm = '百公里';
+  static const trackingGpsGood = '信号良好';
+  static const trackingEndHint = '长按结束';
+  static const trackingMusicTitle = '运动音乐';
+  static const trackingMusicStatus = '播放中';
+  static const trackingDistanceLabel = '累计距离（公里）';
+  static const trackingTargetTemplate = '目标 {{value}} 公里';
+  static const trackingStartHint = '开始';
+  static const metricDistance = '距离';
+  static const metricDuration = '时长';
+  static const metricPace = '配速';
+  static const metricCalorieKcal = '消耗 (kcal)';
+  static const metricPaceMinKm = '配速 (min/km)';
+  static const goalAchievementTitle = '运动目标与成就';
+  static const edit = '编辑';
+  static const goalAchievementHint = '达成目标后自动点亮成就徽章';
+  static const achievementBadge = '成就徽章';
+  static const viewMore = '查看更多';
+  static const editGoalTitle = '编辑运动目标';
+  static const editGoalSubtitle = '设定目标，激励自己，每天进步一点点';
+  static const targetDistance = '目标距离';
+  static const targetDistanceSuggestion = '建议 3.00 - 20.00 公里';
+  static const targetDuration = '目标时长';
+  static const targetDurationSuggestion = '建议 10 - 300 分钟';
+  static const targetCalorie = '目标消耗';
+  static const targetCalorieSuggestion = '建议 100 - 2000 kcal';
+  static const saveGoal = '保存目标';
+  static const restoreDefault = '恢复默认';
+  static const freeTrainingTip = '开启后将不设定任何目标';
+  static const goalSuggestionTitle = '目标建议';
+  static const suggestionDistance = '距离：初学者建议 3-5 公里，进阶者 5-10 公里';
+  static const suggestionDuration = '时长：建议 30-60 分钟，有助于提升心肺能力';
+  static const suggestionCalorie = '消耗：建议 300-600 kcal，保持健康体重';
 }
 
 /// 运动页模块路由定义（对齐 HomeRouteTable 写法）。
