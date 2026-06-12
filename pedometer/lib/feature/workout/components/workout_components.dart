@@ -5,17 +5,19 @@ import 'package:pedometer/common/config/app_dimens.dart';
 import 'package:pedometer/feature/workout/model/workout_model.dart';
 import 'package:pedometer/feature/workout/resources/workout_resource.dart';
 
-/// 绿色渐变胶囊主按钮，带轻微发光。
+/// 绿色渐变胶囊主按钮，默认带轻微发光，可通过 [glow] 关闭。
 class GradientActionButton extends StatelessWidget {
   final String label;
   final IconData? icon;
   final VoidCallback? onTap;
+  final bool glow;
 
   const GradientActionButton({
     super.key,
     required this.label,
     this.icon,
     this.onTap,
+    this.glow = true,
   });
 
   @override
@@ -34,11 +36,12 @@ class GradientActionButton extends StatelessWidget {
             colors: [AppColors.brandGreenLight, AppColors.brandGreen],
           ),
           boxShadow: [
-            BoxShadow(
-              color: AppColors.brandGreen.withValues(alpha: 0.45),
-              blurRadius: 22,
-              spreadRadius: -2,
-            ),
+            if (glow)
+              BoxShadow(
+                color: AppColors.brandGreen.withValues(alpha: 0.45),
+                blurRadius: 22,
+                spreadRadius: -2,
+              ),
           ],
         ),
         child: Row(
@@ -286,6 +289,7 @@ class WorkoutHeroCard extends StatelessWidget {
                   child: GradientActionButton(
                     label: actionLabel ?? WorkoutResource.startWorkout,
                     icon: Icons.play_arrow_rounded,
+                    glow: false,
                     onTap: onStart,
                   ),
                 ),
