@@ -127,3 +127,113 @@ class SyncHistoryRecord {
     required this.result,
   });
 }
+
+/// 单次同步历史详情页展示数据。
+class SyncHistoryDetailData {
+  final String statusTitle;
+  final String time;
+  final String mode;
+  final String result;
+  final List<SyncDataType> syncedItems;
+  final List<SyncDataSource> sources;
+  final List<SyncInfoItem> methodItems;
+  final List<SyncInfoItem> infoItems;
+  final String safetyText;
+
+  const SyncHistoryDetailData({
+    required this.statusTitle,
+    required this.time,
+    required this.mode,
+    required this.result,
+    required this.syncedItems,
+    required this.sources,
+    required this.methodItems,
+    required this.infoItems,
+    required this.safetyText,
+  });
+
+  static const mock = SyncHistoryDetailData(
+    statusTitle: '同步成功',
+    time: '今天 09:41',
+    mode: '手动同步',
+    result: '成功同步 4 项数据',
+    syncedItems: [
+      SyncDataType(
+        icon: Icons.directions_walk_rounded,
+        iconColor: Color(0xFF24F04E),
+        title: '步数',
+        value: '5,276 步',
+      ),
+      SyncDataType(
+        icon: Icons.local_fire_department_rounded,
+        iconColor: Color(0xFFFF9F12),
+        title: '卡路里',
+        value: '293 kcal',
+      ),
+      SyncDataType(
+        icon: Icons.timer_outlined,
+        iconColor: Color(0xFF0CD9FF),
+        title: '活动时间',
+        value: '28 min',
+      ),
+      SyncDataType(
+        icon: Icons.location_on_rounded,
+        iconColor: Color(0xFF43F56B),
+        title: '距离',
+        value: '1.6 km',
+      ),
+    ],
+    sources: [
+      SyncDataSource(
+        title: 'Apple Health',
+        status: '已连接',
+        icon: Icons.favorite_rounded,
+        iconColor: Color(0xFFFF2D55),
+      ),
+      SyncDataSource(
+        title: 'Health Connect',
+        status: '已连接',
+        icon: Icons.link_rounded,
+        iconColor: Color(0xFF3D7CFF),
+      ),
+    ],
+    methodItems: [
+      SyncInfoItem(title: '同步方式', value: '手动'),
+      SyncInfoItem(title: '数据项', value: '4 项'),
+      SyncInfoItem(title: '耗时', value: '2.1 s'),
+    ],
+    infoItems: [
+      SyncInfoItem(
+        icon: Icons.sell_outlined,
+        title: '同步编号',
+        value: 'SYNC-2026-0513-0941',
+      ),
+      SyncInfoItem(
+        icon: Icons.phone_iphone_rounded,
+        title: '发起设备',
+        value: 'iPhone',
+      ),
+      SyncInfoItem(
+        icon: Icons.verified_user_outlined,
+        title: '记录状态',
+        value: '成功',
+        highlight: true,
+      ),
+    ],
+    safetyText: '您的数据安全受保护，所有数据均已加密传输。',
+  );
+}
+
+class SyncInfoItem {
+  final IconData? icon;
+  final String title;
+  final String value;
+  final bool highlight;
+
+  const SyncInfoItem({
+    this.icon,
+    required this.title,
+    required this.value,
+    this.highlight = false,
+  });
+}

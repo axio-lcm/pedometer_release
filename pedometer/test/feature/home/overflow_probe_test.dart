@@ -51,4 +51,30 @@ void main() {
     expect(find.text('同步成功'), findsOneWidget);
     expect(find.text('同步历史'), findsOneWidget);
   });
+
+  testWidgets('sync history detail has no first-frame overflow at 375x812', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(375, 812);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.resetPhysicalSize);
+    ResourceLoader.loadForTest(
+      colors: {'common': {}, 'home': {}, 'phone': {}},
+      strings: {'common': {}, 'home': {}, 'phone': {}},
+    );
+    addTearDown(Get.reset);
+
+    await tester.pumpWidget(const PedometerApp());
+    await tester.pump();
+    await tester.tap(find.text(HomeResource.entryHealthSync));
+    await tester.pumpAndSettle();
+    await tester.scrollUntilVisible(find.text('今天 09:41'), 260);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('今天 09:41'));
+    await tester.pumpAndSettle();
+
+    expect(tester.takeException(), isNull);
+    expect(find.text('同步历史详情'), findsOneWidget);
+    expect(find.text('本次同步数据'), findsOneWidget);
+  });
 }

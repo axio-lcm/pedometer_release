@@ -4,17 +4,20 @@ import 'package:pedometer/common/component/app_top_navigation_bar.dart';
 import 'package:pedometer/common/config/app_colors.dart';
 import 'package:pedometer/common/config/app_dimens.dart';
 import 'package:pedometer/feature/home/components/sync_data_detail_components.dart';
+import 'package:pedometer/feature/home/components/sync_history_detail_components.dart';
 import 'package:pedometer/feature/home/model/sync_data_detail_model.dart';
 import 'package:pedometer/feature/home/resources/home_resource.dart';
-import 'package:pedometer/feature/home/views/sync_history_detail_page.dart';
 
-/// Health 同步数据详情页。
-class SyncDataDetailPage extends StatelessWidget {
-  static const String routeName = HomeRouteTable.pathSyncDataDetail;
+/// 单条同步历史详情页。
+class SyncHistoryDetailPage extends StatelessWidget {
+  static const String routeName = HomeRouteTable.pathSyncHistoryDetail;
 
-  final SyncDataDetailData data;
+  final SyncHistoryDetailData data;
 
-  const SyncDataDetailPage({super.key, this.data = SyncDataDetailData.mock});
+  const SyncHistoryDetailPage({
+    super.key,
+    this.data = SyncHistoryDetailData.mock,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -22,7 +25,7 @@ class SyncDataDetailPage extends StatelessWidget {
       backgroundColor: HomeResource.background,
       body: Stack(
         children: [
-          const Positioned.fill(child: _SyncDetailBackground()),
+          const Positioned.fill(child: _SyncHistoryDetailBackground()),
           SafeArea(
             bottom: false,
             child: SingleChildScrollView(
@@ -36,31 +39,25 @@ class SyncDataDetailPage extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   AppTopNavigationBar(
-                    title: '同步数据详情',
+                    title: '同步历史详情',
                     onBack: () {
                       if (Get.key.currentState?.canPop() ?? false) {
                         Get.back<void>();
                       }
                     },
                   ),
-                  SyncStatusHero(data: data),
-                  SyncOverviewCard(
+                  SyncHistoryStatusHero(data: data),
+                  CurrentSyncDataCard(items: data.syncedItems),
+                  SizedBox(height: AppSpacing.lg),
+                  SourceAndMethodCard(
                     sources: data.sources,
-                    metrics: data.overviewMetrics,
+                    methodItems: data.methodItems,
                   ),
                   SizedBox(height: AppSpacing.lg),
-                  DataTypeCard(items: data.dataTypes),
-                  SizedBox(height: AppSpacing.lg),
-                  SyncHistoryCard(
-                    histories: data.histories,
-                    onHistoryTap: (record) => Get.toNamed(
-                      SyncHistoryDetailPage.routeName,
-                      arguments: record,
-                    ),
-                  ),
+                  SyncInfoCard(items: data.infoItems),
                   SizedBox(height: AppSpacing.xl),
                   DataSecurityFooter(text: data.safetyText),
-                  SizedBox(height: AppSpacing.xxl),
+                  SizedBox(height: AppSpacing.xxxl),
                 ],
               ),
             ),
@@ -71,8 +68,8 @@ class SyncDataDetailPage extends StatelessWidget {
   }
 }
 
-class _SyncDetailBackground extends StatelessWidget {
-  const _SyncDetailBackground();
+class _SyncHistoryDetailBackground extends StatelessWidget {
+  const _SyncHistoryDetailBackground();
 
   @override
   Widget build(BuildContext context) {
@@ -91,16 +88,16 @@ class _SyncDetailBackground extends StatelessWidget {
       child: Stack(
         children: [
           Positioned(
-            top: 90,
-            left: -70,
-            right: -70,
-            height: 320,
+            top: 110,
+            left: -80,
+            right: -80,
+            height: 330,
             child: DecoratedBox(
               decoration: BoxDecoration(
                 gradient: RadialGradient(
                   colors: [
-                    AppColors.bgRadialGreen.withValues(alpha: 0.54),
-                    AppColors.bgRadialBlue.withValues(alpha: 0.16),
+                    AppColors.brandGreenDark.withValues(alpha: 0.56),
+                    AppColors.bgRadialBlue.withValues(alpha: 0.12),
                     Colors.transparent,
                   ],
                 ),
@@ -108,15 +105,15 @@ class _SyncDetailBackground extends StatelessWidget {
             ),
           ),
           Positioned(
-            top: 430,
-            left: -90,
-            right: -90,
+            bottom: 80,
+            left: -80,
+            right: -80,
             height: 360,
             child: DecoratedBox(
               decoration: BoxDecoration(
                 gradient: RadialGradient(
                   colors: [
-                    AppColors.brandGreenDark.withValues(alpha: 0.2),
+                    AppColors.brandGreenDark.withValues(alpha: 0.18),
                     Colors.transparent,
                   ],
                 ),

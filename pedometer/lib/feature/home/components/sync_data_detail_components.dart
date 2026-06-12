@@ -403,8 +403,13 @@ class DataTypeListItem extends StatelessWidget {
 
 class SyncHistoryCard extends StatelessWidget {
   final List<SyncHistoryRecord> histories;
+  final ValueChanged<SyncHistoryRecord>? onHistoryTap;
 
-  const SyncHistoryCard({super.key, required this.histories});
+  const SyncHistoryCard({
+    super.key,
+    required this.histories,
+    this.onHistoryTap,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -431,6 +436,9 @@ class SyncHistoryCard extends StatelessWidget {
             SyncHistoryItem(
               data: histories[i],
               showDivider: i != histories.length - 1,
+              onTap: onHistoryTap == null
+                  ? null
+                  : () => onHistoryTap!(histories[i]),
             ),
         ],
       ),
@@ -441,72 +449,78 @@ class SyncHistoryCard extends StatelessWidget {
 class SyncHistoryItem extends StatelessWidget {
   final SyncHistoryRecord data;
   final bool showDivider;
+  final VoidCallback? onTap;
 
   const SyncHistoryItem({
     super.key,
     required this.data,
     required this.showDivider,
+    this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
     return Column(
       children: [
-        SizedBox(
-          height: 70,
-          child: Row(
-            children: [
-              const SuccessCheckIcon(size: 36, outlined: true),
-              SizedBox(width: AppSpacing.lg),
-              Expanded(
-                flex: 5,
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      data.time,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        color: AppColors.textPrimary,
-                        fontSize: 18,
-                        fontWeight: FontWeight.w600,
+        GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: onTap,
+          child: SizedBox(
+            height: 74,
+            child: Row(
+              children: [
+                const SuccessCheckIcon(size: 36, outlined: true),
+                SizedBox(width: AppSpacing.lg),
+                Expanded(
+                  flex: 5,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        data.time,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          color: AppColors.textPrimary,
+                          fontSize: 18,
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
-                    ),
-                    SizedBox(height: AppSpacing.xxs),
-                    Text(
-                      data.mode,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        color: AppColors.textSecondary,
-                        fontSize: 14,
+                      SizedBox(height: AppSpacing.xxs),
+                      Text(
+                        data.mode,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          color: AppColors.textSecondary,
+                          fontSize: 14,
+                        ),
                       ),
-                    ),
-                  ],
-                ),
-              ),
-              SizedBox(width: AppSpacing.md),
-              Expanded(
-                flex: 4,
-                child: Text(
-                  data.result,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  textAlign: TextAlign.end,
-                  style: TextStyle(
-                    color: AppColors.textSecondary,
-                    fontSize: 15,
+                    ],
                   ),
                 ),
-              ),
-              Icon(
-                Icons.chevron_right_rounded,
-                color: AppColors.textSecondary,
-                size: 24,
-              ),
-            ],
+                SizedBox(width: AppSpacing.md),
+                Expanded(
+                  flex: 4,
+                  child: Text(
+                    data.result,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    textAlign: TextAlign.end,
+                    style: TextStyle(
+                      color: AppColors.textSecondary,
+                      fontSize: 15,
+                    ),
+                  ),
+                ),
+                Icon(
+                  Icons.chevron_right_rounded,
+                  color: AppColors.textSecondary,
+                  size: 24,
+                ),
+              ],
+            ),
           ),
         ),
         if (showDivider)

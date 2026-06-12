@@ -6,6 +6,7 @@ import 'package:pedometer/common/config/app_dimens.dart';
 import 'package:pedometer/common/config/resource_loader.dart';
 import 'package:pedometer/feature/home/components/step_ring_hero_card.dart';
 import 'package:pedometer/feature/home/resources/home_resource.dart';
+import 'package:pedometer/feature/home/views/sync_history_detail_page.dart';
 import 'package:pedometer/feature/home/views/sync_data_detail_page.dart';
 import 'package:pedometer/feature/home/views/sport_detail_page.dart';
 import 'package:pedometer/products/init/app.dart';
@@ -97,6 +98,29 @@ void main() {
       expect(left, closeTo(valueLefts.first, 1));
     }
     expect(valueLefts.first - labelLefts.first, greaterThanOrEqualTo(130));
+  });
+
+  testWidgets('opens sync history detail from a sync history row', (
+    tester,
+  ) async {
+    await tester.pumpWidget(const PedometerApp());
+    await tester.pump();
+
+    await tester.tap(find.text(HomeResource.entryHealthSync));
+    await tester.pumpAndSettle();
+    await tester.scrollUntilVisible(find.text('今天 09:41'), 260);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('今天 09:41'));
+    await tester.pumpAndSettle();
+
+    expect(Get.currentRoute, SyncHistoryDetailPage.routeName);
+    expect(find.byType(SyncHistoryDetailPage), findsOneWidget);
+    expect(find.text('同步历史详情'), findsOneWidget);
+    expect(find.text('本次同步数据'), findsOneWidget);
+    expect(find.text('同步信息'), findsOneWidget);
+    expect(find.text('SYNC-2026-0513-0941'), findsOneWidget);
+    expect(find.byIcon(Icons.sync_rounded), findsOneWidget);
+    expect(find.byIcon(Icons.check_circle_outline_rounded), findsNothing);
   });
 
   testWidgets('renders the step ring as an extended open arc', (tester) async {
