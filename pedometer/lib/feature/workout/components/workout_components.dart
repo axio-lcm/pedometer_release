@@ -233,8 +233,6 @@ class WorkoutHeroCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return GlassCard(
       radius: AppRadius.xl,
-      glow: true,
-      borderColor: AppColors.strokeGreen,
       padding: EdgeInsets.all(AppSpacing.xxl),
       child: SizedBox(
         height: 230,
@@ -398,17 +396,7 @@ class GoalAchievementCard extends StatelessWidget {
             ],
           ),
           SizedBox(height: AppSpacing.lg),
-          IntrinsicHeight(
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                for (var i = 0; i < metrics.length; i++) ...[
-                  Expanded(child: GoalMetricCard(metric: metrics[i])),
-                  if (i != metrics.length - 1) SizedBox(width: AppSpacing.sm),
-                ],
-              ],
-            ),
-          ),
+          _GoalMetricGrid(metrics: metrics),
           SizedBox(height: AppSpacing.xl),
           Divider(height: 1, color: AppColors.divider),
           SizedBox(height: AppSpacing.lg),
@@ -470,6 +458,44 @@ class _TextAction extends StatelessWidget {
   }
 }
 
+/// 目标指标网格：每行 2 个，整体更大、标题与数值完整展示不省略。
+class _GoalMetricGrid extends StatelessWidget {
+  final List<GoalMetric> metrics;
+
+  const _GoalMetricGrid({required this.metrics});
+
+  static const int _perRow = 2;
+
+  @override
+  Widget build(BuildContext context) {
+    final rows = <Widget>[];
+    for (var i = 0; i < metrics.length; i += _perRow) {
+      final cells = <Widget>[];
+      for (var c = 0; c < _perRow; c++) {
+        final index = i + c;
+        if (c != 0) cells.add(SizedBox(width: AppSpacing.md));
+        cells.add(
+          Expanded(
+            child: index < metrics.length
+                ? GoalMetricCard(metric: metrics[index])
+                : const SizedBox.shrink(),
+          ),
+        );
+      }
+      if (rows.isNotEmpty) rows.add(SizedBox(height: AppSpacing.md));
+      rows.add(
+        IntrinsicHeight(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: cells,
+          ),
+        ),
+      );
+    }
+    return Column(children: rows);
+  }
+}
+
 /// 单个目标指标小卡片：图标 + 标题 + 数值（数字/单位分离，FittedBox 防溢出）。
 class GoalMetricCard extends StatelessWidget {
   final GoalMetric metric;
@@ -479,9 +505,9 @@ class GoalMetricCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GlassCard(
-      radius: AppRadius.md,
+      radius: AppRadius.lg,
       padding: EdgeInsets.symmetric(
-        horizontal: AppSpacing.sm,
+        horizontal: AppSpacing.md,
         vertical: AppSpacing.md,
       ),
       child: Column(
@@ -489,8 +515,8 @@ class GoalMetricCard extends StatelessWidget {
         children: [
           Row(
             children: [
-              Icon(metric.icon, color: metric.color, size: 16),
-              SizedBox(width: AppSpacing.xxs),
+              Icon(metric.icon, color: metric.color, size: 18),
+              SizedBox(width: AppSpacing.xs),
               Expanded(
                 child: Text(
                   metric.title,
@@ -498,13 +524,14 @@ class GoalMetricCard extends StatelessWidget {
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
                     color: AppColors.textSecondary,
-                    fontSize: 12,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
                   ),
                 ),
               ),
             ],
           ),
-          SizedBox(height: AppSpacing.sm),
+          SizedBox(height: AppSpacing.md),
           FittedBox(
             fit: BoxFit.scaleDown,
             alignment: Alignment.centerLeft,
@@ -517,18 +544,18 @@ class GoalMetricCard extends StatelessWidget {
                   maxLines: 1,
                   style: TextStyle(
                     color: AppColors.textPrimary,
-                    fontSize: 15,
+                    fontSize: 18,
                     fontWeight: FontWeight.w700,
                   ),
                 ),
                 if (metric.unit.isNotEmpty) ...[
-                  const SizedBox(width: 3),
+                  const SizedBox(width: 4),
                   Text(
                     metric.unit,
                     maxLines: 1,
                     style: TextStyle(
                       color: AppColors.textTertiary,
-                      fontSize: 11,
+                      fontSize: 13,
                     ),
                   ),
                 ],
