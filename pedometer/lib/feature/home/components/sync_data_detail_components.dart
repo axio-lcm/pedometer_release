@@ -404,11 +404,13 @@ class DataTypeListItem extends StatelessWidget {
 class SyncHistoryCard extends StatelessWidget {
   final List<SyncHistoryRecord> histories;
   final ValueChanged<SyncHistoryRecord>? onHistoryTap;
+  final VoidCallback? onViewAll;
 
   const SyncHistoryCard({
     super.key,
     required this.histories,
     this.onHistoryTap,
+    this.onViewAll,
   });
 
   @override
@@ -423,12 +425,13 @@ class SyncHistoryCard extends StatelessWidget {
       ),
       child: Column(
         children: [
-          const SectionHeader(
+          SectionHeader(
             title: '同步历史',
             trailing: _HeaderAction(
               label: '查看全部',
               icon: Icons.chevron_right_rounded,
               enclosedIcon: true,
+              onTap: onViewAll,
             ),
           ),
           SizedBox(height: AppSpacing.lg),
@@ -533,6 +536,41 @@ class SyncHistoryItem extends StatelessWidget {
   }
 }
 
+/// 同步历史「查看全部」列表卡片：复用同步历史行，沿用默认卡片边框样式。
+class SyncHistoryListCard extends StatelessWidget {
+  final List<SyncHistoryRecord> records;
+  final ValueChanged<SyncHistoryRecord>? onRecordTap;
+
+  const SyncHistoryListCard({
+    super.key,
+    required this.records,
+    this.onRecordTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GlassCard(
+      radius: AppRadius.xxl,
+      padding: EdgeInsets.symmetric(
+        horizontal: AppSpacing.xxl,
+        vertical: AppSpacing.sm,
+      ),
+      child: Column(
+        children: [
+          for (var i = 0; i < records.length; i++)
+            SyncHistoryItem(
+              data: records[i],
+              showDivider: i != records.length - 1,
+              onTap: onRecordTap == null
+                  ? null
+                  : () => onRecordTap!(records[i]),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
 class DataSecurityFooter extends StatelessWidget {
   final String text;
 
@@ -598,11 +636,13 @@ class _HeaderAction extends StatelessWidget {
   final String label;
   final IconData icon;
   final bool enclosedIcon;
+  final VoidCallback? onTap;
 
   const _HeaderAction({
     required this.label,
     required this.icon,
     this.enclosedIcon = false,
+    this.onTap,
   });
 
   @override
@@ -620,7 +660,7 @@ class _HeaderAction extends StatelessWidget {
           )
         : Icon(icon, color: AppColors.textSecondary, size: 20);
 
-    return Row(
+    final content = Row(
       mainAxisSize: MainAxisSize.min,
       children: [
         ConstrainedBox(
@@ -640,6 +680,13 @@ class _HeaderAction extends StatelessWidget {
         SizedBox(width: AppSpacing.xs),
         iconWidget,
       ],
+    );
+
+    if (onTap == null) return content;
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: onTap,
+      child: content,
     );
   }
 }

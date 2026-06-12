@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:pedometer/feature/home/resources/home_resource.dart';
 import 'package:pedometer/feature/home/views/sync_data_detail_page.dart';
+import 'package:pedometer/feature/home/views/sync_history_list_page.dart';
 import 'package:pedometer/feature/home/views/sync_history_detail_page.dart';
 import 'package:pedometer/feature/home/views/sport_detail_page.dart';
 import 'package:pedometer/feature/home/viewmodel/home_view_model.dart';
@@ -28,6 +29,10 @@ class AppPages {
     GetPage(
       name: HomeRouteTable.pathSyncDataDetail,
       page: () => const SyncDataDetailPage(),
+    ),
+    GetPage(
+      name: HomeRouteTable.pathSyncHistoryList,
+      page: () => const SyncHistoryListPage(),
     ),
     GetPage(
       name: HomeRouteTable.pathSyncHistoryDetail,

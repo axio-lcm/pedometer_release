@@ -34,5 +34,6 @@ class HomeRouteTable {
   static const String pathHome = '/home';
   static const String pathSportDetail = '/home/sport-detail';
   static const String pathSyncDataDetail = '/home/sync-data-detail';
+  static const String pathSyncHistoryList = '/home/sync-history-list';
   static const String pathSyncHistoryDetail = '/home/sync-history-detail';
 }

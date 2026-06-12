@@ -128,6 +128,46 @@ class SyncHistoryRecord {
   });
 }
 
+/// 同步历史「查看全部」列表页展示数据。
+class SyncHistoryListData {
+  final List<SyncHistoryRecord> records;
+
+  const SyncHistoryListData({required this.records});
+
+  static const mock = SyncHistoryListData(
+    records: [
+      SyncHistoryRecord(time: '今天 09:41', mode: '手动同步', result: '成功同步 4 项数据'),
+      SyncHistoryRecord(time: '昨天 20:30', mode: '自动同步', result: '成功同步 4 项数据'),
+      SyncHistoryRecord(time: '昨天 08:05', mode: '自动同步', result: '成功同步 4 项数据'),
+      SyncHistoryRecord(
+        time: '05/13 08:15',
+        mode: '自动同步',
+        result: '成功同步 4 项数据',
+      ),
+      SyncHistoryRecord(
+        time: '05/12 21:48',
+        mode: '手动同步',
+        result: '成功同步 3 项数据',
+      ),
+      SyncHistoryRecord(
+        time: '05/12 07:30',
+        mode: '自动同步',
+        result: '成功同步 4 项数据',
+      ),
+      SyncHistoryRecord(
+        time: '05/11 19:02',
+        mode: '自动同步',
+        result: '成功同步 4 项数据',
+      ),
+      SyncHistoryRecord(
+        time: '05/11 08:20',
+        mode: '手动同步',
+        result: '成功同步 4 项数据',
+      ),
+    ],
+  );
+}
+
 /// 单次同步历史详情页展示数据。
 class SyncHistoryDetailData {
   final String statusTitle;

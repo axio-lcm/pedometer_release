@@ -7,15 +7,14 @@ import 'package:pedometer/feature/home/components/sync_data_detail_components.da
 import 'package:pedometer/feature/home/model/sync_data_detail_model.dart';
 import 'package:pedometer/feature/home/resources/home_resource.dart';
 import 'package:pedometer/feature/home/views/sync_history_detail_page.dart';
-import 'package:pedometer/feature/home/views/sync_history_list_page.dart';
 
-/// Health 同步数据详情页。
-class SyncDataDetailPage extends StatelessWidget {
-  static const String routeName = HomeRouteTable.pathSyncDataDetail;
+/// 同步历史「查看全部」列表页。
+class SyncHistoryListPage extends StatelessWidget {
+  static const String routeName = HomeRouteTable.pathSyncHistoryList;
 
-  final SyncDataDetailData data;
+  final SyncHistoryListData data;
 
-  const SyncDataDetailPage({super.key, this.data = SyncDataDetailData.mock});
+  const SyncHistoryListPage({super.key, this.data = SyncHistoryListData.mock});
 
   @override
   Widget build(BuildContext context) {
@@ -23,7 +22,7 @@ class SyncDataDetailPage extends StatelessWidget {
       backgroundColor: HomeResource.background,
       body: Stack(
         children: [
-          const Positioned.fill(child: _SyncDetailBackground()),
+          const Positioned.fill(child: _SyncHistoryListBackground()),
           SafeArea(
             bottom: false,
             child: SingleChildScrollView(
@@ -37,32 +36,21 @@ class SyncDataDetailPage extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   AppTopNavigationBar(
-                    title: '同步数据详情',
+                    title: '同步历史',
                     onBack: () {
                       if (Get.key.currentState?.canPop() ?? false) {
                         Get.back<void>();
                       }
                     },
                   ),
-                  SyncStatusHero(data: data),
-                  SyncOverviewCard(
-                    sources: data.sources,
-                    metrics: data.overviewMetrics,
-                  ),
-                  SizedBox(height: AppSpacing.lg),
-                  DataTypeCard(items: data.dataTypes),
-                  SizedBox(height: AppSpacing.lg),
-                  SyncHistoryCard(
-                    histories: data.histories,
-                    onHistoryTap: (record) => Get.toNamed(
+                  SizedBox(height: AppSpacing.md),
+                  SyncHistoryListCard(
+                    records: data.records,
+                    onRecordTap: (record) => Get.toNamed(
                       SyncHistoryDetailPage.routeName,
                       arguments: record,
                     ),
-                    onViewAll: () =>
-                        Get.toNamed(SyncHistoryListPage.routeName),
                   ),
-                  SizedBox(height: AppSpacing.xl),
-                  DataSecurityFooter(text: data.safetyText),
                   SizedBox(height: AppSpacing.xxl),
                 ],
               ),
@@ -74,8 +62,8 @@ class SyncDataDetailPage extends StatelessWidget {
   }
 }
 
-class _SyncDetailBackground extends StatelessWidget {
-  const _SyncDetailBackground();
+class _SyncHistoryListBackground extends StatelessWidget {
+  const _SyncHistoryListBackground();
 
   @override
   Widget build(BuildContext context) {
