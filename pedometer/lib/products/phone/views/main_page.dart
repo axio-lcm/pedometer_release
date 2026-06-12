@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:pedometer/common/config/app_colors.dart';
 import 'package:pedometer/feature/home/views/home_page.dart';
+import 'package:pedometer/feature/workout/views/workout_page.dart';
 import 'package:pedometer/products/phone/components/glass_bottom_nav_bar.dart';
 import 'package:pedometer/products/phone/resources/main_resource.dart';
 
@@ -25,7 +26,7 @@ class _MainPageState extends State<MainPage> {
         index: _index,
         children: [
           const HomePage(),
-          _Placeholder(label: MainResource.tabSport),
+          const WorkoutPage(),
           _Placeholder(label: MainResource.tabMine),
         ],
       ),
