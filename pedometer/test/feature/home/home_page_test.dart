@@ -6,6 +6,7 @@ import 'package:pedometer/common/config/app_dimens.dart';
 import 'package:pedometer/common/config/resource_loader.dart';
 import 'package:pedometer/feature/home/components/step_ring_hero_card.dart';
 import 'package:pedometer/feature/home/resources/home_resource.dart';
+import 'package:pedometer/feature/home/views/sport_detail_page.dart';
 import 'package:pedometer/products/init/app.dart';
 import 'package:pedometer/products/phone/components/glass_bottom_nav_bar.dart';
 
@@ -27,6 +28,19 @@ void main() {
     expect(find.text(HomeResource.todaySteps), findsOneWidget);
     expect(find.text('卡路里分析'), findsOneWidget);
     expect(find.textContaining('达成'), findsOneWidget);
+  });
+
+  testWidgets('opens sport detail through the registered GetX named route', (
+    tester,
+  ) async {
+    await tester.pumpWidget(const PedometerApp());
+    await tester.pump();
+
+    await tester.tap(find.text(HomeResource.entryOverview));
+    await tester.pumpAndSettle();
+
+    expect(Get.currentRoute, SportDetailPage.routeName);
+    expect(find.byType(SportDetailPage), findsOneWidget);
   });
 
   testWidgets('renders the step ring as an extended open arc', (tester) async {

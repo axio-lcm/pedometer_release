@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:pedometer/common/component/app_top_navigation_bar.dart';
 import 'package:pedometer/common/config/app_colors.dart';
 import 'package:pedometer/common/config/app_dimens.dart';
 import 'package:pedometer/feature/home/components/sport_detail_components.dart';
@@ -41,15 +42,13 @@ class _SportDetailPageState extends State<SportDetailPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  DateSwitcherHeader(
+                  AppTopNavigationBar(
                     title: data.dateTitle,
                     onBack: () {
                       if (Get.key.currentState?.canPop() ?? false) {
                         Get.back<void>();
                       }
                     },
-                    onPrevious: () {},
-                    onNext: () {},
                   ),
                   SizedBox(height: AppSpacing.sm),
                   SportHeroSection(data: data),

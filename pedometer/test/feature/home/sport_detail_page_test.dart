@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:get/get.dart';
+import 'package:pedometer/common/component/app_top_navigation_bar.dart';
 import 'package:pedometer/common/config/app_screen.dart';
 import 'package:pedometer/common/config/app_colors.dart';
 import 'package:pedometer/common/config/resource_loader.dart';
@@ -116,6 +117,43 @@ void main() {
     final selectedLabel = tester.widget<Text>(find.text('月'));
     expect(selectedLabel.style?.color, AppColors.bgPrimary);
   });
+
+  testWidgets(
+    'top navigation keeps only back fixed and accepts optional slots',
+    (tester) async {
+      var backTapped = 0;
+      var rightTapped = 0;
+
+      await tester.pumpWidget(
+        wrap(
+          AppTopNavigationBar(
+            title: '自定义标题',
+            rightIcon: Icons.more_horiz_rounded,
+            onBack: () => backTapped++,
+            onRightTap: () => rightTapped++,
+          ),
+        ),
+      );
+
+      expect(find.text('自定义标题'), findsOneWidget);
+      expect(find.byIcon(Icons.chevron_left_rounded), findsOneWidget);
+      expect(find.byIcon(Icons.more_horiz_rounded), findsOneWidget);
+
+      await tester.tap(find.byIcon(Icons.chevron_left_rounded));
+      await tester.tap(find.byIcon(Icons.more_horiz_rounded));
+
+      expect(backTapped, 1);
+      expect(rightTapped, 1);
+
+      await tester.pumpWidget(
+        wrap(AppTopNavigationBar(onBack: () => backTapped++)),
+      );
+
+      expect(find.text('自定义标题'), findsNothing);
+      expect(find.byIcon(Icons.more_horiz_rounded), findsNothing);
+      expect(find.byIcon(Icons.chevron_left_rounded), findsOneWidget);
+    },
+  );
 
   testWidgets('caps displayed progress percent at 100', (tester) async {
     const overGoal = SportProgressData(
