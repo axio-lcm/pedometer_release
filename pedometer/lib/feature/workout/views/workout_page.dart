@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:pedometer/common/config/app_colors.dart';
 import 'package:pedometer/common/config/app_dimens.dart';
 import 'package:pedometer/feature/workout/components/workout_components.dart';
 import 'package:pedometer/feature/workout/model/workout_model.dart';
 import 'package:pedometer/feature/workout/resources/workout_resource.dart';
+import 'package:pedometer/feature/workout/views/edit_sport_goal_page.dart';
 
 /// 运动 / 训练页：运动类型选择 + Hero 入口 + 目标与成就。
 ///
@@ -71,8 +73,7 @@ class _WorkoutPageState extends State<WorkoutPage> {
   // TODO: 接入真实开始运动逻辑（GPS / 记录）。
   void _onStart() {}
 
-  // TODO: 接入目标编辑入口。
-  void _onEdit() {}
+  void _onEdit() => Get.toNamed(EditSportGoalPage.routeName);
 
   // TODO: 接入成就列表入口。
   void _onViewMore() {}

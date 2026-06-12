@@ -13,3 +13,10 @@ class WorkoutResource {
     fallback: AppColors.bgPrimary,
   );
 }
+
+/// 运动页模块路由定义（对齐 HomeRouteTable 写法）。
+class WorkoutRouteTable {
+  WorkoutRouteTable._();
+
+  static const String pathEditGoal = '/workout/edit-goal';
+}
