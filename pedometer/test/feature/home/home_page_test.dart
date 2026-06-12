@@ -6,6 +6,7 @@ import 'package:pedometer/common/config/app_dimens.dart';
 import 'package:pedometer/common/config/resource_loader.dart';
 import 'package:pedometer/feature/home/components/step_ring_hero_card.dart';
 import 'package:pedometer/feature/home/resources/home_resource.dart';
+import 'package:pedometer/feature/home/views/sync_data_detail_page.dart';
 import 'package:pedometer/feature/home/views/sport_detail_page.dart';
 import 'package:pedometer/products/init/app.dart';
 import 'package:pedometer/products/phone/components/glass_bottom_nav_bar.dart';
@@ -41,6 +42,61 @@ void main() {
 
     expect(Get.currentRoute, SportDetailPage.routeName);
     expect(find.byType(SportDetailPage), findsOneWidget);
+  });
+
+  testWidgets(
+    'opens sync data detail through the registered GetX named route',
+    (tester) async {
+      await tester.pumpWidget(const PedometerApp());
+      await tester.pump();
+
+      await tester.tap(find.text(HomeResource.entryHealthSync));
+      await tester.pumpAndSettle();
+
+      expect(Get.currentRoute, SyncDataDetailPage.routeName);
+      expect(find.byType(SyncDataDetailPage), findsOneWidget);
+      expect(find.text('同步数据详情'), findsOneWidget);
+      expect(find.text('同步成功'), findsOneWidget);
+      expect(find.text('数据来源'), findsOneWidget);
+      expect(find.text('同步数据总览'), findsOneWidget);
+      expect(find.text('数据类型'), findsOneWidget);
+      expect(find.text('同步历史'), findsOneWidget);
+      expect(find.text('您的数据安全受保护，所有数据均已加密传输。'), findsOneWidget);
+    },
+  );
+
+  testWidgets('aligns sync detail data type rows to fixed columns', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(375, 812);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.resetPhysicalSize);
+
+    await tester.pumpWidget(const PedometerApp());
+    await tester.pump();
+    await tester.tap(find.text(HomeResource.entryHealthSync));
+    await tester.pumpAndSettle();
+
+    final labelLefts = [
+      '步数',
+      '卡路里',
+      '活动时间',
+      '距离',
+    ].map((text) => tester.getTopLeft(find.text(text)).dx).toList();
+    final valueLefts = [
+      '12,856 步',
+      '1,256 kcal',
+      '98 min',
+      '8.34 km',
+    ].map((text) => tester.getTopLeft(find.text(text)).dx).toList();
+
+    for (final left in labelLefts.skip(1)) {
+      expect(left, closeTo(labelLefts.first, 1));
+    }
+    for (final left in valueLefts.skip(1)) {
+      expect(left, closeTo(valueLefts.first, 1));
+    }
+    expect(valueLefts.first - labelLefts.first, greaterThanOrEqualTo(130));
   });
 
   testWidgets('renders the step ring as an extended open arc', (tester) async {

@@ -9,6 +9,7 @@ import 'package:pedometer/feature/home/components/top_entry_card.dart';
 import 'package:pedometer/feature/home/components/trend_chart_card.dart';
 import 'package:pedometer/feature/home/resources/home_resource.dart';
 import 'package:pedometer/feature/home/viewmodel/home_view_model.dart';
+import 'package:pedometer/feature/home/views/sync_data_detail_page.dart';
 import 'package:pedometer/feature/home/views/sport_detail_page.dart';
 
 /// 首页：暗色霓虹森林运动 Dashboard。
@@ -82,6 +83,7 @@ class HomePage extends GetView<HomeViewModel> {
             icon: Icons.favorite_rounded,
             iconColor: AppColors.accentPink,
             label: HomeResource.entryHealthSync,
+            onTap: () => Get.toNamed(SyncDataDetailPage.routeName),
           ),
         ),
       ],
