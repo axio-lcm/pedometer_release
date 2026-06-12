@@ -6,6 +6,7 @@ import 'package:pedometer/common/config/app_dimens.dart';
 import 'package:pedometer/feature/workout/components/workout_tracking_components.dart';
 import 'package:pedometer/feature/workout/model/workout_model.dart';
 import 'package:pedometer/feature/workout/resources/workout_resource.dart';
+import 'package:pedometer/feature/workout/views/exercise_result_page.dart';
 
 /// 点击「开始运动」后的运动记录中页面。
 class WorkoutTrackingPage extends StatefulWidget {
@@ -65,6 +66,7 @@ class _WorkoutTrackingPageState extends State<WorkoutTrackingPage> {
                               WorkoutControlPanel(
                                 data: data,
                                 onPrimaryTap: _togglePrimaryControl,
+                                onEnd: _endWorkout,
                               ),
                               const SizedBox(
                                 height: AppBottomTabBarMetrics.bottomOffset,
@@ -91,6 +93,9 @@ class _WorkoutTrackingPageState extends State<WorkoutTrackingPage> {
       return;
     }
   }
+
+  // 结束运动：用 offNamed 替换掉记录中页，结果页「完成」直接回到运动主页。
+  void _endWorkout() => Get.offNamed(ExerciseResultPage.routeName);
 
   void _togglePrimaryControl() {
     setState(() {

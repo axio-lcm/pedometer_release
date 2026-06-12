@@ -7,6 +7,7 @@ import 'package:pedometer/feature/home/views/sync_history_detail_page.dart';
 import 'package:pedometer/feature/home/views/sport_detail_page.dart';
 import 'package:pedometer/feature/workout/resources/workout_resource.dart';
 import 'package:pedometer/feature/workout/views/edit_sport_goal_page.dart';
+import 'package:pedometer/feature/workout/views/exercise_result_page.dart';
 import 'package:pedometer/feature/workout/views/workout_tracking_page.dart';
 import 'package:pedometer/feature/home/viewmodel/home_view_model.dart';
 import 'package:pedometer/products/phone/views/main_page.dart';
@@ -48,6 +49,10 @@ class AppPages {
     GetPage(
       name: WorkoutRouteTable.pathTracking,
       page: () => const WorkoutTrackingPage(),
+    ),
+    GetPage(
+      name: WorkoutRouteTable.pathResult,
+      page: () => const ExerciseResultPage(),
     ),
   ];
 

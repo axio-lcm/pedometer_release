@@ -205,3 +205,85 @@ class WorkoutPageData {
     ],
   );
 }
+
+/// 运动结果页单个统计项。
+class ExerciseResultMetric {
+  final IconData icon;
+  final Color color;
+  final String label;
+  final String value;
+
+  const ExerciseResultMetric({
+    required this.icon,
+    required this.color,
+    required this.label,
+    required this.value,
+  });
+}
+
+/// 运动结束（运动完成）结果页展示数据。
+class ExerciseResultData {
+  final String sportType;
+  final String dateText;
+  final String distance;
+  final String distanceUnit;
+  final List<ExerciseResultMetric> metrics;
+
+  const ExerciseResultData({
+    required this.sportType,
+    required this.dateText,
+    required this.distance,
+    required this.distanceUnit,
+    required this.metrics,
+  });
+
+  // 颜色字面量与 AppColors fallback 一致，保证可 const 化。
+  static const _green = Color(0xFF24F04E);
+  static const _cyan = Color(0xFF0CD9FF);
+  static const _orange = Color(0xFFFF9F12);
+
+  static const mock = ExerciseResultData(
+    sportType: WorkoutText.outdoorRun,
+    dateText: WorkoutText.resultDate,
+    distance: '2.35',
+    distanceUnit: WorkoutText.distanceUnit,
+    metrics: [
+      ExerciseResultMetric(
+        icon: Icons.schedule_rounded,
+        color: _green,
+        label: WorkoutText.metricDuration,
+        value: '00:18:36',
+      ),
+      ExerciseResultMetric(
+        icon: Icons.local_fire_department_rounded,
+        color: _orange,
+        label: WorkoutText.metricCalorieKcal,
+        value: '186',
+      ),
+      ExerciseResultMetric(
+        icon: Icons.speed_rounded,
+        color: _cyan,
+        label: WorkoutText.metricPaceMinKm,
+        value: "07'54''",
+      ),
+      ExerciseResultMetric(
+        icon: Icons.directions_walk_rounded,
+        color: _green,
+        label: WorkoutText.resultSteps,
+        value: '3,256',
+      ),
+      ExerciseResultMetric(
+        icon: Icons.av_timer_rounded,
+        color: _green,
+        label: WorkoutText.resultAvgSpeed,
+        value: '7.6',
+      ),
+      ExerciseResultMetric(
+        icon: Icons.terrain_rounded,
+        color: _green,
+        label: WorkoutText.resultElevation,
+        value: '32',
+      ),
+    ],
+  );
+}

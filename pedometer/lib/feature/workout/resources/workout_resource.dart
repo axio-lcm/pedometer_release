@@ -103,6 +103,19 @@ class WorkoutResource {
       _string('suggestion_duration', WorkoutText.suggestionDuration);
   static String get suggestionCalorie =>
       _string('suggestion_calorie', WorkoutText.suggestionCalorie);
+  static String get resultCompleteTitle =>
+      _string('result_complete_title', WorkoutText.resultCompleteTitle);
+  static String get resultCompleteSubtitle =>
+      _string('result_complete_subtitle', WorkoutText.resultCompleteSubtitle);
+  static String get resultDone => _string('result_done', WorkoutText.resultDone);
+  static String get resultShare =>
+      _string('result_share', WorkoutText.resultShare);
+  static String get resultSteps =>
+      _string('result_steps', WorkoutText.resultSteps);
+  static String get resultAvgSpeed =>
+      _string('result_avg_speed', WorkoutText.resultAvgSpeed);
+  static String get resultElevation =>
+      _string('result_elevation', WorkoutText.resultElevation);
 
   static String trackingTarget(String value) {
     return _string(
@@ -169,6 +182,14 @@ class WorkoutText {
   static const suggestionDistance = '距离：初学者建议 3-5 公里，进阶者 5-10 公里';
   static const suggestionDuration = '时长：建议 30-60 分钟，有助于提升心肺能力';
   static const suggestionCalorie = '消耗：建议 300-600 kcal，保持健康体重';
+  static const resultCompleteTitle = '运动完成！';
+  static const resultCompleteSubtitle = '太棒了！今天又是坚持运动的一天';
+  static const resultDone = '完成';
+  static const resultShare = '分享';
+  static const resultDate = '2024年5月20日 19:30';
+  static const resultSteps = '步数 (步)';
+  static const resultAvgSpeed = '平均速度 (km/h)';
+  static const resultElevation = '累计爬升 (m)';
 }
 
 /// 运动页模块路由定义（对齐 HomeRouteTable 写法）。
@@ -177,4 +198,5 @@ class WorkoutRouteTable {
 
   static const String pathEditGoal = '/workout/edit-goal';
   static const String pathTracking = '/workout/tracking';
+  static const String pathResult = '/workout/result';
 }

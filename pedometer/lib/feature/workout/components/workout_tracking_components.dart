@@ -528,10 +528,22 @@ class WorkoutControlPanel extends StatelessWidget {
   final WorkoutTrackingData data;
   final VoidCallback? onPrimaryTap;
 
-  const WorkoutControlPanel({super.key, required this.data, this.onPrimaryTap});
+  /// 长按主按钮满 3 秒后触发（结束运动）。
+  final VoidCallback? onEnd;
+
+  const WorkoutControlPanel({
+    super.key,
+    required this.data,
+    this.onPrimaryTap,
+    this.onEnd,
+  });
 
   @override
   Widget build(BuildContext context) {
+    // 仅运动中 / 暂停时允许长按结束（与「长按结束」提示一致）。
+    final holdEnabled =
+        data.status == WorkoutStatus.running ||
+        data.status == WorkoutStatus.paused;
     final hintText = switch (data.status) {
       WorkoutStatus.ready => WorkoutResource.trackingStartHint,
       WorkoutStatus.running => data.endHint,
@@ -551,6 +563,7 @@ class WorkoutControlPanel extends StatelessWidget {
                 NeonPauseButton(
                   showStartIcon: data.status != WorkoutStatus.running,
                   onTap: onPrimaryTap,
+                  onHoldComplete: holdEnabled ? onEnd : null,
                 ),
                 CircleGlassIconButton(
                   icon: Icons.volume_up_rounded,
@@ -620,39 +633,152 @@ class CircleGlassIconButton extends StatelessWidget {
   }
 }
 
-class NeonPauseButton extends StatelessWidget {
+/// 主控制按钮：点击切换开始/暂停；当 [onHoldComplete] 非空时支持长按蓄力，
+/// 按住满 [holdDuration]（默认 3 秒）触发 [onHoldComplete]，并显示环形蓄力进度。
+class NeonPauseButton extends StatefulWidget {
   final bool showStartIcon;
   final VoidCallback? onTap;
+  final VoidCallback? onHoldComplete;
+  final Duration holdDuration;
 
-  const NeonPauseButton({super.key, required this.showStartIcon, this.onTap});
+  const NeonPauseButton({
+    super.key,
+    required this.showStartIcon,
+    this.onTap,
+    this.onHoldComplete,
+    this.holdDuration = const Duration(seconds: 3),
+  });
+
+  @override
+  State<NeonPauseButton> createState() => _NeonPauseButtonState();
+}
+
+class _NeonPauseButtonState extends State<NeonPauseButton>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _hold;
+  bool _completed = false;
+
+  bool get _holdEnabled => widget.onHoldComplete != null;
+
+  @override
+  void initState() {
+    super.initState();
+    _hold = AnimationController(vsync: this, duration: widget.holdDuration)
+      ..addStatusListener((status) {
+        if (status == AnimationStatus.completed) {
+          _completed = true;
+          widget.onHoldComplete?.call();
+        }
+      });
+  }
+
+  @override
+  void dispose() {
+    _hold.dispose();
+    super.dispose();
+  }
+
+  void _handleTapDown(TapDownDetails _) {
+    if (!_holdEnabled) return;
+    _completed = false;
+    _hold.forward(from: 0);
+  }
+
+  void _handleHoldRelease() {
+    if (_holdEnabled && !_completed) _hold.reset();
+  }
+
+  void _handleTap() {
+    // 长按已触发结束，忽略随后的 tap，避免误切换状态。
+    if (_completed) {
+      _completed = false;
+      _hold.reset();
+      return;
+    }
+    widget.onTap?.call();
+  }
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
-      onTap: onTap,
-      child: Container(
+      onTapDown: _handleTapDown,
+      onTapUp: (_) => _handleHoldRelease(),
+      onTapCancel: _handleHoldRelease,
+      onTap: _handleTap,
+      child: SizedBox(
         width: 108,
         height: 108,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          gradient: RadialGradient(
-            colors: [
-              AppColors.brandLime,
-              AppColors.brandGreen,
-              AppColors.brandGreenDark,
-            ],
-            stops: const [0, 0.62, 1],
-          ),
-        ),
-        child: Icon(
-          showStartIcon ? Icons.play_arrow_rounded : Icons.pause_rounded,
-          color: AppColors.bgPrimary,
-          size: 56,
+        child: Stack(
+          alignment: Alignment.center,
+          children: [
+            Container(
+              width: 108,
+              height: 108,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: RadialGradient(
+                  colors: [
+                    AppColors.brandLime,
+                    AppColors.brandGreen,
+                    AppColors.brandGreenDark,
+                  ],
+                  stops: const [0, 0.62, 1],
+                ),
+              ),
+              child: Icon(
+                widget.showStartIcon
+                    ? Icons.play_arrow_rounded
+                    : Icons.pause_rounded,
+                color: AppColors.bgPrimary,
+                size: 56,
+              ),
+            ),
+            if (_holdEnabled)
+              Positioned.fill(
+                child: AnimatedBuilder(
+                  animation: _hold,
+                  builder: (_, _) =>
+                      CustomPaint(painter: _HoldRingPainter(_hold.value)),
+                ),
+              ),
+          ],
         ),
       ),
     );
   }
+}
+
+class _HoldRingPainter extends CustomPainter {
+  final double progress;
+
+  _HoldRingPainter(this.progress);
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    if (progress <= 0) return;
+    final center = size.center(Offset.zero);
+    final rect = Rect.fromCircle(center: center, radius: size.width / 2 - 3);
+    const start = -math.pi / 2;
+    final sweep = 2 * math.pi * progress.clamp(0.0, 1.0);
+    final glow = Paint()
+      ..color = AppColors.brandLime.withValues(alpha: 0.6)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 6
+      ..strokeCap = StrokeCap.round
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 6);
+    final paint = Paint()
+      ..color = AppColors.brandLime
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 5
+      ..strokeCap = StrokeCap.round;
+    canvas.drawArc(rect, start, sweep, false, glow);
+    canvas.drawArc(rect, start, sweep, false, paint);
+  }
+
+  @override
+  bool shouldRepaint(covariant _HoldRingPainter old) =>
+      old.progress != progress;
 }
 
 class WorkoutMusicCard extends StatelessWidget {
