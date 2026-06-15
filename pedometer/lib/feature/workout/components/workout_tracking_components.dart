@@ -113,9 +113,6 @@ class _WorkoutMapViewState extends State<WorkoutMapView> {
   bool _allowPlatformMap = false;
   // 设备罗盘朝向（度，0=正北，顺时针）。驱动当前位置箭头随手机方向旋转。
   double _headingDegrees = 0;
-  // 临时诊断：已接受定位次数与最近精度，用于排查「无轨迹」。
-  int _fixCount = 0;
-  double _lastAccuracy = 0;
 
   @override
   void initState() {
@@ -209,14 +206,6 @@ class _WorkoutMapViewState extends State<WorkoutMapView> {
                 },
               );
             },
-          ),
-        ),
-        Obx(
-          () => _RouteDiagnostic(
-            running: _controller.status.value == WorkoutStatus.running,
-            pointCount: _controller.pathPoints.length,
-            fixCount: _fixCount,
-            accuracy: _lastAccuracy,
           ),
         ),
       ],
@@ -350,8 +339,6 @@ class _WorkoutMapViewState extends State<WorkoutMapView> {
       displayCoordinate.longitude,
     );
     setState(() {
-      _fixCount++;
-      _lastAccuracy = position.accuracy;
       if (isStable || isFirstFix) {
         _currentPosition = latLng;
         if (isFirstFix) {
@@ -531,49 +518,6 @@ class _WorkoutMapFallback extends StatelessWidget {
         ),
       ),
       child: CustomPaint(painter: _MapPlaceholderPainter()),
-    );
-  }
-}
-
-/// 临时诊断：排查「点击开始后无运动轨迹」。
-/// - 运动=否 => start() 没生效（没进 running）。
-/// - 定位次数不增长 => GPS 没回调（信号差被拒 / 室内 / 未移动）。
-/// - 定位增长但轨迹点停在 1 => 位移没过门限（没真正走动）。
-/// - 轨迹点≥2 仍无线 => 渲染问题（基本可排除）。
-/// 排查完可删除本组件及其使用处与 _fixCount/_lastAccuracy。
-class _RouteDiagnostic extends StatelessWidget {
-  final bool running;
-  final int pointCount;
-  final int fixCount;
-  final double accuracy;
-
-  const _RouteDiagnostic({
-    required this.running,
-    required this.pointCount,
-    required this.fixCount,
-    required this.accuracy,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Positioned(
-      left: 14,
-      top: 48,
-      child: DecoratedBox(
-        decoration: BoxDecoration(
-          color: Colors.black.withValues(alpha: 0.6),
-          borderRadius: BorderRadius.circular(AppRadius.full),
-          border: Border.all(color: const Color(0x5524F04E)),
-        ),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-          child: Text(
-            '运动:${running ? '是' : '否'} · 轨迹点:$pointCount · '
-            '定位:$fixCount次 · 精度:${accuracy.toStringAsFixed(0)}m',
-            style: const TextStyle(color: Colors.white, fontSize: 11),
-          ),
-        ),
-      ),
     );
   }
 }

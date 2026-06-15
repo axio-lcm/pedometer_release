@@ -18,6 +18,8 @@ PODS:
     - GoogleMaps/Base
   - package_info_plus (0.4.5):
     - Flutter
+  - pedometer_health (0.1.0):
+    - Flutter
 
 DEPENDENCIES:
   - Flutter (from `Flutter`)
@@ -25,6 +27,7 @@ DEPENDENCIES:
   - geolocator_apple (from `.symlinks/plugins/geolocator_apple/darwin`)
   - google_maps_flutter_ios (from `.symlinks/plugins/google_maps_flutter_ios/ios`)
   - package_info_plus (from `.symlinks/plugins/package_info_plus/ios`)
+  - pedometer_health (from `.symlinks/plugins/pedometer_health/ios`)
 
 SPEC REPOS:
   trunk:
@@ -42,6 +45,8 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/google_maps_flutter_ios/ios"
   package_info_plus:
     :path: ".symlinks/plugins/package_info_plus/ios"
+  pedometer_health:
+    :path: ".symlinks/plugins/pedometer_health/ios"
 
 SPEC CHECKSUMS:
   Flutter: cabc95a1d2626b1b06e7179b784ebcf0c0cde467
@@ -51,6 +56,7 @@ SPEC CHECKSUMS:
   google_maps_flutter_ios: 17552876e72723da1d41accc22f03b5f7afbde69
   GoogleMaps: 8939898920281c649150e0af74aa291c60f2e77d
   package_info_plus: af8e2ca6888548050f16fa2f1938db7b5a5df499
+  pedometer_health: 21a199023ed365fe164db30a05ec17efe641638f
 
 PODFILE CHECKSUM: d71a8f9d234bf288cee64b372c30c196c8075224
 

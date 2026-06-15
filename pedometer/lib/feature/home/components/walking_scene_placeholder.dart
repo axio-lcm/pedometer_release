@@ -1,19 +1,29 @@
 import 'package:flutter/material.dart';
 import 'package:pedometer/common/config/app_colors.dart';
+import 'package:pedometer/common/config/app_dimens.dart';
 
-/// 夜间森林步行场景占位：轻量绘制道路弧线 + 树剪影 + 光点。
-/// TODO: 替换为真实 3D 步行人物 / 森林道路资源。
-/// 建议资源路径：assets/images/home_walking_scene.png
+/// 首页步数卡内的步行场景：展示 assets/wboy.png。
+/// 资源缺失时回退到轻量绘制的夜间森林占位（道路弧线 + 树剪影 + 光点）。
 class WalkingScenePlaceholder extends StatelessWidget {
   final double height;
   const WalkingScenePlaceholder({super.key, this.height = 90});
+
+  static const String _imageAsset = 'assets/wboy.png';
 
   @override
   Widget build(BuildContext context) {
     return SizedBox(
       height: height,
       width: double.infinity,
-      child: CustomPaint(painter: _ScenePainter()),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(AppRadius.lg),
+        child: Image.asset(
+          _imageAsset,
+          fit: BoxFit.cover,
+          errorBuilder: (context, error, stackTrace) =>
+              CustomPaint(painter: _ScenePainter()),
+        ),
+      ),
     );
   }
 }

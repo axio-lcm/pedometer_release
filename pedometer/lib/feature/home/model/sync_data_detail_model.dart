@@ -93,6 +93,15 @@ class SyncDataSource {
     required this.icon,
     required this.iconColor,
   });
+
+  SyncDataSource copyWith({String? status}) {
+    return SyncDataSource(
+      title: title,
+      status: status ?? this.status,
+      icon: icon,
+      iconColor: iconColor,
+    );
+  }
 }
 
 class SyncMetric {
@@ -324,10 +333,7 @@ class SyncSourceDetailData {
           subtitle: '在连接后自动同步最新健康数据',
           selected: true,
         ),
-        SyncModeOption(
-          title: '手动同步',
-          subtitle: '仅在手动触发时同步所选数据',
-        ),
+        SyncModeOption(title: '手动同步', subtitle: '仅在手动触发时同步所选数据'),
       ],
       manualItems: const [
         ManualSyncSelectionItem(title: '步数', selected: true),
@@ -368,8 +374,5 @@ class ManualSyncSelectionItem {
   final String title;
   final bool selected;
 
-  const ManualSyncSelectionItem({
-    required this.title,
-    this.selected = false,
-  });
+  const ManualSyncSelectionItem({required this.title, this.selected = false});
 }

@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pedometer/common/config/resource_loader.dart';
+import 'package:pedometer/feature/home/model/health_repository.dart';
 import 'package:pedometer/feature/home/viewmodel/home_view_model.dart';
 
 void main() {
@@ -21,5 +22,20 @@ void main() {
     expect(vm.trend.last.highlight, isTrue);
     expect(vm.analyses.length, 2);
     expect(vm.analyses.first.samples.length, 7);
+  });
+
+  test('init reads dashboard data from the health repository', () {
+    final vm = HomeViewModel(
+      repository: HealthRepository(
+        membershipService: const FixedMembershipService(false),
+        mockDataSource: const MockHealthDataSource(),
+        realDataSource: const MockHealthDataSource(),
+      ),
+    );
+    vm.init();
+
+    expect(vm.step.value.steps, 5276);
+    expect(vm.kpis.map((item) => item.title), ['距离', '卡路里', '活动时间']);
+    expect(vm.trend.last.highlight, isTrue);
   });
 }

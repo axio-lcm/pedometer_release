@@ -1,17 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:get/get.dart';
 import 'package:pedometer/common/config/app_dimens.dart';
 import 'package:pedometer/common/config/resource_loader.dart';
+import 'package:pedometer/feature/home/model/health_repository.dart';
 import 'package:pedometer/feature/home/components/step_ring_hero_card.dart';
 import 'package:pedometer/feature/home/resources/home_resource.dart';
+import 'package:pedometer/feature/home/viewmodel/home_view_model.dart';
 import 'package:pedometer/feature/home/views/sync_history_detail_page.dart';
 import 'package:pedometer/feature/home/views/sync_data_detail_page.dart';
 import 'package:pedometer/feature/home/views/sync_source_detail_page.dart';
 import 'package:pedometer/feature/home/views/sport_detail_page.dart';
 import 'package:pedometer/products/init/app.dart';
 import 'package:pedometer/products/phone/components/glass_bottom_nav_bar.dart';
+import 'package:pedometer_health/pedometer_health.dart';
 
 void main() {
   setUp(() {
@@ -19,9 +23,17 @@ void main() {
       colors: {'common': {}, 'home': {}, 'phone': {}},
       strings: {'common': {}, 'home': {}, 'phone': {}},
     );
+    HealthSyncRuntime.resetForTest();
   });
 
-  tearDown(Get.reset);
+  tearDown(() {
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(
+          const MethodChannel(PedometerHealthClient.channelName),
+          null,
+        );
+    Get.reset();
+  });
 
   testWidgets('renders key home data', (tester) async {
     await tester.pumpWidget(const PedometerApp());
@@ -67,6 +79,38 @@ void main() {
       expect(find.text('您的数据安全受保护，所有数据均已加密传输。'), findsOneWidget);
     },
   );
+
+  testWidgets('requests permissions on sync data detail and shows statuses', (
+    tester,
+  ) async {
+    const channel = MethodChannel(PedometerHealthClient.channelName);
+    final requestedSources = <String>[];
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(channel, (call) async {
+          if (call.method == 'requestAuthorization') {
+            final args = Map<Object?, Object?>.from(call.arguments as Map);
+            final source = args['source']! as String;
+            requestedSources.add(source);
+            return source == HealthSyncSource.appleHealth.wireName;
+          }
+          return true;
+        });
+
+    await tester.pumpWidget(const PedometerApp());
+    await tester.pump();
+
+    await tester.tap(find.text(HomeResource.entryHealthSync));
+    await tester.pumpAndSettle();
+
+    expect(
+      requestedSources,
+      containsAll([
+        HealthSyncSource.appleHealth.wireName,
+        HealthSyncSource.healthConnect.wireName,
+      ]),
+    );
+    expect(find.text('未授权'), findsOneWidget);
+  });
 
   testWidgets('aligns sync detail data type rows to fixed columns', (
     tester,
@@ -174,6 +218,75 @@ void main() {
 
     expect(find.byIcon(Icons.check_box_rounded), findsNWidgets(4));
     expect(find.byIcon(Icons.check_box_outline_blank_rounded), findsNothing);
+  });
+
+  testWidgets('saving Apple Health settings syncs health data into home', (
+    tester,
+  ) async {
+    const channel = MethodChannel(PedometerHealthClient.channelName);
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(channel, (call) async {
+          if (call.method == 'requestAuthorization') return true;
+          if (call.method == 'fetchDailySummaries') {
+            return [
+              {
+                'date': '2026-06-15',
+                'steps': 8123,
+                'distanceKm': 5.8,
+                'caloriesKcal': 420.0,
+                'activeMinutes': 46,
+                'source': 'appleHealth',
+              },
+            ];
+          }
+          return true;
+        });
+
+    await tester.pumpWidget(const PedometerApp());
+    await tester.pump();
+    expect(Get.find<HomeViewModel>().step.value.steps, 5276);
+
+    await tester.tap(find.text(HomeResource.entryHealthSync));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('查看').first);
+    await tester.pumpAndSettle();
+    await tester.scrollUntilVisible(find.text('保存设置'), 260);
+    await tester.tap(find.text('保存设置'));
+    await tester.pumpAndSettle();
+
+    expect(Get.find<HomeViewModel>().step.value.steps, 8123);
+  });
+
+  testWidgets('saving Apple Health settings reports unavailable HealthKit', (
+    tester,
+  ) async {
+    const channel = MethodChannel(PedometerHealthClient.channelName);
+    var trackingSave = false;
+    var requestedAuthorization = false;
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(channel, (call) async {
+          if (call.method == 'isAvailable') return false;
+          if (call.method == 'requestAuthorization') {
+            if (trackingSave) requestedAuthorization = true;
+            return true;
+          }
+          return <Object?>[];
+        });
+
+    await tester.pumpWidget(const PedometerApp());
+    await tester.pump();
+
+    await tester.tap(find.text(HomeResource.entryHealthSync));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('查看').first);
+    await tester.pumpAndSettle();
+    await tester.scrollUntilVisible(find.text('保存设置'), 260);
+    trackingSave = true;
+    await tester.tap(find.text('保存设置'));
+    await tester.pumpAndSettle();
+
+    expect(requestedAuthorization, isFalse);
+    expect(find.text('Apple Health 当前设备不可用'), findsOneWidget);
   });
 
   testWidgets('renders the step ring as an extended open arc', (tester) async {

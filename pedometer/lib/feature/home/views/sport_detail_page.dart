@@ -4,6 +4,7 @@ import 'package:pedometer/common/component/app_top_navigation_bar.dart';
 import 'package:pedometer/common/config/app_colors.dart';
 import 'package:pedometer/common/config/app_dimens.dart';
 import 'package:pedometer/feature/home/components/sport_detail_components.dart';
+import 'package:pedometer/feature/home/model/health_repository.dart';
 import 'package:pedometer/feature/home/model/sport_detail_model.dart';
 import 'package:pedometer/feature/home/resources/home_resource.dart';
 
@@ -12,8 +13,13 @@ class SportDetailPage extends StatefulWidget {
   static const String routeName = HomeRouteTable.pathSportDetail;
 
   final SportPeriod initialPeriod;
+  final HealthRepository? repository;
 
-  const SportDetailPage({super.key, this.initialPeriod = SportPeriod.day});
+  const SportDetailPage({
+    super.key,
+    this.initialPeriod = SportPeriod.day,
+    this.repository,
+  });
 
   @override
   State<SportDetailPage> createState() => _SportDetailPageState();
@@ -21,10 +27,24 @@ class SportDetailPage extends StatefulWidget {
 
 class _SportDetailPageState extends State<SportDetailPage> {
   late SportPeriod _period = widget.initialPeriod;
+  late final HealthRepository _repository =
+      widget.repository ?? HealthRepository.defaultRepository();
+
+  @override
+  void initState() {
+    super.initState();
+    HealthSyncRuntime.revision.addListener(_refreshSyncedHealth);
+  }
+
+  @override
+  void dispose() {
+    HealthSyncRuntime.revision.removeListener(_refreshSyncedHealth);
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
-    final data = SportDetailFixtures.byPeriod(_period);
+    final data = _repository.sportPeriodData(_period);
     return Scaffold(
       backgroundColor: HomeResource.background,
       body: Stack(
@@ -72,6 +92,10 @@ class _SportDetailPageState extends State<SportDetailPage> {
         ],
       ),
     );
+  }
+
+  void _refreshSyncedHealth() {
+    if (mounted) setState(() {});
   }
 }
 

@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:pedometer/common/component/app_top_navigation_bar.dart';
 import 'package:pedometer/common/component/glass_card.dart';
 import 'package:pedometer/common/config/app_colors.dart';
 import 'package:pedometer/common/config/app_dimens.dart';
 import 'package:pedometer/feature/home/components/sync_data_detail_components.dart';
+import 'package:pedometer/feature/home/model/health_repository.dart';
 import 'package:pedometer/feature/home/model/sync_data_detail_model.dart';
 import 'package:pedometer/feature/home/resources/home_resource.dart';
+import 'package:pedometer_health/pedometer_health.dart';
 
 /// 单个健康数据来源的连接与同步设置页。
 class SyncSourceDetailPage extends StatefulWidget {
@@ -24,6 +27,9 @@ class _SyncSourceDetailPageState extends State<SyncSourceDetailPage> {
   late final SyncSourceDetailData data;
   late int _selectedModeIndex;
   late List<bool> _manualSelections;
+  bool _syncing = false;
+  String? _syncMessage;
+  bool _syncSucceeded = false;
 
   bool get _isManualSyncSelected =>
       data.modeOptions[_selectedModeIndex].title == '手动同步';
@@ -94,7 +100,14 @@ class _SyncSourceDetailPageState extends State<SyncSourceDetailPage> {
                     ),
                   ],
                   SizedBox(height: AppSpacing.xl),
-                  const _SourceActionBar(),
+                  if (_syncMessage != null) ...[
+                    _SyncResultBanner(
+                      message: _syncMessage!,
+                      succeeded: _syncSucceeded,
+                    ),
+                    SizedBox(height: AppSpacing.md),
+                  ],
+                  _SourceActionBar(syncing: _syncing, onSave: _syncHealthData),
                   SizedBox(height: AppSpacing.lg),
                   DataSecurityFooter(text: data.safetyText),
                   SizedBox(height: AppSpacing.xxl),
@@ -124,6 +137,97 @@ class _SyncSourceDetailPageState extends State<SyncSourceDetailPage> {
     setState(() {
       _manualSelections[index] = !_manualSelections[index];
     });
+  }
+
+  Future<void> _syncHealthData() async {
+    if (_syncing) return;
+    setState(() {
+      _syncing = true;
+      _syncSucceeded = false;
+      _syncMessage = '${data.source.title} 同步中';
+    });
+
+    try {
+      final source = data.source.title == 'Health Connect'
+          ? HealthSyncSource.healthConnect
+          : HealthSyncSource.appleHealth;
+      final client = PedometerHealthClient();
+      final types = _selectedHealthTypes();
+
+      final available = await client.isAvailable(source: source);
+      if (!available) {
+        _setSyncResult('${data.source.title} 当前设备不可用', false);
+        return;
+      }
+
+      final requested = await client.requestAuthorization(
+        source: source,
+        types: types,
+      );
+      if (!requested) {
+        _setSyncResult('${data.source.title} 未完成授权', false);
+        return;
+      }
+
+      final now = DateTime.now();
+      final syncedSource = await HealthPluginSyncService(client: client).sync(
+        source: source,
+        startDate: now.subtract(const Duration(days: 30)),
+        endDate: now,
+        types: types,
+      );
+      HealthSyncRuntime.replaceRealDataSource(syncedSource);
+      _setSyncResult('${data.source.title} 同步成功', true);
+    } catch (error) {
+      _setSyncResult(
+        '${data.source.title} 同步失败：${_syncErrorText(error)}',
+        false,
+      );
+    } finally {
+      if (mounted) setState(() => _syncing = false);
+    }
+  }
+
+  void _setSyncResult(String message, bool succeeded) {
+    if (!mounted) return;
+    setState(() {
+      _syncMessage = message;
+      _syncSucceeded = succeeded;
+    });
+  }
+
+  String _syncErrorText(Object error) {
+    if (error is PlatformException) {
+      return error.message ?? error.code;
+    }
+    return error.toString();
+  }
+
+  List<HealthSyncDataType> _selectedHealthTypes() {
+    if (!_isManualSyncSelected) {
+      return const [
+        HealthSyncDataType.steps,
+        HealthSyncDataType.distance,
+        HealthSyncDataType.calories,
+        HealthSyncDataType.activeMinutes,
+      ];
+    }
+
+    final selected = <HealthSyncDataType>[];
+    for (var i = 0; i < _manualItems.length; i++) {
+      if (!_manualItems[i].selected) continue;
+      switch (_manualItems[i].title) {
+        case '步数':
+          selected.add(HealthSyncDataType.steps);
+        case '距离':
+          selected.add(HealthSyncDataType.distance);
+        case '卡路里':
+          selected.add(HealthSyncDataType.calories);
+        case '活动时间':
+          selected.add(HealthSyncDataType.activeMinutes);
+      }
+    }
+    return selected.isEmpty ? const [HealthSyncDataType.steps] : selected;
   }
 }
 
@@ -582,8 +686,55 @@ class _ManualSyncChip extends StatelessWidget {
   }
 }
 
+class _SyncResultBanner extends StatelessWidget {
+  final String message;
+  final bool succeeded;
+
+  const _SyncResultBanner({required this.message, required this.succeeded});
+
+  @override
+  Widget build(BuildContext context) {
+    final color = succeeded ? AppColors.brandGreen : AppColors.accentOrange;
+
+    return GlassCard(
+      radius: AppRadius.lg,
+      padding: EdgeInsets.symmetric(
+        horizontal: AppSpacing.md,
+        vertical: AppSpacing.sm,
+      ),
+      child: Row(
+        children: [
+          Icon(
+            succeeded
+                ? Icons.check_circle_outline_rounded
+                : Icons.error_outline_rounded,
+            color: color,
+            size: 20,
+          ),
+          SizedBox(width: AppSpacing.sm),
+          Expanded(
+            child: Text(
+              message,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                color: AppColors.textPrimary,
+                fontSize: 14,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class _SourceActionBar extends StatelessWidget {
-  const _SourceActionBar();
+  final bool syncing;
+  final VoidCallback onSave;
+
+  const _SourceActionBar({required this.syncing, required this.onSave});
 
   @override
   Widget build(BuildContext context) {
@@ -604,6 +755,7 @@ class _SourceActionBar extends StatelessWidget {
             foreground: AppColors.bgPrimary,
             background: AppColors.brandGreen,
             borderColor: AppColors.brandGreen,
+            onTap: syncing ? null : onSave,
           ),
         ),
       ],
@@ -616,37 +768,43 @@ class _ActionButton extends StatelessWidget {
   final Color foreground;
   final Color background;
   final Color borderColor;
+  final VoidCallback? onTap;
 
   const _ActionButton({
     required this.label,
     required this.foreground,
     required this.background,
     required this.borderColor,
+    this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      height: 48,
-      alignment: Alignment.center,
-      decoration: BoxDecoration(
-        color: background,
-        borderRadius: BorderRadius.circular(AppRadius.xl),
-        border: Border.all(color: borderColor),
-        boxShadow: [
-          BoxShadow(
-            color: background.withValues(alpha: 0.24),
-            blurRadius: 22,
-            offset: const Offset(0, 8),
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: onTap,
+      child: Container(
+        height: 48,
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          color: background,
+          borderRadius: BorderRadius.circular(AppRadius.xl),
+          border: Border.all(color: borderColor),
+          boxShadow: [
+            BoxShadow(
+              color: background.withValues(alpha: 0.24),
+              blurRadius: 22,
+              offset: const Offset(0, 8),
+            ),
+          ],
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            color: foreground,
+            fontSize: 16,
+            fontWeight: FontWeight.w800,
           ),
-        ],
-      ),
-      child: Text(
-        label,
-        style: TextStyle(
-          color: foreground,
-          fontSize: 16,
-          fontWeight: FontWeight.w800,
         ),
       ),
     );

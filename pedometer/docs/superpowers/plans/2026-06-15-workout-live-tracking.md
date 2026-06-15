@@ -154,9 +154,9 @@ void main() {
   test('computes pace from window distance and time', () {
     final policy = WorkoutPacePolicy(minWindowMeters: 30);
     policy.addSample(cumulativeMeters: 0, at: t0);
-    // 200m 用 60s → 配速 = 60s / 0.2km = 300 s/km = 5 分钟/公里。
-    policy.addSample(cumulativeMeters: 200, at: t0.add(const Duration(seconds: 60)));
-    expect(policy.pacePerKm, const Duration(seconds: 300));
+    // 100m 用 20s（落在默认 20s 窗口内）→ 配速 = 20s / 0.1km = 200 s/km。
+    policy.addSample(cumulativeMeters: 100, at: t0.add(const Duration(seconds: 20)));
+    expect(policy.pacePerKm, const Duration(seconds: 200));
   });
 
   test('slides out samples older than the window', () {

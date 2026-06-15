@@ -6,6 +6,8 @@ import 'package:pedometer/common/config/app_screen.dart';
 import 'package:pedometer/common/config/app_colors.dart';
 import 'package:pedometer/common/config/resource_loader.dart';
 import 'package:pedometer/feature/home/components/sport_detail_components.dart';
+import 'package:pedometer/feature/home/model/health_repository.dart';
+import 'package:pedometer/feature/home/model/home_model.dart';
 import 'package:pedometer/feature/home/model/sport_detail_model.dart';
 import 'package:pedometer/feature/home/views/sport_detail_page.dart';
 
@@ -53,6 +55,23 @@ void main() {
     expect(find.text('本月步数'), findsOneWidget);
     expect(find.text('月度热力'), findsOneWidget);
     expect(find.text('月度总结'), findsOneWidget);
+  });
+
+  testWidgets('renders sport detail data from the health repository', (
+    tester,
+  ) async {
+    final repository = HealthRepository(
+      membershipService: const FixedMembershipService(true),
+      mockDataSource: const MockHealthDataSource(),
+      realDataSource: _FakeSportHealthDataSource(),
+    );
+
+    await tester.pumpWidget(wrap(SportDetailPage(repository: repository)));
+    await tester.pump();
+
+    expect(find.text('真实同步数据'), findsOneWidget);
+    expect(find.text('8,123'), findsOneWidget);
+    expect(find.text('5.8'), findsOneWidget);
   });
 
   testWidgets('uses home hero proportions for the detail period area', (
@@ -173,4 +192,65 @@ void main() {
     expect(find.text('完成 100%'), findsOneWidget);
     expect(find.text('完成 101%'), findsNothing);
   });
+}
+
+class _FakeSportHealthDataSource implements HealthDataSource {
+  @override
+  HealthHomeSnapshot homeSnapshot() {
+    return const HealthHomeSnapshot(
+      step: StepData(steps: 8123, goal: 10000),
+      kpis: [],
+      trend: [],
+      analyses: [],
+    );
+  }
+
+  @override
+  SportPeriodData sportPeriodData(SportPeriod period) {
+    return SportPeriodData(
+      period: period,
+      dateTitle: '真实同步数据',
+      progress: const SportProgressData(
+        title: '今日步数',
+        value: 8123,
+        goal: 10000,
+        goalUnit: '步',
+        badgePrefix: '达成',
+      ),
+      metrics: const [
+        SportMetricData(
+          icon: Icons.place_rounded,
+          color: Color(0xFF7A3DFF),
+          title: '距离',
+          value: '5.8',
+          unit: 'km',
+        ),
+        SportMetricData(
+          icon: Icons.local_fire_department_rounded,
+          color: Color(0xFFFF9F12),
+          title: '卡路里',
+          value: '420',
+          unit: 'kcal',
+        ),
+        SportMetricData(
+          icon: Icons.timer_rounded,
+          color: Color(0xFF0CD9FF),
+          title: '活动时间',
+          value: '46',
+          unit: 'min',
+        ),
+      ],
+      hourly: const [HourlyStepData('12:00', 8123)],
+      segments: const [],
+      summary: const SportSummaryData(
+        icon: Icons.flag_rounded,
+        color: Color(0xFF24F04E),
+        title: '真实总结',
+        primary: '已同步',
+        highlight: 'Apple Health',
+        secondary: '会员真实健康数据',
+        assetName: 'real health data',
+      ),
+    );
+  }
 }
