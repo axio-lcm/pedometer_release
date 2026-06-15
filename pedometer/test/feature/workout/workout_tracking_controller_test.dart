@@ -48,6 +48,38 @@ void main() {
     expect(c.pathPoints.length, 2); // 起点 + 1 个有效移动点
   });
 
+  test('small real movement draws a visible route without inflating distance', () {
+    final c = WorkoutTrackingController(
+      minMoveMeters: 2.5,
+      minRoutePointMeters: 1.5,
+    );
+    c.onFix(_pos(31.20000, 121.40000), const LatLng(31.20000, 121.40000));
+    c.start();
+
+    // ~1.7m：不足以累计运动距离，但应该能让地图先出现一小段轨迹。
+    c.onFix(_pos(31.200015, 121.40000), const LatLng(31.200015, 121.40000));
+
+    expect(c.distanceMeters.value, 0);
+    expect(c.pathPoints, [
+      const LatLng(31.20000, 121.40000),
+      const LatLng(31.200015, 121.40000),
+    ]);
+  });
+
+  test('first movement after start immediately extends the visible route', () {
+    final c = WorkoutTrackingController(minMoveMeters: 2.5);
+    c.onFix(_pos(31.20000, 121.40000), const LatLng(31.20000, 121.40000));
+    c.start();
+
+    c.onFix(_pos(31.20040, 121.40000), const LatLng(31.20040, 121.40000));
+
+    expect(c.distanceMeters.value, greaterThan(40));
+    expect(c.pathPoints, [
+      const LatLng(31.20000, 121.40000),
+      const LatLng(31.20040, 121.40000),
+    ]);
+  });
+
   test('paused freezes the timer; running accumulates duration and calories', () {
     fakeAsync((async) {
       final c = WorkoutTrackingController();

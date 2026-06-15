@@ -16,14 +16,20 @@ class WorkoutTrackingController extends GetxController {
     WorkoutCaloriePolicy? caloriePolicy,
     WorkoutPacePolicy? pacePolicy,
     this.minMoveMeters = 2.5,
+    this.minRoutePointMeters = 1.5,
   })  : _caloriePolicy = caloriePolicy ?? const WorkoutCaloriePolicy(),
         _pacePolicy = pacePolicy ?? WorkoutPacePolicy();
 
   final WorkoutCaloriePolicy _caloriePolicy;
   final WorkoutPacePolicy _pacePolicy;
 
-  /// 小于该距离（米）的相邻定位视为 GPS 抖动，不累计、不画点。
+  /// 小于该距离（米）的相邻定位不累计运动距离；可视轨迹另由
+  /// [minRoutePointMeters] 控制。
   final double minMoveMeters;
+
+  /// 地图可视轨迹的最低位移。它小于 [minMoveMeters]，用于让真机小范围
+  /// 移动先出现路线，但不参与距离 / 配速 / 卡路里计算。
+  final double minRoutePointMeters;
 
   final status = WorkoutStatus.ready.obs;
   final startPoint = Rxn<LatLng>();
@@ -37,6 +43,8 @@ class WorkoutTrackingController extends GetxController {
 
   Timer? _ticker;
   Position? _lastRaw; // 上一个被接受的原始定位（算距离 / 方位）
+  Position? _currentRaw; // 最近一次定位，开始运动时用作第一段距离基准
+  Position? _lastRouteRaw; // 上一个被画到地图轨迹上的原始定位
   double _lastSpeedKmh = 0; // 当前 tick 卡路里用的速度
 
   // ---- 状态机 ----
@@ -48,7 +56,8 @@ class WorkoutTrackingController extends GetxController {
     pace.value = null;
     pathPoints.clear();
     _pacePolicy.reset();
-    _lastRaw = null;
+    _lastRaw = _currentRaw;
+    _lastRouteRaw = _currentRaw;
     _lastSpeedKmh = 0;
 
     final pos = currentPosition.value;
@@ -95,11 +104,17 @@ class WorkoutTrackingController extends GetxController {
   /// 每个被地图接受的定位点回调一次。
   /// [raw] 原始 WGS84（算距离 / 方位），[display] 纠偏后的显示坐标（画轨迹 / marker）。
   void onFix(Position raw, LatLng display) {
+    _currentRaw = raw;
     currentPosition.value = display;
 
     final last = _lastRaw;
     if (last == null) {
       _lastRaw = raw;
+      if (status.value == WorkoutStatus.running && pathPoints.isEmpty) {
+        startPoint.value ??= display;
+        pathPoints.add(display);
+        _lastRouteRaw = raw;
+      }
       return;
     }
 
@@ -109,7 +124,10 @@ class WorkoutTrackingController extends GetxController {
       raw.latitude,
       raw.longitude,
     );
-    if (delta < minMoveMeters) return; // 抖动，保持上次 bearing / 距离
+    if (delta < minMoveMeters) {
+      _appendVisibleRoutePointIfNeeded(raw, display);
+      return; // 抖动，保持上次 bearing / 距离
+    }
 
     bearing.value = Geolocator.bearingBetween(
       last.latitude,
@@ -120,7 +138,7 @@ class WorkoutTrackingController extends GetxController {
 
     if (status.value == WorkoutStatus.running) {
       distanceMeters.value += delta;
-      pathPoints.add(display);
+      _appendRoutePoint(raw, display);
       _pacePolicy.addSample(
         cumulativeMeters: distanceMeters.value,
         at: DateTime.now(),
@@ -132,6 +150,35 @@ class WorkoutTrackingController extends GetxController {
     }
 
     _lastRaw = raw;
+  }
+
+  void _appendVisibleRoutePointIfNeeded(Position raw, LatLng display) {
+    if (status.value != WorkoutStatus.running) return;
+
+    final lastRoute = _lastRouteRaw;
+    if (lastRoute == null) {
+      _appendRoutePoint(raw, display);
+      return;
+    }
+
+    final delta = Geolocator.distanceBetween(
+      lastRoute.latitude,
+      lastRoute.longitude,
+      raw.latitude,
+      raw.longitude,
+    );
+    if (delta < minRoutePointMeters) return;
+    _appendRoutePoint(raw, display);
+  }
+
+  void _appendRoutePoint(Position raw, LatLng display) {
+    if (pathPoints.isEmpty) {
+      startPoint.value ??= display;
+    }
+    if (pathPoints.isEmpty || pathPoints.last != display) {
+      pathPoints.add(display);
+    }
+    _lastRouteRaw = raw;
   }
 
   double _speedFromDelta(double meters, DateTime from, DateTime to) {

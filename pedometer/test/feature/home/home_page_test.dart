@@ -142,9 +142,38 @@ void main() {
     expect(find.text('已连接 Apple Health'), findsOneWidget);
     expect(find.text('Health 同步权限'), findsOneWidget);
     expect(find.text('同步方式'), findsOneWidget);
-    expect(find.text('手动同步数据选择'), findsOneWidget);
+    expect(find.text('手动同步数据选择'), findsNothing);
     expect(find.text('断开连接'), findsOneWidget);
     expect(find.text('保存设置'), findsOneWidget);
+  });
+
+  testWidgets('shows manual sync selection only after selecting manual mode', (
+    tester,
+  ) async {
+    await tester.pumpWidget(const PedometerApp());
+    await tester.pump();
+
+    await tester.tap(find.text(HomeResource.entryHealthSync));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('查看').first);
+    await tester.pumpAndSettle();
+
+    expect(find.text('手动同步数据选择'), findsNothing);
+
+    await tester.scrollUntilVisible(find.text('手动同步'), 260);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('手动同步'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('手动同步数据选择'), findsOneWidget);
+    expect(find.byIcon(Icons.check_box_rounded), findsNWidgets(3));
+    expect(find.byIcon(Icons.check_box_outline_blank_rounded), findsOneWidget);
+
+    await tester.tap(find.text('活动时间').last);
+    await tester.pumpAndSettle();
+
+    expect(find.byIcon(Icons.check_box_rounded), findsNWidgets(4));
+    expect(find.byIcon(Icons.check_box_outline_blank_rounded), findsNothing);
   });
 
   testWidgets('renders the step ring as an extended open arc', (tester) async {

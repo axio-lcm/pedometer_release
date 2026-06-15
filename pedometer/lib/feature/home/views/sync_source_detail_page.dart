@@ -9,7 +9,7 @@ import 'package:pedometer/feature/home/model/sync_data_detail_model.dart';
 import 'package:pedometer/feature/home/resources/home_resource.dart';
 
 /// 单个健康数据来源的连接与同步设置页。
-class SyncSourceDetailPage extends StatelessWidget {
+class SyncSourceDetailPage extends StatefulWidget {
   static const String routeName = HomeRouteTable.pathSyncSourceDetail;
 
   final SyncDataSource? source;
@@ -17,9 +17,40 @@ class SyncSourceDetailPage extends StatelessWidget {
   const SyncSourceDetailPage({super.key, this.source});
 
   @override
-  Widget build(BuildContext context) {
-    final data = SyncSourceDetailData.forSource(_resolveSource());
+  State<SyncSourceDetailPage> createState() => _SyncSourceDetailPageState();
+}
 
+class _SyncSourceDetailPageState extends State<SyncSourceDetailPage> {
+  late final SyncSourceDetailData data;
+  late int _selectedModeIndex;
+  late List<bool> _manualSelections;
+
+  bool get _isManualSyncSelected =>
+      data.modeOptions[_selectedModeIndex].title == '手动同步';
+
+  List<ManualSyncSelectionItem> get _manualItems {
+    return [
+      for (var i = 0; i < data.manualItems.length; i++)
+        ManualSyncSelectionItem(
+          title: data.manualItems[i].title,
+          selected: _manualSelections[i],
+        ),
+    ];
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    data = SyncSourceDetailData.forSource(_resolveSource());
+    final selectedIndex = data.modeOptions.indexWhere(
+      (option) => option.selected,
+    );
+    _selectedModeIndex = selectedIndex == -1 ? 0 : selectedIndex;
+    _manualSelections = [for (final item in data.manualItems) item.selected];
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: HomeResource.background,
       body: Stack(
@@ -50,9 +81,18 @@ class SyncSourceDetailPage extends StatelessWidget {
                   SizedBox(height: AppSpacing.lg),
                   _PermissionCard(items: data.permissions),
                   SizedBox(height: AppSpacing.lg),
-                  _SyncModeCard(options: data.modeOptions),
-                  SizedBox(height: AppSpacing.lg),
-                  _ManualSelectionCard(items: data.manualItems),
+                  _SyncModeCard(
+                    options: data.modeOptions,
+                    selectedIndex: _selectedModeIndex,
+                    onChanged: _selectSyncMode,
+                  ),
+                  if (_isManualSyncSelected) ...[
+                    SizedBox(height: AppSpacing.lg),
+                    _ManualSelectionCard(
+                      items: _manualItems,
+                      onItemTap: _toggleManualSelection,
+                    ),
+                  ],
                   SizedBox(height: AppSpacing.xl),
                   const _SourceActionBar(),
                   SizedBox(height: AppSpacing.lg),
@@ -69,9 +109,21 @@ class SyncSourceDetailPage extends StatelessWidget {
 
   SyncDataSource _resolveSource() {
     final argument = Get.arguments;
-    if (source != null) return source!;
+    if (widget.source != null) return widget.source!;
     if (argument is SyncDataSource) return argument;
     return SyncDataDetailData.mock.sources.first;
+  }
+
+  void _selectSyncMode(int index) {
+    setState(() {
+      _selectedModeIndex = index;
+    });
+  }
+
+  void _toggleManualSelection(int index) {
+    setState(() {
+      _manualSelections[index] = !_manualSelections[index];
+    });
   }
 }
 
@@ -310,8 +362,14 @@ class _GreenSwitch extends StatelessWidget {
 
 class _SyncModeCard extends StatelessWidget {
   final List<SyncModeOption> options;
+  final int selectedIndex;
+  final ValueChanged<int> onChanged;
 
-  const _SyncModeCard({required this.options});
+  const _SyncModeCard({
+    required this.options,
+    required this.selectedIndex,
+    required this.onChanged,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -324,7 +382,11 @@ class _SyncModeCard extends StatelessWidget {
           const SectionHeader(title: '同步方式'),
           SizedBox(height: AppSpacing.md),
           for (var i = 0; i < options.length; i++) ...[
-            _SyncModeOptionTile(option: options[i]),
+            _SyncModeOptionTile(
+              option: options[i],
+              selected: selectedIndex == i,
+              onTap: () => onChanged(i),
+            ),
             if (i != options.length - 1) SizedBox(height: AppSpacing.md),
           ],
         ],
@@ -335,57 +397,65 @@ class _SyncModeCard extends StatelessWidget {
 
 class _SyncModeOptionTile extends StatelessWidget {
   final SyncModeOption option;
+  final bool selected;
+  final VoidCallback onTap;
 
-  const _SyncModeOptionTile({required this.option});
+  const _SyncModeOptionTile({
+    required this.option,
+    required this.selected,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
-    final borderColor = option.selected
-        ? AppColors.brandGreen
-        : AppColors.strokeCard;
+    final borderColor = selected ? AppColors.brandGreen : AppColors.strokeCard;
 
-    return Container(
-      padding: EdgeInsets.symmetric(
-        horizontal: AppSpacing.md,
-        vertical: AppSpacing.sm,
-      ),
-      decoration: BoxDecoration(
-        color: option.selected
-            ? AppColors.brandGreenDark.withValues(alpha: 0.16)
-            : AppColors.bgPrimary.withValues(alpha: 0.18),
-        borderRadius: BorderRadius.circular(AppRadius.lg),
-        border: Border.all(color: borderColor),
-      ),
-      child: Row(
-        children: [
-          _RadioIndicator(selected: option.selected),
-          SizedBox(width: AppSpacing.md),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  option.title,
-                  style: TextStyle(
-                    color: AppColors.textPrimary,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w700,
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: onTap,
+      child: Container(
+        padding: EdgeInsets.symmetric(
+          horizontal: AppSpacing.md,
+          vertical: AppSpacing.sm,
+        ),
+        decoration: BoxDecoration(
+          color: selected
+              ? AppColors.brandGreenDark.withValues(alpha: 0.16)
+              : AppColors.bgPrimary.withValues(alpha: 0.18),
+          borderRadius: BorderRadius.circular(AppRadius.lg),
+          border: Border.all(color: borderColor),
+        ),
+        child: Row(
+          children: [
+            _RadioIndicator(selected: selected),
+            SizedBox(width: AppSpacing.md),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    option.title,
+                    style: TextStyle(
+                      color: AppColors.textPrimary,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w700,
+                    ),
                   ),
-                ),
-                SizedBox(height: AppSpacing.xxs),
-                Text(
-                  option.subtitle,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    color: AppColors.textSecondary,
-                    fontSize: 13,
+                  SizedBox(height: AppSpacing.xxs),
+                  Text(
+                    option.subtitle,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      color: AppColors.textSecondary,
+                      fontSize: 13,
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -426,8 +496,9 @@ class _RadioIndicator extends StatelessWidget {
 
 class _ManualSelectionCard extends StatelessWidget {
   final List<ManualSyncSelectionItem> items;
+  final ValueChanged<int> onItemTap;
 
-  const _ManualSelectionCard({required this.items});
+  const _ManualSelectionCard({required this.items, required this.onItemTap});
 
   @override
   Widget build(BuildContext context) {
@@ -443,7 +514,8 @@ class _ManualSelectionCard extends StatelessWidget {
             spacing: AppSpacing.sm,
             runSpacing: AppSpacing.sm,
             children: [
-              for (final item in items) _ManualSyncChip(item: item),
+              for (var i = 0; i < items.length; i++)
+                _ManualSyncChip(item: items[i], onTap: () => onItemTap(i)),
             ],
           ),
           SizedBox(height: AppSpacing.md),
@@ -459,45 +531,52 @@ class _ManualSelectionCard extends StatelessWidget {
 
 class _ManualSyncChip extends StatelessWidget {
   final ManualSyncSelectionItem item;
+  final VoidCallback onTap;
 
-  const _ManualSyncChip({required this.item});
+  const _ManualSyncChip({required this.item, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: EdgeInsets.symmetric(
-        horizontal: AppSpacing.sm,
-        vertical: AppSpacing.xs,
-      ),
-      decoration: BoxDecoration(
-        color: item.selected
-            ? AppColors.brandGreenDark.withValues(alpha: 0.2)
-            : AppColors.bgPrimary.withValues(alpha: 0.28),
-        borderRadius: BorderRadius.circular(AppRadius.lg),
-        border: Border.all(
-          color: item.selected ? AppColors.brandGreen : AppColors.strokeCard,
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: onTap,
+      child: Container(
+        padding: EdgeInsets.symmetric(
+          horizontal: AppSpacing.sm,
+          vertical: AppSpacing.xs,
         ),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(
-            item.selected
-                ? Icons.check_box_rounded
-                : Icons.check_box_outline_blank_rounded,
-            color: item.selected ? AppColors.brandGreen : AppColors.textSecondary,
-            size: 19,
+        decoration: BoxDecoration(
+          color: item.selected
+              ? AppColors.brandGreenDark.withValues(alpha: 0.2)
+              : AppColors.bgPrimary.withValues(alpha: 0.28),
+          borderRadius: BorderRadius.circular(AppRadius.lg),
+          border: Border.all(
+            color: item.selected ? AppColors.brandGreen : AppColors.strokeCard,
           ),
-          SizedBox(width: AppSpacing.sm),
-          Text(
-            item.title,
-            style: TextStyle(
-              color: AppColors.textPrimary,
-              fontSize: 14,
-              fontWeight: FontWeight.w700,
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              item.selected
+                  ? Icons.check_box_rounded
+                  : Icons.check_box_outline_blank_rounded,
+              color: item.selected
+                  ? AppColors.brandGreen
+                  : AppColors.textSecondary,
+              size: 19,
             ),
-          ),
-        ],
+            SizedBox(width: AppSpacing.sm),
+            Text(
+              item.title,
+              style: TextStyle(
+                color: AppColors.textPrimary,
+                fontSize: 14,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
