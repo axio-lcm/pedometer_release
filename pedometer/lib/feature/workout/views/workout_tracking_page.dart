@@ -6,6 +6,7 @@ import 'package:pedometer/common/config/app_dimens.dart';
 import 'package:pedometer/feature/workout/components/workout_tracking_components.dart';
 import 'package:pedometer/feature/workout/model/workout_model.dart';
 import 'package:pedometer/feature/workout/resources/workout_resource.dart';
+import 'package:pedometer/feature/workout/viewmodel/workout_tracking_controller.dart';
 import 'package:pedometer/feature/workout/views/exercise_result_page.dart';
 
 /// 点击「开始运动」后的运动记录中页面。
@@ -21,17 +22,13 @@ class WorkoutTrackingPage extends StatefulWidget {
 }
 
 class _WorkoutTrackingPageState extends State<WorkoutTrackingPage> {
-  late WorkoutStatus _status;
-
-  @override
-  void initState() {
-    super.initState();
-    _status = widget.data.status;
-  }
+  late final WorkoutTrackingController controller =
+      Get.isRegistered<WorkoutTrackingController>()
+          ? Get.find<WorkoutTrackingController>()
+          : Get.put(WorkoutTrackingController());
 
   @override
   Widget build(BuildContext context) {
-    final data = widget.data.copyWith(status: _status);
     return Scaffold(
       backgroundColor: WorkoutResource.background,
       body: Stack(
@@ -44,39 +41,48 @@ class _WorkoutTrackingPageState extends State<WorkoutTrackingPage> {
                 Padding(
                   padding: EdgeInsets.symmetric(horizontal: AppSpacing.lg),
                   child: AppTopNavigationBar(
-                    title: data.workoutTitle,
+                    title: widget.data.workoutTitle,
                     onBack: _back,
                   ),
                 ),
                 Expanded(
                   child: SingleChildScrollView(
                     padding: EdgeInsets.only(bottom: AppSpacing.xl),
-                    child: Column(
-                      children: [
-                        WorkoutMapSection(data: data),
-                        const SizedBox(height: 4),
-                        Padding(
-                          padding: EdgeInsets.symmetric(
-                            horizontal: AppSpacing.lg,
+                    child: Obx(() {
+                      final data = widget.data.copyWith(
+                        status: controller.status.value,
+                        distanceKm: controller.distanceKmText,
+                        duration: controller.durationText,
+                        calories: controller.caloriesText,
+                        pace: controller.paceText,
+                      );
+                      return Column(
+                        children: [
+                          WorkoutMapSection(data: data),
+                          const SizedBox(height: 4),
+                          Padding(
+                            padding: EdgeInsets.symmetric(
+                              horizontal: AppSpacing.lg,
+                            ),
+                            child: Column(
+                              children: [
+                                WorkoutMetricPanel(data: data),
+                                const SizedBox(height: 28),
+                                WorkoutControlPanel(
+                                  data: data,
+                                  onPrimaryTap: controller.togglePrimary,
+                                  onEnd: _endWorkout,
+                                ),
+                                const SizedBox(
+                                  height: AppBottomTabBarMetrics.bottomOffset,
+                                ),
+                                WorkoutMusicCard(data: data),
+                              ],
+                            ),
                           ),
-                          child: Column(
-                            children: [
-                              WorkoutMetricPanel(data: data),
-                              const SizedBox(height: 28),
-                              WorkoutControlPanel(
-                                data: data,
-                                onPrimaryTap: _togglePrimaryControl,
-                                onEnd: _endWorkout,
-                              ),
-                              const SizedBox(
-                                height: AppBottomTabBarMetrics.bottomOffset,
-                              ),
-                              WorkoutMusicCard(data: data),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
+                        ],
+                      );
+                    }),
                   ),
                 ),
               ],
@@ -94,18 +100,13 @@ class _WorkoutTrackingPageState extends State<WorkoutTrackingPage> {
     }
   }
 
-  // 结束运动：用 offNamed 替换掉记录中页，结果页「完成」直接回到运动主页。
-  void _endWorkout() => Get.offNamed(ExerciseResultPage.routeName);
-
-  void _togglePrimaryControl() {
-    setState(() {
-      _status = switch (_status) {
-        WorkoutStatus.ready => WorkoutStatus.running,
-        WorkoutStatus.running => WorkoutStatus.ready,
-        WorkoutStatus.paused => WorkoutStatus.running,
-        WorkoutStatus.ended => WorkoutStatus.ended,
-      };
-    });
+  // 结束运动：聚合真实数据并跳结果页（替换记录中页，结果页「完成」回到运动主页）。
+  void _endWorkout() {
+    controller.end();
+    Get.offNamed(
+      ExerciseResultPage.routeName,
+      arguments: controller.toResultData(),
+    );
   }
 }
 

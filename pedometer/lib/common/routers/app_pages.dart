@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:pedometer/feature/home/resources/home_resource.dart';
 import 'package:pedometer/feature/home/views/sync_data_detail_page.dart';
+import 'package:pedometer/feature/home/views/sync_source_detail_page.dart';
 import 'package:pedometer/feature/home/views/sync_history_list_page.dart';
 import 'package:pedometer/feature/home/views/sync_history_detail_page.dart';
 import 'package:pedometer/feature/home/views/sport_detail_page.dart';
 import 'package:pedometer/feature/workout/resources/workout_resource.dart';
+import 'package:pedometer/feature/workout/viewmodel/workout_tracking_controller.dart';
 import 'package:pedometer/feature/workout/views/edit_sport_goal_page.dart';
 import 'package:pedometer/feature/workout/views/exercise_result_page.dart';
 import 'package:pedometer/feature/workout/views/workout_tracking_page.dart';
@@ -35,6 +37,10 @@ class AppPages {
       page: () => const SyncDataDetailPage(),
     ),
     GetPage(
+      name: HomeRouteTable.pathSyncSourceDetail,
+      page: () => const SyncSourceDetailPage(),
+    ),
+    GetPage(
       name: HomeRouteTable.pathSyncHistoryList,
       page: () => const SyncHistoryListPage(),
     ),
@@ -49,6 +55,11 @@ class AppPages {
     GetPage(
       name: WorkoutRouteTable.pathTracking,
       page: () => const WorkoutTrackingPage(),
+      binding: BindingsBuilder(() {
+        Get.lazyPut<WorkoutTrackingController>(
+          () => WorkoutTrackingController(),
+        );
+      }),
     ),
     GetPage(
       name: WorkoutRouteTable.pathResult,

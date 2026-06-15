@@ -8,6 +8,7 @@ import 'package:pedometer/feature/home/model/sync_data_detail_model.dart';
 import 'package:pedometer/feature/home/resources/home_resource.dart';
 import 'package:pedometer/feature/home/views/sync_history_detail_page.dart';
 import 'package:pedometer/feature/home/views/sync_history_list_page.dart';
+import 'package:pedometer/feature/home/views/sync_source_detail_page.dart';
 
 /// Health 同步数据详情页。
 class SyncDataDetailPage extends StatelessWidget {
@@ -47,7 +48,10 @@ class SyncDataDetailPage extends StatelessWidget {
                   SyncStatusHero(data: data),
                   SyncOverviewCard(
                     sources: data.sources,
-                    metrics: data.overviewMetrics,
+                    onSourceView: (source) => Get.toNamed(
+                      SyncSourceDetailPage.routeName,
+                      arguments: source,
+                    ),
                   ),
                   SizedBox(height: AppSpacing.lg),
                   DataTypeCard(items: data.dataTypes),

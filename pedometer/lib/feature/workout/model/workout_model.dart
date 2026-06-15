@@ -92,17 +92,23 @@ class WorkoutTrackingData {
     musicStatus: WorkoutText.trackingMusicStatus,
   );
 
-  WorkoutTrackingData copyWith({WorkoutStatus? status}) {
+  WorkoutTrackingData copyWith({
+    WorkoutStatus? status,
+    String? distanceKm,
+    String? duration,
+    String? calories,
+    String? pace,
+  }) {
     return WorkoutTrackingData(
       workoutTitle: workoutTitle,
       status: status ?? this.status,
       gpsLabel: gpsLabel,
       gpsStatus: gpsStatus,
-      distanceKm: distanceKm,
+      distanceKm: distanceKm ?? this.distanceKm,
       targetKm: targetKm,
-      duration: duration,
-      calories: calories,
-      pace: pace,
+      duration: duration ?? this.duration,
+      calories: calories ?? this.calories,
+      pace: pace ?? this.pace,
       endHint: endHint,
       musicTitle: musicTitle,
       musicStatus: musicStatus,

@@ -81,7 +81,10 @@ class _ExerciseResultPageState extends State<ExerciseResultPage> {
 
   @override
   Widget build(BuildContext context) {
-    final data = widget.data;
+    // 运动结束跳转时通过 Get.arguments 传入真实聚合结果，优先于默认 mock；
+    // 直接以 widget.data 构造（如测试 / 预览）时回退到该值。
+    final args = Get.arguments;
+    final data = args is ExerciseResultData ? args : widget.data;
     return Scaffold(
       backgroundColor: WorkoutResource.background,
       body: Stack(

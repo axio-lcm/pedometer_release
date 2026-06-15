@@ -6,6 +6,7 @@ import 'package:pedometer/common/config/resource_loader.dart';
 import 'package:pedometer/feature/workout/components/workout_tracking_components.dart';
 import 'package:pedometer/feature/workout/model/workout_model.dart';
 import 'package:pedometer/feature/workout/resources/workout_resource.dart';
+import 'package:pedometer/feature/workout/viewmodel/workout_tracking_controller.dart';
 import 'package:pedometer/feature/workout/views/exercise_result_page.dart';
 import 'package:pedometer/feature/workout/views/workout_tracking_page.dart';
 
@@ -34,22 +35,13 @@ void main() {
     );
   }
 
-  Widget runningPage() => const WorkoutTrackingPage(
-    data: WorkoutTrackingData(
-      workoutTitle: WorkoutText.outdoorRun,
-      status: WorkoutStatus.running,
-      gpsLabel: 'GPS',
-      gpsStatus: WorkoutText.trackingGpsGood,
-      distanceKm: '2.35',
-      targetKm: '8.00',
-      duration: '00:18:36',
-      calories: '186',
-      pace: "07'54''",
-      endHint: WorkoutText.trackingEndHint,
-      musicTitle: WorkoutText.trackingMusicTitle,
-      musicStatus: WorkoutText.trackingMusicStatus,
-    ),
-  );
+  Widget runningPage() {
+    // 控制器接管状态后，widget.data 的 status / 指标字段由控制器覆写；
+    // 测试需要控制器预置 running 状态，页面才能渲染「长按结束」按钮。
+    final ctrl = Get.put(WorkoutTrackingController());
+    ctrl.status.value = WorkoutStatus.running;
+    return const WorkoutTrackingPage();
+  }
 
   testWidgets('holding the main button for 3s ends and opens result page', (
     tester,

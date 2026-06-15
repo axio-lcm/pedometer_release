@@ -4,6 +4,7 @@ import 'dart:typed_data';
 import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
+import 'package:flutter_compass/flutter_compass.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:pedometer/common/component/glass_card.dart';
@@ -12,13 +13,14 @@ import 'package:pedometer/common/config/app_dimens.dart';
 import 'package:pedometer/feature/workout/model/location_display_policy.dart';
 import 'package:pedometer/feature/workout/model/location_stability_filter.dart';
 import 'package:pedometer/feature/workout/model/map_coordinate_converter.dart';
-import 'package:pedometer/feature/workout/model/workout_location_layer_policy.dart';
 import 'package:pedometer/feature/workout/model/workout_location_marker_style.dart';
 import 'package:pedometer/feature/workout/model/workout_location_startup_policy.dart';
 import 'package:pedometer/feature/workout/model/workout_map_render_policy.dart';
 import 'package:pedometer/feature/workout/model/workout_map_zoom_policy.dart';
 import 'package:pedometer/feature/workout/model/workout_model.dart';
 import 'package:pedometer/feature/workout/resources/workout_resource.dart';
+import 'package:get/get.dart';
+import 'package:pedometer/feature/workout/viewmodel/workout_tracking_controller.dart';
 
 /// 红框标准区域对应的地图容器：底层后续替换为真实地图，浮层保持不变。
 class WorkoutMapSection extends StatefulWidget {
@@ -64,7 +66,7 @@ class _WorkoutMapSectionState extends State<WorkoutMapSection> {
             ),
           Positioned(
             left: 14,
-            bottom: 14,
+            bottom: 24,
             child: MapControlButtons(
               onLocate: () => _mapKey.currentState?.centerOnCurrentLocation(),
             ),
@@ -95,14 +97,20 @@ class _WorkoutMapViewState extends State<WorkoutMapView> {
   // 避免再次把粗定位整体丢弃导致卡死。
   final _stabilityFilter = LocationStabilityFilter(maxAccuracyMeters: 200);
 
+  late final WorkoutTrackingController _controller =
+      Get.isRegistered<WorkoutTrackingController>()
+          ? Get.find<WorkoutTrackingController>()
+          : Get.put(WorkoutTrackingController());
+
   GoogleMapController? _mapController;
   StreamSubscription<Position>? _positionSubscription;
+  StreamSubscription<CompassEvent>? _compassSubscription;
   BitmapDescriptor? _currentLocationMarkerIcon;
   LatLng? _currentPosition;
   double _currentZoom = WorkoutMapZoomPolicy.defaultZoom;
-  String _locationStatus = '正在申请位置权限';
   bool _allowPlatformMap = false;
-  bool _useNativeMyLocationLayer = false;
+  // 设备罗盘朝向（度，0=正北，顺时针）。驱动当前位置箭头随手机方向旋转。
+  double _headingDegrees = 0;
 
   @override
   void initState() {
@@ -111,12 +119,28 @@ class _WorkoutMapViewState extends State<WorkoutMapView> {
       unawaited(_loadCurrentLocationMarkerIcon());
       _schedulePlatformMapCreation();
       _prepareLocation();
+      _startCompass();
     }
+  }
+
+  void _startCompass() {
+    final stream = FlutterCompass.events;
+    if (stream == null) return; // 设备无磁力计
+    _compassSubscription = stream.listen((event) {
+      final heading = event.heading;
+      if (heading == null || !mounted) return; // 校准中 / 无可靠朝向
+      // 仅在朝向变化明显时刷新，避免高频重建。
+      if (_headingDegrees != 0 && (heading - _headingDegrees).abs() < 1.5) {
+        return;
+      }
+      setState(() => _headingDegrees = heading);
+    });
   }
 
   @override
   void dispose() {
     _positionSubscription?.cancel();
+    _compassSubscription?.cancel();
     _mapController?.dispose();
     super.dispose();
   }
@@ -133,7 +157,6 @@ class _WorkoutMapViewState extends State<WorkoutMapView> {
         key: const Key('workout-google-map'),
         children: [
           const Positioned.fill(child: _WorkoutMapFallback()),
-          _LocationStatusBadge(text: _locationStatus),
         ],
       );
     }
@@ -142,37 +165,40 @@ class _WorkoutMapViewState extends State<WorkoutMapView> {
       key: const Key('workout-google-map'),
       children: [
         Positioned.fill(
-          child: GoogleMap(
-            initialCameraPosition: _currentPosition == null
-                ? _defaultCameraPosition
-                : CameraPosition(target: _currentPosition!, zoom: _currentZoom),
-            minMaxZoomPreference: const MinMaxZoomPreference(
-              WorkoutMapZoomPolicy.minZoom,
-              WorkoutMapZoomPolicy.maxZoom,
+          child: Obx(
+            () => GoogleMap(
+              initialCameraPosition: _currentPosition == null
+                  ? _defaultCameraPosition
+                  : CameraPosition(
+                      target: _currentPosition!, zoom: _currentZoom),
+              minMaxZoomPreference: const MinMaxZoomPreference(
+                WorkoutMapZoomPolicy.minZoom,
+                WorkoutMapZoomPolicy.maxZoom,
+              ),
+              myLocationEnabled: false,
+              myLocationButtonEnabled: false,
+              markers: _trackingMarkers,
+              polylines: _trackingPolylines,
+              mapToolbarEnabled: false,
+              zoomControlsEnabled: false,
+              compassEnabled: false,
+              zoomGesturesEnabled: true,
+              scrollGesturesEnabled: true,
+              rotateGesturesEnabled: true,
+              tiltGesturesEnabled: false,
+              onCameraMove: (position) {
+                _currentZoom = WorkoutMapZoomPolicy.clampZoom(position.zoom);
+              },
+              onMapCreated: (controller) {
+                _mapController = controller;
+                final position = _currentPosition;
+                if (position != null) {
+                  _moveCamera(position);
+                }
+              },
             ),
-            myLocationEnabled: _useNativeMyLocationLayer,
-            myLocationButtonEnabled: false,
-            markers: _correctedLocationMarkers,
-            mapToolbarEnabled: false,
-            zoomControlsEnabled: false,
-            compassEnabled: false,
-            zoomGesturesEnabled: true,
-            scrollGesturesEnabled: true,
-            rotateGesturesEnabled: true,
-            tiltGesturesEnabled: false,
-            onCameraMove: (position) {
-              _currentZoom = WorkoutMapZoomPolicy.clampZoom(position.zoom);
-            },
-            onMapCreated: (controller) {
-              _mapController = controller;
-              final position = _currentPosition;
-              if (position != null) {
-                _moveCamera(position);
-              }
-            },
           ),
         ),
-        _LocationStatusBadge(text: _locationStatus),
       ],
     );
   }
@@ -187,10 +213,7 @@ class _WorkoutMapViewState extends State<WorkoutMapView> {
     try {
       final serviceEnabled = await Geolocator.isLocationServiceEnabled();
       if (!mounted) return;
-      if (!serviceEnabled) {
-        setState(() => _locationStatus = '请开启系统定位服务');
-        return;
-      }
+      if (!serviceEnabled) return;
 
       var permission = await Geolocator.checkPermission();
       if (!mounted) return;
@@ -201,13 +224,8 @@ class _WorkoutMapViewState extends State<WorkoutMapView> {
 
       if (permission == LocationPermission.denied ||
           permission == LocationPermission.deniedForever) {
-        setState(() => _locationStatus = '需要位置权限以显示当前位置');
         return;
       }
-
-      setState(() {
-        _locationStatus = '正在定位';
-      });
 
       _startPositionStream();
       await _seedLastKnownPosition();
@@ -215,11 +233,9 @@ class _WorkoutMapViewState extends State<WorkoutMapView> {
       unawaited(_refreshCurrentPosition());
     } on TimeoutException {
       if (!mounted) return;
-      setState(() => _locationStatus = '等待定位信号');
       _startPositionStream();
     } catch (_) {
       if (!mounted) return;
-      setState(() => _locationStatus = '定位暂不可用');
       return;
     }
   }
@@ -263,17 +279,14 @@ class _WorkoutMapViewState extends State<WorkoutMapView> {
       );
       _acceptPosition(current);
     } on TimeoutException {
-      if (!mounted || _currentPosition != null) return;
-      setState(() => _locationStatus = '等待定位信号');
+      // 首帧定位超时：等待实时定位流补位。
     } catch (_) {
-      if (!mounted || _currentPosition != null) return;
-      setState(() => _locationStatus = '定位暂不可用');
+      // 定位暂不可用：等待实时定位流补位。
     }
   }
 
   void _handlePositionError(Object _) {
-    if (!mounted) return;
-    setState(() => _locationStatus = '定位暂不可用');
+    // 定位流报错：忽略，等待后续定位点恢复。
   }
 
   Future<void> _requestPreciseLocationIfNeeded() async {
@@ -294,12 +307,9 @@ class _WorkoutMapViewState extends State<WorkoutMapView> {
 
     // 第一关：能不能显示。粗定位也接受，只在真正无效/过差时才继续等待。
     final decision = _displayPolicy.evaluate(accuracyMeters: position.accuracy);
-    if (!decision.showOnMap) {
-      setState(() => _locationStatus = decision.statusLabel);
-      return;
-    }
+    if (!decision.showOnMap) return;
 
-    // 第二关：抖动抑制。跳变过大的点不挪动相机/标记，但状态已更新，绝不卡死。
+    // 第二关：抖动抑制。跳变过大的点不挪动相机/标记，但绝不卡死。
     final coordinate = WorkoutCoordinate(
       latitude: position.latitude,
       longitude: position.longitude,
@@ -318,20 +328,13 @@ class _WorkoutMapViewState extends State<WorkoutMapView> {
     final displayCoordinate = MapCoordinateConverter.wgs84ToGcj02(
       rawCoordinate,
     );
-    final locationLayerDecision = WorkoutLocationLayerPolicy.decide(
-      rawCoordinate: rawCoordinate,
-      displayCoordinate: displayCoordinate,
-    );
     final latLng = LatLng(
       displayCoordinate.latitude,
       displayCoordinate.longitude,
     );
     setState(() {
-      _locationStatus = decision.statusLabel;
       if (isStable || isFirstFix) {
         _currentPosition = latLng;
-        _useNativeMyLocationLayer =
-            locationLayerDecision.useNativeMyLocationLayer;
         if (isFirstFix) {
           _currentZoom = WorkoutMapZoomPolicy.trackingZoom;
         }
@@ -341,6 +344,7 @@ class _WorkoutMapViewState extends State<WorkoutMapView> {
     if (isStable || isFirstFix) {
       _moveCamera(latLng);
     }
+    _controller.onFix(position, latLng);
   }
 
   Future<void> _moveCamera(LatLng target) async {
@@ -357,20 +361,56 @@ class _WorkoutMapViewState extends State<WorkoutMapView> {
     await _moveCamera(position);
   }
 
-  Set<Marker> get _correctedLocationMarkers {
-    final position = _currentPosition;
-    final icon = _currentLocationMarkerIcon;
-    if (_useNativeMyLocationLayer || position == null || icon == null) {
-      return const {};
+  Set<Marker> get _trackingMarkers {
+    final markers = <Marker>{};
+
+    final start = _controller.startPoint.value;
+    if (start != null) {
+      markers.add(
+        Marker(
+          markerId: const MarkerId('workout-start'),
+          position: start,
+          icon: BitmapDescriptor.defaultMarkerWithHue(
+            BitmapDescriptor.hueGreen,
+          ),
+          anchor: const Offset(0.5, 1),
+          zIndexInt: 1,
+        ),
+      );
     }
 
+    final position = _currentPosition;
+    final icon = _currentLocationMarkerIcon;
+    if (position != null && icon != null) {
+      markers.add(
+        Marker(
+          markerId: const MarkerId('workout-current-location'),
+          position: position,
+          anchor: WorkoutLocationMarkerStyle.anchor,
+          icon: icon,
+          // 箭头随设备罗盘朝向旋转（站着转手机也会转）。
+          rotation: _headingDegrees,
+          flat: true,
+          zIndexInt: 2,
+        ),
+      );
+    }
+
+    return markers;
+  }
+
+  Set<Polyline> get _trackingPolylines {
+    final points = _controller.pathPoints;
+    if (points.length < 2) return const {};
     return {
-      Marker(
-        markerId: const MarkerId('workout-current-location'),
-        position: position,
-        anchor: WorkoutLocationMarkerStyle.anchor,
-        icon: icon,
-        zIndexInt: 2,
+      Polyline(
+        polylineId: const PolylineId('workout-route'),
+        points: points.toList(),
+        color: const Color(0xFF24F04E),
+        width: 6,
+        startCap: Cap.roundCap,
+        endCap: Cap.roundCap,
+        jointType: JointType.round,
       ),
     };
   }
@@ -409,57 +449,49 @@ class _WorkoutMapViewState extends State<WorkoutMapView> {
       ),
     )..scale(pixelRatio);
 
-    final directionPath = Path()
-      ..moveTo(
-        WorkoutLocationMarkerStyle.dotCenter.dx + 4,
-        WorkoutLocationMarkerStyle.dotCenter.dy - 10,
-      )
-      ..lineTo(
-        WorkoutLocationMarkerStyle.directionTip.dx,
-        WorkoutLocationMarkerStyle.directionTip.dy,
-      )
-      ..lineTo(
-        WorkoutLocationMarkerStyle.logicalSize.width - 1,
-        WorkoutLocationMarkerStyle.logicalSize.height - 4,
-      )
-      ..quadraticBezierTo(
-        WorkoutLocationMarkerStyle.dotCenter.dx + 18,
-        WorkoutLocationMarkerStyle.dotCenter.dy + 16,
-        WorkoutLocationMarkerStyle.dotCenter.dx + 2,
-        WorkoutLocationMarkerStyle.dotCenter.dy + 8,
+    final center = WorkoutLocationMarkerStyle.dotCenter;
+    const coneRadius = WorkoutLocationMarkerStyle.coneRadius;
+    const halfAngle = WorkoutLocationMarkerStyle.coneHalfAngleRad;
+
+    // 方向光锥：从圆点向「上」（-90°，画布 y 轴向下）张开的扇形，
+    // 旋转 marker.rotation = bearing 时整体转向实际行进方向。
+    final startAngle = -math.pi / 2 - halfAngle;
+    const sweepAngle = 2 * halfAngle;
+    final conePath = Path()
+      ..moveTo(center.dx, center.dy)
+      ..arcTo(
+        Rect.fromCircle(center: center, radius: coneRadius),
+        startAngle,
+        sweepAngle,
+        false,
       )
       ..close();
 
-    canvas.drawPath(
-      directionPath,
-      Paint()
-        ..color = const Color(0xFF3F6EFF).withValues(alpha: 0.26)
-        ..style = PaintingStyle.fill,
+    // 径向渐变：圆点处较实、向外淡出，营造 Google 风格的方向光束。
+    final coneShader = ui.Gradient.radial(
+      center,
+      coneRadius,
+      const [Color(0xCC4285F4), Color(0x554285F4), Color(0x004285F4)],
+      const [0.0, 0.55, 1.0],
     );
-    canvas.drawPath(
-      directionPath,
-      Paint()
-        ..color = const Color(0xFF2E5BFF).withValues(alpha: 0.18)
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 1.2,
-    );
+    canvas.drawPath(conePath, Paint()..shader = coneShader);
 
     canvas.drawCircle(
-      WorkoutLocationMarkerStyle.dotCenter,
+      center,
       WorkoutLocationMarkerStyle.whiteRingRadius,
       Paint()
         ..color = Colors.black.withValues(alpha: 0.18)
         ..maskFilter = const ui.MaskFilter.blur(ui.BlurStyle.normal, 2),
     );
     canvas.drawCircle(
-      WorkoutLocationMarkerStyle.dotCenter,
+      center,
       WorkoutLocationMarkerStyle.whiteRingRadius,
       Paint()..color = Colors.white,
     );
     canvas.drawCircle(
-      WorkoutLocationMarkerStyle.dotCenter,
+      center,
       WorkoutLocationMarkerStyle.dotRadius,
-      Paint()..color = const Color(0xFF2563FF),
+      Paint()..color = const Color(0xFF4285F4),
     );
 
     final picture = recorder.endRecording();
@@ -496,35 +528,6 @@ class _WorkoutMapFallback extends StatelessWidget {
         ),
       ),
       child: CustomPaint(painter: _MapPlaceholderPainter()),
-    );
-  }
-}
-
-class _LocationStatusBadge extends StatelessWidget {
-  final String text;
-
-  const _LocationStatusBadge({required this.text});
-
-  @override
-  Widget build(BuildContext context) {
-    return Positioned(
-      key: const Key('workout-location-status'),
-      right: 14,
-      bottom: 14,
-      child: DecoratedBox(
-        decoration: BoxDecoration(
-          color: AppColors.bgPrimary.withValues(alpha: 0.68),
-          borderRadius: BorderRadius.circular(AppRadius.full),
-          border: Border.all(color: AppColors.strokeCard),
-        ),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-          child: Text(
-            text,
-            style: TextStyle(color: AppColors.textSecondary, fontSize: 11),
-          ),
-        ),
-      ),
     );
   }
 }

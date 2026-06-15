@@ -8,6 +8,7 @@ import 'package:pedometer/feature/home/components/step_ring_hero_card.dart';
 import 'package:pedometer/feature/home/resources/home_resource.dart';
 import 'package:pedometer/feature/home/views/sync_history_detail_page.dart';
 import 'package:pedometer/feature/home/views/sync_data_detail_page.dart';
+import 'package:pedometer/feature/home/views/sync_source_detail_page.dart';
 import 'package:pedometer/feature/home/views/sport_detail_page.dart';
 import 'package:pedometer/products/init/app.dart';
 import 'package:pedometer/products/phone/components/glass_bottom_nav_bar.dart';
@@ -59,7 +60,8 @@ void main() {
       expect(find.text('同步数据详情'), findsOneWidget);
       expect(find.text('同步成功'), findsOneWidget);
       expect(find.text('数据来源'), findsOneWidget);
-      expect(find.text('同步数据总览'), findsOneWidget);
+      expect(find.text('同步数据总览'), findsNothing);
+      expect(find.text('查看'), findsNWidgets(2));
       expect(find.text('数据类型'), findsOneWidget);
       expect(find.text('同步历史'), findsOneWidget);
       expect(find.text('您的数据安全受保护，所有数据均已加密传输。'), findsOneWidget);
@@ -121,6 +123,28 @@ void main() {
     expect(find.text('SYNC-2026-0513-0941'), findsOneWidget);
     expect(find.byIcon(Icons.sync_rounded), findsOneWidget);
     expect(find.byIcon(Icons.check_circle_outline_rounded), findsNothing);
+  });
+
+  testWidgets('opens source detail from sync data source view button', (
+    tester,
+  ) async {
+    await tester.pumpWidget(const PedometerApp());
+    await tester.pump();
+
+    await tester.tap(find.text(HomeResource.entryHealthSync));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('查看').first);
+    await tester.pumpAndSettle();
+
+    expect(Get.currentRoute, SyncSourceDetailPage.routeName);
+    expect(find.byType(SyncSourceDetailPage), findsOneWidget);
+    expect(find.text('Apple Health'), findsWidgets);
+    expect(find.text('已连接 Apple Health'), findsOneWidget);
+    expect(find.text('Health 同步权限'), findsOneWidget);
+    expect(find.text('同步方式'), findsOneWidget);
+    expect(find.text('手动同步数据选择'), findsOneWidget);
+    expect(find.text('断开连接'), findsOneWidget);
+    expect(find.text('保存设置'), findsOneWidget);
   });
 
   testWidgets('renders the step ring as an extended open arc', (tester) async {

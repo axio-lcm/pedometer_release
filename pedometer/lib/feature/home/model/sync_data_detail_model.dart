@@ -277,3 +277,99 @@ class SyncInfoItem {
     this.highlight = false,
   });
 }
+
+class SyncSourceDetailData {
+  final SyncDataSource source;
+  final List<SyncSourcePermission> permissions;
+  final List<SyncModeOption> modeOptions;
+  final List<ManualSyncSelectionItem> manualItems;
+  final String safetyText;
+
+  const SyncSourceDetailData({
+    required this.source,
+    required this.permissions,
+    required this.modeOptions,
+    required this.manualItems,
+    required this.safetyText,
+  });
+
+  factory SyncSourceDetailData.forSource(SyncDataSource source) {
+    return SyncSourceDetailData(
+      source: source,
+      permissions: const [
+        SyncSourcePermission(
+          icon: Icons.directions_walk_rounded,
+          iconColor: Color(0xFF24F04E),
+          title: '步数',
+        ),
+        SyncSourcePermission(
+          icon: Icons.location_on_rounded,
+          iconColor: Color(0xFF43F56B),
+          title: '距离',
+        ),
+        SyncSourcePermission(
+          icon: Icons.local_fire_department_rounded,
+          iconColor: Color(0xFFFF9F12),
+          title: '卡路里',
+        ),
+        SyncSourcePermission(
+          icon: Icons.timer_outlined,
+          iconColor: Color(0xFF0CD9FF),
+          title: '活动时间',
+        ),
+      ],
+      modeOptions: const [
+        SyncModeOption(
+          title: '自动同步',
+          subtitle: '在连接后自动同步最新健康数据',
+          selected: true,
+        ),
+        SyncModeOption(
+          title: '手动同步',
+          subtitle: '仅在手动触发时同步所选数据',
+        ),
+      ],
+      manualItems: const [
+        ManualSyncSelectionItem(title: '步数', selected: true),
+        ManualSyncSelectionItem(title: '距离', selected: true),
+        ManualSyncSelectionItem(title: '卡路里', selected: true),
+        ManualSyncSelectionItem(title: '活动时间'),
+      ],
+      safetyText: '您的健康数据仅在授权后读取，且会加密传输。',
+    );
+  }
+}
+
+class SyncSourcePermission {
+  final IconData icon;
+  final Color iconColor;
+  final String title;
+
+  const SyncSourcePermission({
+    required this.icon,
+    required this.iconColor,
+    required this.title,
+  });
+}
+
+class SyncModeOption {
+  final String title;
+  final String subtitle;
+  final bool selected;
+
+  const SyncModeOption({
+    required this.title,
+    required this.subtitle,
+    this.selected = false,
+  });
+}
+
+class ManualSyncSelectionItem {
+  final String title;
+  final bool selected;
+
+  const ManualSyncSelectionItem({
+    required this.title,
+    this.selected = false,
+  });
+}

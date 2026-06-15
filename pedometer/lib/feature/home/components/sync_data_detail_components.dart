@@ -77,40 +77,34 @@ class GlowIconBox extends StatelessWidget {
 
 class SyncOverviewCard extends StatelessWidget {
   final List<SyncDataSource> sources;
-  final List<SyncMetric> metrics;
+  final ValueChanged<SyncDataSource>? onSourceView;
 
   const SyncOverviewCard({
     super.key,
     required this.sources,
-    required this.metrics,
+    this.onSourceView,
   });
 
   @override
   Widget build(BuildContext context) {
     return GlassCard(
       radius: AppRadius.xxl,
-      padding: EdgeInsets.all(AppSpacing.xxl),
-      child: IntrinsicHeight(
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Expanded(flex: 11, child: _SourceColumn(sources: sources)),
-            Padding(
-              padding: EdgeInsets.symmetric(horizontal: AppSpacing.xl),
-              child: VerticalDivider(color: AppColors.divider, width: 1),
-            ),
-            Expanded(flex: 9, child: _MetricColumn(metrics: metrics)),
-          ],
-        ),
+      padding: EdgeInsets.fromLTRB(
+        AppSpacing.xxl,
+        AppSpacing.xl,
+        AppSpacing.xxl,
+        AppSpacing.xl,
       ),
+      child: _SourceColumn(sources: sources, onSourceView: onSourceView),
     );
   }
 }
 
 class _SourceColumn extends StatelessWidget {
   final List<SyncDataSource> sources;
+  final ValueChanged<SyncDataSource>? onSourceView;
 
-  const _SourceColumn({required this.sources});
+  const _SourceColumn({required this.sources, this.onSourceView});
 
   @override
   Widget build(BuildContext context) {
@@ -118,31 +112,13 @@ class _SourceColumn extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         const SectionHeader(title: '数据来源'),
-        SizedBox(height: AppSpacing.xl),
-        for (var i = 0; i < sources.length; i++) ...[
-          DataSourceRow(data: sources[i]),
-          if (i != sources.length - 1) SizedBox(height: AppSpacing.lg),
-        ],
-      ],
-    );
-  }
-}
-
-class _MetricColumn extends StatelessWidget {
-  final List<SyncMetric> metrics;
-
-  const _MetricColumn({required this.metrics});
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const SectionHeader(title: '同步数据总览'),
         SizedBox(height: AppSpacing.lg),
-        for (final metric in metrics) ...[
-          MetricText(metric: metric),
-          if (metric != metrics.last) SizedBox(height: AppSpacing.sm),
+        for (var i = 0; i < sources.length; i++) ...[
+          DataSourceRow(
+            data: sources[i],
+            onView: onSourceView == null ? null : () => onSourceView!(sources[i]),
+          ),
+          if (i != sources.length - 1) SizedBox(height: AppSpacing.md),
         ],
       ],
     );
@@ -179,14 +155,15 @@ class SectionHeader extends StatelessWidget {
 
 class DataSourceRow extends StatelessWidget {
   final SyncDataSource data;
+  final VoidCallback? onView;
 
-  const DataSourceRow({super.key, required this.data});
+  const DataSourceRow({super.key, required this.data, this.onView});
 
   @override
   Widget build(BuildContext context) {
     return Row(
       children: [
-        _AppSourceIcon(data: data),
+        SyncSourceIcon(data: data),
         SizedBox(width: AppSpacing.md),
         Expanded(
           child: Column(
@@ -213,22 +190,62 @@ class DataSourceRow extends StatelessWidget {
           ),
         ),
         SizedBox(width: AppSpacing.sm),
-        const SuccessCheckIcon(size: 24),
+        DataSourceViewButton(onTap: onView),
       ],
     );
   }
 }
 
-class _AppSourceIcon extends StatelessWidget {
-  final SyncDataSource data;
+class DataSourceViewButton extends StatelessWidget {
+  final VoidCallback? onTap;
 
-  const _AppSourceIcon({required this.data});
+  const DataSourceViewButton({super.key, this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: onTap,
+      child: Container(
+        height: 34,
+        padding: const EdgeInsets.symmetric(horizontal: 14),
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          color: AppColors.bgPrimary.withValues(alpha: 0.36),
+          borderRadius: BorderRadius.circular(AppRadius.md),
+          border: Border.all(color: AppColors.strokeCard),
+        ),
+        child: Text(
+          '查看',
+          maxLines: 1,
+          style: TextStyle(
+            color: AppColors.textPrimary,
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class SyncSourceIcon extends StatelessWidget {
+  final SyncDataSource data;
+  final double size;
+  final double iconSize;
+
+  const SyncSourceIcon({
+    super.key,
+    required this.data,
+    this.size = 52,
+    this.iconSize = 28,
+  });
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 52,
-      height: 52,
+      width: size,
+      height: size,
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(AppRadius.sm),
@@ -240,7 +257,7 @@ class _AppSourceIcon extends StatelessWidget {
         ],
       ),
       // TODO: 替换为 Apple Health / Health Connect 官方图标资源。
-      child: Icon(data.icon, color: data.iconColor, size: 28),
+      child: Icon(data.icon, color: data.iconColor, size: iconSize),
     );
   }
 }

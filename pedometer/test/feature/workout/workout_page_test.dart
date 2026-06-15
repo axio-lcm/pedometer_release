@@ -97,11 +97,12 @@ void main() {
     expect(find.byIcon(Icons.keyboard_arrow_down_rounded), findsNothing);
     expect(find.text('GPS'), findsOneWidget);
     expect(find.text('累计距离（公里）'), findsOneWidget);
-    expect(find.text('2.35'), findsOneWidget);
+    // 指标由控制器提供（初始值），不再使用 widget.data 静态 mock 值。
+    expect(find.text('0.00'), findsWidgets); // 距离初始值
     expect(find.text('目标 8.00 公里'), findsOneWidget);
-    expect(find.text('00:18:36'), findsOneWidget);
-    expect(find.text('186'), findsOneWidget);
-    expect(find.text("07'54''"), findsOneWidget);
+    expect(find.text('00:00:00'), findsOneWidget); // 时长初始值
+    expect(find.text('0'), findsWidgets); // 卡路里初始值
+    expect(find.text("--'--''"), findsOneWidget); // 配速初始值
     expect(
       tester
           .widget<NeonPauseButton>(find.byType(NeonPauseButton))
@@ -133,7 +134,14 @@ void main() {
     );
     expect(find.text('开始'), findsOneWidget);
     expect(find.text('长按结束'), findsNothing);
-    final readyDistanceRect = tester.getRect(find.text('2.35'));
+    // 指标由控制器提供，初始距离为 '0.00'。容器 rect 用于位置对比；距离数值文本
+    // 用 overlay 内 descendant 定位，避免 '0.00' 在多个子组件中出现造成 finder 歧义。
+    final readyOverlayRect = tester.getRect(find.byType(WorkoutDistanceOverlay));
+    final overlayDistanceValue = find.descendant(
+      of: find.byType(WorkoutDistanceOverlay),
+      matching: find.text('0.00'),
+    );
+    final readyValueRect = tester.getRect(overlayDistanceValue);
     final readyLabelCenterY = tester.getCenter(find.text('累计距离（公里）')).dy;
     final readyTargetCenterY = tester.getCenter(find.text('目标 8.00 公里')).dy;
     expect((readyTargetCenterY - readyLabelCenterY).abs(), greaterThan(40));
@@ -141,8 +149,13 @@ void main() {
         .getTopLeft(find.byType(WorkoutMusicCard))
         .dy;
 
+    // 点击 → togglePrimary() → start() → 启动 periodic 计时器。
+    // 先 pump() 处理点击（状态变 running、Obx 重建、隐式动画起步），
+    // 再 pump(250ms) 把 AnimatedPositioned 动画推进过 220ms。不用 pumpAndSettle()
+    // （periodic timer 永不 settle）。
     await tester.tap(find.byType(NeonPauseButton));
-    await tester.pumpAndSettle();
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 250));
 
     expect(
       tester
@@ -153,19 +166,25 @@ void main() {
     expect(find.byIcon(Icons.pause_rounded), findsOneWidget);
     expect(find.text('开始'), findsNothing);
     expect(find.text('长按结束'), findsOneWidget);
-    final runningDistanceRect = tester.getRect(find.text('2.35'));
-    expect(runningDistanceRect.top, greaterThan(readyDistanceRect.top));
-    expect(runningDistanceRect.top, greaterThan(400));
+    // running 时 overlay 移到地图底部（AnimatedPositioned top: 360），Y 大于 ready。
+    final runningOverlayRect = tester.getRect(
+      find.byType(WorkoutDistanceOverlay),
+    );
+    expect(runningOverlayRect.top, greaterThan(readyOverlayRect.top));
+    expect(runningOverlayRect.top, greaterThan(400));
     final metricPanelRect = tester.getRect(find.byType(WorkoutMetricPanel));
-    expect(metricPanelRect.top - runningDistanceRect.bottom, greaterThan(0));
+    expect(metricPanelRect.top - runningOverlayRect.bottom, greaterThan(0));
     expect(
-      metricPanelRect.top - runningDistanceRect.bottom,
+      metricPanelRect.top - runningOverlayRect.bottom,
       lessThanOrEqualTo(24),
     );
-    expect(runningDistanceRect.width, lessThan(readyDistanceRect.width));
+    // compact 数值字号(25)远小于 ready 英雄数字(78)，故数值文本变窄。
+    final runningValueRect = tester.getRect(overlayDistanceValue);
+    expect(runningValueRect.width, lessThan(readyValueRect.width));
+    // 验证 compact overlay 内 label / target / value 字号紧凑关系。
     final runningLabelText = tester.widget<Text>(find.text('累计距离（公里）'));
-    final runningValueText = tester.widget<Text>(find.text('2.35'));
     final runningTargetText = tester.widget<Text>(find.text('目标 8.00 公里'));
+    final runningValueText = tester.widget<Text>(overlayDistanceValue);
     expect(
       runningValueText.style?.fontSize,
       runningLabelText.style!.fontSize! + 10,
@@ -174,7 +193,7 @@ void main() {
       runningValueText.style?.fontSize,
       runningTargetText.style!.fontSize! + 10,
     );
-    final runningValueCenterY = tester.getCenter(find.text('2.35')).dy;
+    final runningValueCenterY = tester.getCenter(overlayDistanceValue).dy;
     final runningLabelCenterY = tester.getCenter(find.text('累计距离（公里）')).dy;
     final runningTargetCenterY = tester.getCenter(find.text('目标 8.00 公里')).dy;
     expect((runningLabelCenterY - runningValueCenterY).abs(), lessThan(16));
@@ -184,8 +203,10 @@ void main() {
         .dy;
     expect(musicTopAfterStart, musicTopBeforeStart);
 
+    // 第二次点击 → pause() → 停止计时器；先 pump() 处理状态变更，再推进动画。
     await tester.tap(find.byType(NeonPauseButton));
-    await tester.pumpAndSettle();
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 250));
 
     expect(
       tester
@@ -193,13 +214,20 @@ void main() {
           .showStartIcon,
       isTrue,
     );
-    expect(find.text('开始'), findsOneWidget);
-    expect(find.text('长按结束'), findsNothing);
+    // paused 态（修正后的状态机：running→paused，而非旧 bug 的 running→ready）：
+    // 按钮恢复开始图标，但仍显示「长按结束」提示（暂停时可长按结束）。
+    expect(find.text('开始'), findsNothing);
+    expect(find.text('长按结束'), findsOneWidget);
     expect(find.text('继续'), findsNothing);
     expect(find.byIcon(Icons.pause_rounded), findsNothing);
-    final pausedDistanceRect = tester.getRect(find.text('2.35'));
-    expect(pausedDistanceRect.top, lessThan(runningDistanceRect.top));
-    expect(pausedDistanceRect.width, greaterThan(runningDistanceRect.width));
+    // paused 时 overlay 回到与 ready 相同的上方位置。
+    final pausedOverlayRect = tester.getRect(
+      find.byType(WorkoutDistanceOverlay),
+    );
+    expect(pausedOverlayRect.top, lessThan(runningOverlayRect.top));
+    // paused 回到 ready 布局：数值恢复英雄字号，文本宽度大于 running 紧凑态。
+    final pausedValueRect = tester.getRect(overlayDistanceValue);
+    expect(pausedValueRect.width, greaterThan(runningValueRect.width));
     final musicTopAfterPause = tester
         .getTopLeft(find.byType(WorkoutMusicCard))
         .dy;
@@ -241,7 +269,8 @@ void main() {
     expect(mapRect.left, 0);
     expect(mapRect.width, 375);
     expect(find.byKey(const Key('workout-google-map')), findsOneWidget);
-    expect(find.byKey(const Key('workout-location-status')), findsOneWidget);
+    // 定位状态徽标已移除。
+    expect(find.byKey(const Key('workout-location-status')), findsNothing);
     expect(find.byType(RoutePolylineLayer), findsNothing);
     expect(
       find.byWidgetPredicate(
