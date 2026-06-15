@@ -46,6 +46,10 @@ dependencies:
   fl_chart: ^0.69.0
   # 运动完成礼花效果
   flutter_confetti: ^0.5.1
+  # Google 地图组件
+  google_maps_flutter: ^2.17.1
+  # 高精度定位与运行时位置权限
+  geolocator: ^14.0.2
 
 dev_dependencies:
   flutter_test:

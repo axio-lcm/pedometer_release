@@ -1,27 +1,47 @@
+import 'dart:async';
 import 'dart:math' as math;
+import 'dart:typed_data';
+import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:pedometer/common/component/glass_card.dart';
 import 'package:pedometer/common/config/app_colors.dart';
 import 'package:pedometer/common/config/app_dimens.dart';
+import 'package:pedometer/feature/workout/model/location_display_policy.dart';
+import 'package:pedometer/feature/workout/model/location_stability_filter.dart';
+import 'package:pedometer/feature/workout/model/map_coordinate_converter.dart';
+import 'package:pedometer/feature/workout/model/workout_location_layer_policy.dart';
+import 'package:pedometer/feature/workout/model/workout_location_marker_style.dart';
+import 'package:pedometer/feature/workout/model/workout_location_startup_policy.dart';
+import 'package:pedometer/feature/workout/model/workout_map_render_policy.dart';
+import 'package:pedometer/feature/workout/model/workout_map_zoom_policy.dart';
 import 'package:pedometer/feature/workout/model/workout_model.dart';
 import 'package:pedometer/feature/workout/resources/workout_resource.dart';
 
 /// 红框标准区域对应的地图容器：底层后续替换为真实地图，浮层保持不变。
-class WorkoutMapSection extends StatelessWidget {
+class WorkoutMapSection extends StatefulWidget {
   final WorkoutTrackingData data;
 
   const WorkoutMapSection({super.key, required this.data});
 
   @override
+  State<WorkoutMapSection> createState() => _WorkoutMapSectionState();
+}
+
+class _WorkoutMapSectionState extends State<WorkoutMapSection> {
+  final _mapKey = GlobalKey<_WorkoutMapViewState>();
+
+  @override
   Widget build(BuildContext context) {
+    final data = widget.data;
     return SizedBox(
       height: 386,
       child: Stack(
         clipBehavior: Clip.none,
         children: [
-          const Positioned.fill(child: WorkoutMapView()),
-          const Positioned.fill(child: _MapDarkOverlay()),
+          Positioned.fill(child: WorkoutMapView(key: _mapKey)),
           Positioned(
             top: 14,
             left: 0,
@@ -33,7 +53,6 @@ class WorkoutMapSection extends StatelessWidget {
               ),
             ),
           ),
-          const Positioned.fill(child: RoutePolylineLayer()),
           if (data.status != WorkoutStatus.ended)
             _AnimatedDistanceOverlayAnchor(data: data),
           if (data.status == WorkoutStatus.ended)
@@ -43,16 +62,424 @@ class WorkoutMapSection extends StatelessWidget {
               bottom: AppSpacing.lg,
               child: WorkoutEndedMapSummary(data: data),
             ),
-          const Positioned(left: 14, bottom: 14, child: MapControlButtons()),
+          Positioned(
+            left: 14,
+            bottom: 14,
+            child: MapControlButtons(
+              onLocate: () => _mapKey.currentState?.centerOnCurrentLocation(),
+            ),
+          ),
         ],
       ),
     );
   }
 }
 
-/// TODO: 接入真实地图 SDK 后，仅替换此组件内部实现。
-class WorkoutMapView extends StatelessWidget {
+class WorkoutMapView extends StatefulWidget {
   const WorkoutMapView({super.key});
+
+  @override
+  State<WorkoutMapView> createState() => _WorkoutMapViewState();
+}
+
+class _WorkoutMapViewState extends State<WorkoutMapView> {
+  static const _defaultCameraPosition = CameraPosition(
+    target: LatLng(31.2304, 121.4737),
+    zoom: WorkoutMapZoomPolicy.defaultZoom,
+  );
+  static const _mapWarmupDelay = Duration(milliseconds: 450);
+
+  // 显示层：决定“是否显示当前位置 + 状态文案”，对粗定位宽松。
+  final _displayPolicy = const LocationDisplayPolicy();
+  // 抖动抑制：仅用于过滤不可能的跳变，精度上限放宽到与显示层一致，
+  // 避免再次把粗定位整体丢弃导致卡死。
+  final _stabilityFilter = LocationStabilityFilter(maxAccuracyMeters: 200);
+
+  GoogleMapController? _mapController;
+  StreamSubscription<Position>? _positionSubscription;
+  BitmapDescriptor? _currentLocationMarkerIcon;
+  LatLng? _currentPosition;
+  double _currentZoom = WorkoutMapZoomPolicy.defaultZoom;
+  String _locationStatus = '正在申请位置权限';
+  bool _allowPlatformMap = false;
+  bool _useNativeMyLocationLayer = false;
+
+  @override
+  void initState() {
+    super.initState();
+    if (!_isWidgetTest) {
+      unawaited(_loadCurrentLocationMarkerIcon());
+      _schedulePlatformMapCreation();
+      _prepareLocation();
+    }
+  }
+
+  @override
+  void dispose() {
+    _positionSubscription?.cancel();
+    _mapController?.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final canCreatePlatformMap = WorkoutMapRenderPolicy.canCreatePlatformMap(
+      allowPlatformMap: _allowPlatformMap,
+      isWidgetTest: _isWidgetTest,
+    );
+
+    if (!canCreatePlatformMap) {
+      return Stack(
+        key: const Key('workout-google-map'),
+        children: [
+          const Positioned.fill(child: _WorkoutMapFallback()),
+          _LocationStatusBadge(text: _locationStatus),
+        ],
+      );
+    }
+
+    return Stack(
+      key: const Key('workout-google-map'),
+      children: [
+        Positioned.fill(
+          child: GoogleMap(
+            initialCameraPosition: _currentPosition == null
+                ? _defaultCameraPosition
+                : CameraPosition(target: _currentPosition!, zoom: _currentZoom),
+            minMaxZoomPreference: const MinMaxZoomPreference(
+              WorkoutMapZoomPolicy.minZoom,
+              WorkoutMapZoomPolicy.maxZoom,
+            ),
+            myLocationEnabled: _useNativeMyLocationLayer,
+            myLocationButtonEnabled: false,
+            markers: _correctedLocationMarkers,
+            mapToolbarEnabled: false,
+            zoomControlsEnabled: false,
+            compassEnabled: false,
+            zoomGesturesEnabled: true,
+            scrollGesturesEnabled: true,
+            rotateGesturesEnabled: true,
+            tiltGesturesEnabled: false,
+            onCameraMove: (position) {
+              _currentZoom = WorkoutMapZoomPolicy.clampZoom(position.zoom);
+            },
+            onMapCreated: (controller) {
+              _mapController = controller;
+              final position = _currentPosition;
+              if (position != null) {
+                _moveCamera(position);
+              }
+            },
+          ),
+        ),
+        _LocationStatusBadge(text: _locationStatus),
+      ],
+    );
+  }
+
+  Future<void> _schedulePlatformMapCreation() async {
+    await Future<void>.delayed(_mapWarmupDelay);
+    if (!mounted) return;
+    setState(() => _allowPlatformMap = true);
+  }
+
+  Future<void> _prepareLocation() async {
+    try {
+      final serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      if (!mounted) return;
+      if (!serviceEnabled) {
+        setState(() => _locationStatus = '请开启系统定位服务');
+        return;
+      }
+
+      var permission = await Geolocator.checkPermission();
+      if (!mounted) return;
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+      }
+      if (!mounted) return;
+
+      if (permission == LocationPermission.denied ||
+          permission == LocationPermission.deniedForever) {
+        setState(() => _locationStatus = '需要位置权限以显示当前位置');
+        return;
+      }
+
+      setState(() {
+        _locationStatus = '正在定位';
+      });
+
+      _startPositionStream();
+      await _seedLastKnownPosition();
+      unawaited(_requestPreciseLocationIfNeeded());
+      unawaited(_refreshCurrentPosition());
+    } on TimeoutException {
+      if (!mounted) return;
+      setState(() => _locationStatus = '等待定位信号');
+      _startPositionStream();
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => _locationStatus = '定位暂不可用');
+      return;
+    }
+  }
+
+  void _startPositionStream() {
+    if (_positionSubscription != null) return;
+    _positionSubscription =
+        Geolocator.getPositionStream(
+          locationSettings: const LocationSettings(
+            accuracy: LocationAccuracy.bestForNavigation,
+            distanceFilter: 3,
+          ),
+        ).listen(_acceptPosition, onError: _handlePositionError);
+  }
+
+  Future<void> _seedLastKnownPosition() async {
+    try {
+      final cached = await Geolocator.getLastKnownPosition();
+      if (cached == null || !mounted) return;
+      if (!WorkoutLocationStartupPolicy.canUseCachedPosition(
+        recordedAt: cached.timestamp,
+        now: DateTime.now(),
+      )) {
+        return;
+      }
+
+      _acceptPosition(cached);
+    } catch (_) {
+      // Cached location is only a startup accelerator. Live location still follows.
+    }
+  }
+
+  Future<void> _refreshCurrentPosition() async {
+    try {
+      final current = await Geolocator.getCurrentPosition(
+        locationSettings: const LocationSettings(
+          accuracy: LocationAccuracy.high,
+          distanceFilter: 1,
+          timeLimit: WorkoutLocationStartupPolicy.currentFixTimeout,
+        ),
+      );
+      _acceptPosition(current);
+    } on TimeoutException {
+      if (!mounted || _currentPosition != null) return;
+      setState(() => _locationStatus = '等待定位信号');
+    } catch (_) {
+      if (!mounted || _currentPosition != null) return;
+      setState(() => _locationStatus = '定位暂不可用');
+    }
+  }
+
+  void _handlePositionError(Object _) {
+    if (!mounted) return;
+    setState(() => _locationStatus = '定位暂不可用');
+  }
+
+  Future<void> _requestPreciseLocationIfNeeded() async {
+    try {
+      final accuracyStatus = await Geolocator.getLocationAccuracy();
+      if (accuracyStatus == LocationAccuracyStatus.reduced) {
+        await Geolocator.requestTemporaryFullAccuracy(
+          purposeKey: 'WorkoutPreciseLocation',
+        );
+      }
+    } catch (_) {
+      // Android and older iOS versions may not need or support this flow.
+    }
+  }
+
+  void _acceptPosition(Position position) {
+    if (!mounted) return;
+
+    // 第一关：能不能显示。粗定位也接受，只在真正无效/过差时才继续等待。
+    final decision = _displayPolicy.evaluate(accuracyMeters: position.accuracy);
+    if (!decision.showOnMap) {
+      setState(() => _locationStatus = decision.statusLabel);
+      return;
+    }
+
+    // 第二关：抖动抑制。跳变过大的点不挪动相机/标记，但状态已更新，绝不卡死。
+    final coordinate = WorkoutCoordinate(
+      latitude: position.latitude,
+      longitude: position.longitude,
+    );
+    final isFirstFix = _currentPosition == null;
+    final isStable = _stabilityFilter.shouldAccept(
+      coordinate,
+      accuracyMeters: position.accuracy,
+      recordedAt: position.timestamp,
+    );
+
+    final rawCoordinate = WorkoutMapCoordinate(
+      latitude: position.latitude,
+      longitude: position.longitude,
+    );
+    final displayCoordinate = MapCoordinateConverter.wgs84ToGcj02(
+      rawCoordinate,
+    );
+    final locationLayerDecision = WorkoutLocationLayerPolicy.decide(
+      rawCoordinate: rawCoordinate,
+      displayCoordinate: displayCoordinate,
+    );
+    final latLng = LatLng(
+      displayCoordinate.latitude,
+      displayCoordinate.longitude,
+    );
+    setState(() {
+      _locationStatus = decision.statusLabel;
+      if (isStable || isFirstFix) {
+        _currentPosition = latLng;
+        _useNativeMyLocationLayer =
+            locationLayerDecision.useNativeMyLocationLayer;
+        if (isFirstFix) {
+          _currentZoom = WorkoutMapZoomPolicy.trackingZoom;
+        }
+      }
+    });
+
+    if (isStable || isFirstFix) {
+      _moveCamera(latLng);
+    }
+  }
+
+  Future<void> _moveCamera(LatLng target) async {
+    await _mapController?.animateCamera(
+      CameraUpdate.newCameraPosition(
+        CameraPosition(target: target, zoom: _currentZoom),
+      ),
+    );
+  }
+
+  Future<void> centerOnCurrentLocation() async {
+    final position = _currentPosition;
+    if (position == null) return;
+    await _moveCamera(position);
+  }
+
+  Set<Marker> get _correctedLocationMarkers {
+    final position = _currentPosition;
+    final icon = _currentLocationMarkerIcon;
+    if (_useNativeMyLocationLayer || position == null || icon == null) {
+      return const {};
+    }
+
+    return {
+      Marker(
+        markerId: const MarkerId('workout-current-location'),
+        position: position,
+        anchor: WorkoutLocationMarkerStyle.anchor,
+        icon: icon,
+        zIndexInt: 2,
+      ),
+    };
+  }
+
+  Future<void> _loadCurrentLocationMarkerIcon() async {
+    final icon = await _createCurrentLocationMarkerIcon();
+    if (!mounted) return;
+    setState(() => _currentLocationMarkerIcon = icon);
+  }
+
+  Future<BitmapDescriptor> _createCurrentLocationMarkerIcon() async {
+    final bytes = await _drawCurrentLocationMarkerPng();
+    return BitmapDescriptor.bytes(
+      bytes,
+      width: WorkoutLocationMarkerStyle.logicalSize.width,
+      height: WorkoutLocationMarkerStyle.logicalSize.height,
+      imagePixelRatio: WorkoutLocationMarkerStyle.renderPixelRatio,
+    );
+  }
+
+  Future<Uint8List> _drawCurrentLocationMarkerPng() async {
+    const pixelRatio = WorkoutLocationMarkerStyle.renderPixelRatio;
+    final width =
+        (WorkoutLocationMarkerStyle.logicalSize.width * pixelRatio).round();
+    final height =
+        (WorkoutLocationMarkerStyle.logicalSize.height * pixelRatio).round();
+
+    final recorder = ui.PictureRecorder();
+    final canvas = Canvas(
+      recorder,
+      Rect.fromLTWH(
+        0,
+        0,
+        WorkoutLocationMarkerStyle.logicalSize.width,
+        WorkoutLocationMarkerStyle.logicalSize.height,
+      ),
+    )..scale(pixelRatio);
+
+    final directionPath = Path()
+      ..moveTo(
+        WorkoutLocationMarkerStyle.dotCenter.dx + 4,
+        WorkoutLocationMarkerStyle.dotCenter.dy - 10,
+      )
+      ..lineTo(
+        WorkoutLocationMarkerStyle.directionTip.dx,
+        WorkoutLocationMarkerStyle.directionTip.dy,
+      )
+      ..lineTo(
+        WorkoutLocationMarkerStyle.logicalSize.width - 1,
+        WorkoutLocationMarkerStyle.logicalSize.height - 4,
+      )
+      ..quadraticBezierTo(
+        WorkoutLocationMarkerStyle.dotCenter.dx + 18,
+        WorkoutLocationMarkerStyle.dotCenter.dy + 16,
+        WorkoutLocationMarkerStyle.dotCenter.dx + 2,
+        WorkoutLocationMarkerStyle.dotCenter.dy + 8,
+      )
+      ..close();
+
+    canvas.drawPath(
+      directionPath,
+      Paint()
+        ..color = const Color(0xFF3F6EFF).withValues(alpha: 0.26)
+        ..style = PaintingStyle.fill,
+    );
+    canvas.drawPath(
+      directionPath,
+      Paint()
+        ..color = const Color(0xFF2E5BFF).withValues(alpha: 0.18)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 1.2,
+    );
+
+    canvas.drawCircle(
+      WorkoutLocationMarkerStyle.dotCenter,
+      WorkoutLocationMarkerStyle.whiteRingRadius,
+      Paint()
+        ..color = Colors.black.withValues(alpha: 0.18)
+        ..maskFilter = const ui.MaskFilter.blur(ui.BlurStyle.normal, 2),
+    );
+    canvas.drawCircle(
+      WorkoutLocationMarkerStyle.dotCenter,
+      WorkoutLocationMarkerStyle.whiteRingRadius,
+      Paint()..color = Colors.white,
+    );
+    canvas.drawCircle(
+      WorkoutLocationMarkerStyle.dotCenter,
+      WorkoutLocationMarkerStyle.dotRadius,
+      Paint()..color = const Color(0xFF2563FF),
+    );
+
+    final picture = recorder.endRecording();
+    final image = await picture.toImage(width, height);
+    final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
+    image.dispose();
+    picture.dispose();
+
+    return byteData!.buffer.asUint8List();
+  }
+
+  bool get _isWidgetTest {
+    return WidgetsBinding.instance.runtimeType.toString().contains(
+      'TestWidgetsFlutterBinding',
+    );
+  }
+}
+
+class _WorkoutMapFallback extends StatelessWidget {
+  const _WorkoutMapFallback();
 
   @override
   Widget build(BuildContext context) {
@@ -73,22 +500,29 @@ class WorkoutMapView extends StatelessWidget {
   }
 }
 
-class _MapDarkOverlay extends StatelessWidget {
-  const _MapDarkOverlay();
+class _LocationStatusBadge extends StatelessWidget {
+  final String text;
+
+  const _LocationStatusBadge({required this.text});
 
   @override
   Widget build(BuildContext context) {
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        gradient: RadialGradient(
-          center: const Alignment(0, -0.05),
-          radius: 0.82,
-          colors: [
-            Colors.transparent,
-            AppColors.bgPrimary.withValues(alpha: 0.42),
-            AppColors.bgPrimary.withValues(alpha: 0.82),
-          ],
-          stops: const [0, 0.56, 1],
+    return Positioned(
+      key: const Key('workout-location-status'),
+      right: 14,
+      bottom: 14,
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          color: AppColors.bgPrimary.withValues(alpha: 0.68),
+          borderRadius: BorderRadius.circular(AppRadius.full),
+          border: Border.all(color: AppColors.strokeCard),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+          child: Text(
+            text,
+            style: TextStyle(color: AppColors.textSecondary, fontSize: 11),
+          ),
         ),
       ),
     );
@@ -408,15 +842,21 @@ class _EndedMetric extends StatelessWidget {
 }
 
 class MapControlButtons extends StatelessWidget {
-  const MapControlButtons({super.key});
+  final VoidCallback? onLocate;
+
+  const MapControlButtons({
+    super.key,
+    this.onLocate,
+  });
 
   @override
   Widget build(BuildContext context) {
     return Column(
       children: [
-        CircleGlassIconButton(icon: Icons.my_location_rounded, onTap: () {}),
-        const SizedBox(height: 14),
-        CircleGlassIconButton(icon: Icons.map_outlined, onTap: () {}),
+        CircleGlassIconButton(
+          icon: Icons.my_location_rounded,
+          onTap: onLocate,
+        ),
       ],
     );
   }

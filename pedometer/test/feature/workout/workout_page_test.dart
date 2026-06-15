@@ -240,6 +240,18 @@ void main() {
     final mapRect = tester.getRect(find.byType(WorkoutMapView));
     expect(mapRect.left, 0);
     expect(mapRect.width, 375);
+    expect(find.byKey(const Key('workout-google-map')), findsOneWidget);
+    expect(find.byKey(const Key('workout-location-status')), findsOneWidget);
+    expect(find.byType(RoutePolylineLayer), findsNothing);
+    expect(
+      find.byWidgetPredicate(
+        (widget) => widget.runtimeType.toString() == '_MapDarkOverlay',
+      ),
+      findsNothing,
+    );
+    expect(find.byIcon(Icons.my_location_rounded), findsOneWidget);
+    expect(find.byIcon(Icons.add_rounded), findsNothing);
+    expect(find.byIcon(Icons.remove_rounded), findsNothing);
     expect(find.byIcon(Icons.keyboard_arrow_down_rounded), findsNothing);
     expect(find.text('累计距离（公里）'), findsOneWidget);
   });
