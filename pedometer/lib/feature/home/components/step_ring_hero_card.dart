@@ -19,33 +19,53 @@ class StepRingHeroCard extends StatelessWidget {
     // 不用 LayoutBuilder：本卡处于外层 IntrinsicHeight 中，LayoutBuilder 不支持固有尺寸测量。
     // 假设 hero 卡片占主行 5/9 宽（页面左右边距 16、主行间距 12、卡片左右内边距 xxs）。
     final screenW = MediaQuery.of(context).size.width;
-    final heroInner = (screenW - 2 * AppSpacing.lg - AppSpacing.md) * 5 / 9 - 2 * AppSpacing.xxs;
+    final heroInner =
+        (screenW - 2 * AppSpacing.lg - AppSpacing.md) * 5 / 9 -
+        2 * AppSpacing.xxs;
     final radius = ((heroInner - 4) / 2).clamp(60.0, 86.0);
+    const sceneHeight = 98.0;
     return GlassCard(
       radius: AppRadius.xxl,
       glow: true,
-      padding: EdgeInsets.fromLTRB(AppSpacing.xxs, AppSpacing.lg, AppSpacing.xxs, AppSpacing.md),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          StepRingArc(
-            radius: radius,
-            lineWidth: radius >= 78 ? 15 : 13,
-            percent: step.progress,
-            backgroundColor: AppColors.brandGreenDark.withValues(alpha: 0.55),
-            gradient: LinearGradient(
-              begin: Alignment.bottomLeft,
-              end: Alignment.topRight,
-              colors: [
-                const Color(0xFF00B956),
-                AppColors.brandGreen,
-                AppColors.brandGreenLight,
-              ],
+      padding: EdgeInsets.fromLTRB(
+        AppSpacing.xxs,
+        AppSpacing.lg,
+        AppSpacing.xxs,
+        AppSpacing.md,
+      ),
+      child: SizedBox(
+        height: radius * 2 + sceneHeight * 0.7,
+        child: Stack(
+          clipBehavior: Clip.none,
+          alignment: Alignment.topCenter,
+          children: [
+            StepRingArc(
+              radius: radius,
+              lineWidth: radius >= 78 ? 15 : 13,
+              percent: step.progress,
+              backgroundColor: AppColors.brandGreenDark.withValues(alpha: 0.55),
+              gradient: LinearGradient(
+                begin: Alignment.bottomLeft,
+                end: Alignment.topRight,
+                colors: [
+                  const Color(0xFF00B956),
+                  AppColors.brandGreen,
+                  AppColors.brandGreenLight,
+                ],
+              ),
+              center: _center(radius),
             ),
-            center: _center(radius),
-          ),
-          const WalkingScenePlaceholder(),
-        ],
+            Positioned(
+              left: AppSpacing.xxs,
+              right: AppSpacing.xxs,
+              bottom: 0,
+              child: WalkingSceneOverlay(
+                height: sceneHeight,
+                borderRadius: BorderRadius.circular(AppRadius.lg),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -191,7 +211,9 @@ class _StepRingArcPainter extends CustomPainter {
     final startDegrees = 90 + gapDegrees / 2;
     final startAngle = _degreesToRadians(startDegrees);
     final sweepAngle = _degreesToRadians(sweepDegrees);
-    final progressSweep = _degreesToRadians(sweepDegrees * percent.clamp(0.0, 1.0));
+    final progressSweep = _degreesToRadians(
+      sweepDegrees * percent.clamp(0.0, 1.0),
+    );
 
     final backgroundPaint = Paint()
       ..color = backgroundColor

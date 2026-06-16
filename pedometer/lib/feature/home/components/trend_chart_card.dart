@@ -6,7 +6,7 @@ import 'package:pedometer/common/config/app_dimens.dart';
 import 'package:pedometer/feature/home/model/home_model.dart';
 import 'package:pedometer/feature/home/resources/home_resource.dart';
 
-/// 趋势大卡：标题 + 圆形箭头按钮 + fl_chart 平滑曲线（渐变填充 + 发光节点）。
+/// 趋势大卡：标题 + fl_chart 平滑曲线（渐变填充 + 发光节点）。
 class TrendChartCard extends StatelessWidget {
   final List<TrendPoint> points;
   const TrendChartCard({super.key, required this.points});
@@ -33,16 +33,6 @@ class TrendChartCard extends StatelessWidget {
                   ),
                 ),
               ),
-              Container(
-                width: 30,
-                height: 30,
-                decoration: BoxDecoration(
-                  color: AppColors.surfaceIcon,
-                  shape: BoxShape.circle,
-                  border: Border.all(color: AppColors.strokeCard),
-                ),
-                child: Icon(Icons.chevron_right, color: AppColors.textSecondary, size: 18),
-              ),
             ],
           ),
           SizedBox(height: AppSpacing.md),
@@ -57,7 +47,8 @@ class TrendChartCard extends StatelessWidget {
 
   LineChartData _chartData() {
     final spots = <FlSpot>[
-      for (var i = 0; i < points.length; i++) FlSpot(i.toDouble(), points[i].value),
+      for (var i = 0; i < points.length; i++)
+        FlSpot(i.toDouble(), points[i].value),
     ];
     return LineChartData(
       minX: 0,
@@ -69,13 +60,18 @@ class TrendChartCard extends StatelessWidget {
         show: true,
         drawVerticalLine: false,
         horizontalInterval: 2000,
-        getDrawingHorizontalLine: (value) =>
-            FlLine(color: AppColors.gridLine, strokeWidth: 1, dashArray: const [5, 4]),
+        getDrawingHorizontalLine: (value) => FlLine(
+          color: AppColors.gridLine,
+          strokeWidth: 1,
+          dashArray: const [5, 4],
+        ),
       ),
       borderData: FlBorderData(show: false),
       titlesData: FlTitlesData(
         topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-        rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+        rightTitles: const AxisTitles(
+          sideTitles: SideTitles(showTitles: false),
+        ),
         leftTitles: AxisTitles(
           sideTitles: SideTitles(
             showTitles: true,
@@ -101,7 +97,9 @@ class TrendChartCard extends StatelessWidget {
                 child: Text(
                   p.label,
                   style: TextStyle(
-                    color: p.highlight ? AppColors.brandGreen : AppColors.textTertiary,
+                    color: p.highlight
+                        ? AppColors.brandGreen
+                        : AppColors.textTertiary,
                     fontSize: 11,
                     fontWeight: p.highlight ? FontWeight.w700 : FontWeight.w400,
                   ),

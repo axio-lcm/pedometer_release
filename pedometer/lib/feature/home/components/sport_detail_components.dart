@@ -6,6 +6,7 @@ import 'package:intl/intl.dart';
 import 'package:pedometer/common/component/glass_card.dart';
 import 'package:pedometer/common/config/app_colors.dart';
 import 'package:pedometer/common/config/app_dimens.dart';
+import 'package:pedometer/feature/home/components/walking_scene_placeholder.dart';
 import 'package:pedometer/feature/home/model/sport_detail_model.dart';
 
 /// 顶部圆环 + 右侧 KPI 的组合区域。
@@ -209,33 +210,35 @@ class StepProgressHeroCard extends StatelessWidget {
         AppSpacing.xxs,
         AppSpacing.md,
         AppSpacing.xxs,
-        AppSpacing.xs,
+        0,
       ),
       child: LayoutBuilder(
         builder: (context, constraints) {
+          // 裁剪后人物图的宽高比（assets/wboy.png：1720 × 649）。
+          const sceneAspect = 1720 / 649;
+          // 场景按“铺满宽度”所需的自然高度展示完整人物（不裁头），
+          // 上限不超过给圆环留下最小尺寸后的剩余高度。
+          final sceneHeight = math.min(
+            constraints.maxWidth / sceneAspect,
+            constraints.maxHeight - 142,
+          );
+          // 圆环占据场景之上的剩余高度，保证人物始终在“达成百分比”下方、互不遮挡。
           final ringSize = math
-              .min(constraints.maxWidth - 10, 178.0)
+              .min(constraints.maxWidth - 10, constraints.maxHeight - sceneHeight)
               .clamp(142.0, 178.0);
-          return Stack(
-            alignment: Alignment.bottomCenter,
+          return Column(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Align(
-                alignment: Alignment.topCenter,
-                child: NeonRingProgress(
-                  size: ringSize,
-                  strokeWidth: 18,
-                  progress: data.progress,
-                  center: _RingCenter(data: data),
-                ),
+              NeonRingProgress(
+                size: ringSize,
+                strokeWidth: 18,
+                progress: data.progress,
+                center: _RingCenter(data: data),
               ),
-              const Positioned(
-                bottom: 0,
-                left: 6,
-                right: 6,
-                child: TransparentAssetPlaceholder(
-                  height: 58,
-                  assetName: '3D walking character and neon forest road',
-                ),
+              WalkingSceneOverlay(
+                height: sceneHeight,
+                borderRadius: BorderRadius.circular(AppRadius.lg),
+                fit: BoxFit.fitWidth,
               ),
             ],
           );
