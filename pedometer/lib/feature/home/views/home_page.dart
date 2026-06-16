@@ -2,9 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:pedometer/common/config/app_colors.dart';
 import 'package:pedometer/common/config/app_dimens.dart';
-import 'package:pedometer/feature/home/components/kpi_card.dart';
 import 'package:pedometer/feature/home/components/mini_analysis_card.dart';
-import 'package:pedometer/feature/home/components/step_ring_hero_card.dart';
+import 'package:pedometer/feature/home/components/sport_detail_components.dart';
 import 'package:pedometer/feature/home/components/top_entry_card.dart';
 import 'package:pedometer/feature/home/components/trend_chart_card.dart';
 import 'package:pedometer/feature/home/resources/home_resource.dart';
@@ -91,32 +90,7 @@ class HomePage extends GetView<HomeViewModel> {
   }
 
   Widget _mainRow() {
-    return IntrinsicHeight(
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Expanded(
-            flex: 5,
-            child: Obx(() => StepRingHeroCard(step: controller.step.value)),
-          ),
-          SizedBox(width: AppSpacing.md),
-          Expanded(
-            flex: 4,
-            child: Obx(
-              () => Column(
-                children: [
-                  for (var i = 0; i < controller.kpis.length; i++) ...[
-                    Expanded(child: KpiCard(item: controller.kpis[i])),
-                    if (i != controller.kpis.length - 1)
-                      SizedBox(height: AppSpacing.md),
-                  ],
-                ],
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
+    return Obx(() => SportHeroSection(data: controller.dayOverview.value));
   }
 
   Widget _analysisRow() {

@@ -2,6 +2,7 @@ import 'package:get/get.dart';
 import 'package:pedometer/common/mvvm/ibase_view_model.dart';
 import 'package:pedometer/feature/home/model/health_repository.dart';
 import 'package:pedometer/feature/home/model/home_model.dart';
+import 'package:pedometer/feature/home/model/sport_detail_model.dart';
 
 /// 首页 view model
 class HomeViewModel extends GetxController implements IBaseViewModel {
@@ -15,6 +16,7 @@ class HomeViewModel extends GetxController implements IBaseViewModel {
   RxList<KpiItem> get kpis => vo.kpis;
   RxList<TrendPoint> get trend => vo.trend;
   RxList<AnalysisData> get analyses => vo.analyses;
+  Rx<SportPeriodData> get dayOverview => vo.dayOverview;
 
   @override
   void onInit() {
@@ -44,6 +46,7 @@ class HomeViewModel extends GetxController implements IBaseViewModel {
     vo.kpis.assignAll(snapshot.kpis);
     vo.trend.assignAll(snapshot.trend);
     vo.analyses.assignAll(snapshot.analyses);
+    vo.dayOverview.value = repository.sportPeriodData(SportPeriod.day);
   }
 }
 
@@ -53,4 +56,5 @@ class HomeVo {
   final RxList<KpiItem> kpis = <KpiItem>[].obs;
   final RxList<TrendPoint> trend = <TrendPoint>[].obs;
   final RxList<AnalysisData> analyses = <AnalysisData>[].obs;
+  final Rx<SportPeriodData> dayOverview = SportDetailFixtures.day.obs;
 }

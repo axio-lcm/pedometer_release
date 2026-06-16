@@ -5,6 +5,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:get/get.dart';
 import 'package:pedometer/common/config/app_dimens.dart';
 import 'package:pedometer/common/config/resource_loader.dart';
+import 'package:pedometer/feature/home/components/kpi_card.dart';
+import 'package:pedometer/feature/home/components/sport_detail_components.dart';
 import 'package:pedometer/feature/home/model/health_repository.dart';
 import 'package:pedometer/feature/home/components/step_ring_hero_card.dart';
 import 'package:pedometer/feature/home/resources/home_resource.dart';
@@ -289,15 +291,21 @@ void main() {
     expect(find.text('Apple Health 当前设备不可用'), findsOneWidget);
   });
 
-  testWidgets('renders the step ring as an extended open arc', (tester) async {
+  testWidgets('reuses the sport overview day hero section on home', (
+    tester,
+  ) async {
     await tester.pumpWidget(const PedometerApp());
     await tester.pump();
 
-    final arc = tester.widget<StepRingArc>(find.byType(StepRingArc));
-
-    expect(arc.sweepDegrees, greaterThan(300));
-    expect(arc.sweepDegrees, lessThan(360));
-    expect(arc.gapDegrees, lessThan(60));
+    expect(find.byType(SportHeroSection), findsOneWidget);
+    expect(find.byType(StepProgressHeroCard), findsOneWidget);
+    expect(find.byType(MetricCard), findsNWidgets(3));
+    expect(find.byType(StepRingHeroCard), findsNothing);
+    expect(find.byType(KpiCard), findsNothing);
+    for (final title in ['距离', '卡路里', '活动时间']) {
+      final text = tester.widget<Text>(find.text(title).first);
+      expect(text.style?.fontSize, 16);
+    }
   });
 
   testWidgets('renders smoother rounded line charts', (tester) async {
