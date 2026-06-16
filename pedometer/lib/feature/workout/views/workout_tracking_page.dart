@@ -24,8 +24,8 @@ class WorkoutTrackingPage extends StatefulWidget {
 class _WorkoutTrackingPageState extends State<WorkoutTrackingPage> {
   late final WorkoutTrackingController controller =
       Get.isRegistered<WorkoutTrackingController>()
-          ? Get.find<WorkoutTrackingController>()
-          : Get.put(WorkoutTrackingController());
+      ? Get.find<WorkoutTrackingController>()
+      : Get.put(WorkoutTrackingController());
 
   @override
   Widget build(BuildContext context) {
@@ -48,23 +48,17 @@ class _WorkoutTrackingPageState extends State<WorkoutTrackingPage> {
                 Expanded(
                   child: SingleChildScrollView(
                     padding: EdgeInsets.only(bottom: AppSpacing.xl),
-                    child: Obx(() {
-                      final data = widget.data.copyWith(
-                        status: controller.status.value,
-                        distanceKm: controller.distanceKmText,
-                        duration: controller.durationText,
-                        calories: controller.caloriesText,
-                        pace: controller.paceText,
-                      );
-                      return Column(
-                        children: [
-                          WorkoutMapSection(data: data),
-                          const SizedBox(height: 4),
-                          Padding(
-                            padding: EdgeInsets.symmetric(
-                              horizontal: AppSpacing.lg,
-                            ),
-                            child: Column(
+                    child: Column(
+                      children: [
+                        WorkoutMapSection(data: widget.data),
+                        const SizedBox(height: 4),
+                        Padding(
+                          padding: EdgeInsets.symmetric(
+                            horizontal: AppSpacing.lg,
+                          ),
+                          child: Obx(() {
+                            final data = _liveData();
+                            return Column(
                               children: [
                                 WorkoutMetricPanel(data: data),
                                 const SizedBox(height: 28),
@@ -78,11 +72,11 @@ class _WorkoutTrackingPageState extends State<WorkoutTrackingPage> {
                                 ),
                                 WorkoutMusicCard(data: data),
                               ],
-                            ),
-                          ),
-                        ],
-                      );
-                    }),
+                            );
+                          }),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ],
@@ -98,6 +92,16 @@ class _WorkoutTrackingPageState extends State<WorkoutTrackingPage> {
       Get.back();
       return;
     }
+  }
+
+  WorkoutTrackingData _liveData() {
+    return widget.data.copyWith(
+      status: controller.status.value,
+      distanceKm: controller.distanceKmText,
+      duration: controller.durationText,
+      calories: controller.caloriesText,
+      pace: controller.paceText,
+    );
   }
 
   // 结束运动：聚合真实数据并跳结果页（替换记录中页，结果页「完成」回到运动主页）。

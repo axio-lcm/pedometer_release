@@ -14,6 +14,7 @@ if (localPropertiesFile.exists()) {
 }
 val googleMapsApiKey =
     localProperties.getProperty("GOOGLE_MAPS_API_KEY")
+        ?: providers.gradleProperty("GOOGLE_MAPS_API_KEY").orNull
         ?: System.getenv("GOOGLE_MAPS_API_KEY")
         ?: ""
 
@@ -36,7 +37,7 @@ android {
         applicationId = "com.example.pedometer"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
-        minSdk = maxOf(24, flutter.minSdkVersion)
+        minSdk = maxOf(26, flutter.minSdkVersion)
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName

@@ -5,6 +5,33 @@ import 'package:pedometer/feature/workout/model/workout_location_startup_policy.
 class WorkoutLocationSettingsPolicy {
   const WorkoutLocationSettingsPolicy._();
 
+  static LocationSettings startupStreamSettingsFor(TargetPlatform platform) {
+    switch (platform) {
+      case TargetPlatform.iOS:
+      case TargetPlatform.macOS:
+        return AppleSettings(
+          accuracy: LocationAccuracy.medium,
+          distanceFilter: 5,
+          pauseLocationUpdatesAutomatically: true,
+          allowBackgroundLocationUpdates: false,
+          showBackgroundLocationIndicator: false,
+        );
+      case TargetPlatform.android:
+        return AndroidSettings(
+          accuracy: LocationAccuracy.medium,
+          distanceFilter: 5,
+          intervalDuration: const Duration(seconds: 2),
+        );
+      case TargetPlatform.fuchsia:
+      case TargetPlatform.linux:
+      case TargetPlatform.windows:
+        return const LocationSettings(
+          accuracy: LocationAccuracy.medium,
+          distanceFilter: 5,
+        );
+    }
+  }
+
   static LocationSettings streamSettingsFor(TargetPlatform platform) {
     switch (platform) {
       case TargetPlatform.iOS:
@@ -28,6 +55,38 @@ class WorkoutLocationSettingsPolicy {
         return const LocationSettings(
           accuracy: LocationAccuracy.bestForNavigation,
           distanceFilter: 1,
+        );
+    }
+  }
+
+  static LocationSettings startupCurrentFixSettingsFor(
+    TargetPlatform platform,
+  ) {
+    switch (platform) {
+      case TargetPlatform.iOS:
+      case TargetPlatform.macOS:
+        return AppleSettings(
+          accuracy: LocationAccuracy.medium,
+          distanceFilter: 5,
+          timeLimit: WorkoutLocationStartupPolicy.startupFixTimeout,
+          pauseLocationUpdatesAutomatically: true,
+          allowBackgroundLocationUpdates: false,
+          showBackgroundLocationIndicator: false,
+        );
+      case TargetPlatform.android:
+        return AndroidSettings(
+          accuracy: LocationAccuracy.medium,
+          distanceFilter: 5,
+          timeLimit: WorkoutLocationStartupPolicy.startupFixTimeout,
+          intervalDuration: const Duration(seconds: 2),
+        );
+      case TargetPlatform.fuchsia:
+      case TargetPlatform.linux:
+      case TargetPlatform.windows:
+        return const LocationSettings(
+          accuracy: LocationAccuracy.medium,
+          distanceFilter: 5,
+          timeLimit: WorkoutLocationStartupPolicy.startupFixTimeout,
         );
     }
   }

@@ -52,9 +52,8 @@ dependencies:
   geolocator: ^14.0.2
   # 设备磁力计罗盘朝向（当前位置箭头随手机方向旋转）
   flutter_compass: ^0.8.1
-  # 本地健康数据同步插件：iOS Apple Health / Android Health Connect
-  pedometer_health:
-    path: plugin/pedometer_health
+  # 本地健康数据同步：iOS Apple Health / Android Health Connect
+  health: ^13.3.1
 
 dev_dependencies:
   flutter_test:

@@ -1,115 +1,42 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:pedometer/common/component/app_top_navigation_bar.dart';
 import 'package:pedometer/common/config/app_colors.dart';
 import 'package:pedometer/common/config/app_dimens.dart';
 import 'package:pedometer/feature/home/components/sync_data_detail_components.dart';
+import 'package:pedometer/feature/home/model/health_sync_source_policy.dart';
 import 'package:pedometer/feature/home/model/sync_data_detail_model.dart';
 import 'package:pedometer/feature/home/resources/home_resource.dart';
 import 'package:pedometer/feature/home/views/sync_history_detail_page.dart';
 import 'package:pedometer/feature/home/views/sync_history_list_page.dart';
 import 'package:pedometer/feature/home/views/sync_source_detail_page.dart';
-import 'package:pedometer_health/pedometer_health.dart';
 
 /// Health 同步数据详情页。
-class SyncDataDetailPage extends StatefulWidget {
+///
+/// 数据来源按平台过滤：iOS 仅展示 Apple Health，Android 仅展示 Health Connect。
+/// 健康权限的申请已移动到来源详情页（[SyncSourceDetailPage]）进入时进行。
+class SyncDataDetailPage extends StatelessWidget {
   static const String routeName = HomeRouteTable.pathSyncDataDetail;
 
   final SyncDataDetailData data;
 
   const SyncDataDetailPage({super.key, this.data = SyncDataDetailData.mock});
 
-  @override
-  State<SyncDataDetailPage> createState() => _SyncDataDetailPageState();
-}
-
-class _SyncDataDetailPageState extends State<SyncDataDetailPage> {
-  static const _permissionTypes = [
-    HealthSyncDataType.steps,
-    HealthSyncDataType.distance,
-    HealthSyncDataType.calories,
-    HealthSyncDataType.activeMinutes,
-  ];
-
-  late List<SyncDataSource> _sources;
-
-  @override
-  void initState() {
-    super.initState();
-    _sources = widget.data.sources;
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _requestSourcePermissions();
-    });
-  }
-
-  @override
-  void didUpdateWidget(covariant SyncDataDetailPage oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (oldWidget.data.sources != widget.data.sources) {
-      _sources = widget.data.sources;
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        _requestSourcePermissions();
-      });
-    }
-  }
-
-  Future<void> _requestSourcePermissions() async {
-    final client = PedometerHealthClient();
-
-    for (final sourceData in List<SyncDataSource>.of(_sources)) {
-      if (!mounted) return; // 页面已销毁则停止，避免异步泄漏到后续（含测试间污染）
-      final source = _sourceForTitle(sourceData.title);
-      if (source == null) continue;
-
-      _updateSourceStatus(sourceData.title, '请求权限中');
-
-      try {
-        final available = await client.isAvailable(source: source);
-        if (!mounted) return;
-        if (!available) {
-          _updateSourceStatus(sourceData.title, '不可用');
-          continue;
-        }
-
-        final requested = await client.requestAuthorization(
-          source: source,
-          types: _permissionTypes,
-        );
-        if (!mounted) return;
-        _updateSourceStatus(sourceData.title, requested ? '已连接' : '未授权');
-      } catch (error) {
-        if (!mounted) return;
-        final status = error is MissingPluginException ? '不可用' : '授权失败';
-        _updateSourceStatus(sourceData.title, status);
-      }
-    }
-  }
-
-  HealthSyncSource? _sourceForTitle(String title) {
-    return switch (title) {
-      'Apple Health' => HealthSyncSource.appleHealth,
-      'Health Connect' => HealthSyncSource.healthConnect,
-      _ => null,
-    };
-  }
-
-  void _updateSourceStatus(String title, String status) {
-    if (!mounted) return;
-    setState(() {
-      _sources = [
-        for (final source in _sources)
-          if (source.title == title)
-            source.copyWith(status: status)
-          else
-            source,
-      ];
-    });
+  /// 仅保留当前平台支持的来源；平台无匹配时回退到原始列表，避免空白。
+  List<SyncDataSource> _platformSources(TargetPlatform platform) {
+    final allowedTitles = HealthSyncSourcePolicy.sourcesFor(
+      platform,
+    ).map(HealthSyncSourcePolicy.titleFor).toSet();
+    final filtered = data.sources
+        .where((source) => allowedTitles.contains(source.title))
+        .toList();
+    return filtered.isEmpty ? data.sources : filtered;
   }
 
   @override
   Widget build(BuildContext context) {
-    final data = widget.data;
+    final sources = _platformSources(defaultTargetPlatform);
 
     return Scaffold(
       backgroundColor: HomeResource.background,
@@ -138,7 +65,7 @@ class _SyncDataDetailPageState extends State<SyncDataDetailPage> {
                   ),
                   SyncStatusHero(data: data),
                   SyncOverviewCard(
-                    sources: _sources,
+                    sources: sources,
                     onSourceView: (source) => Get.toNamed(
                       SyncSourceDetailPage.routeName,
                       arguments: source,

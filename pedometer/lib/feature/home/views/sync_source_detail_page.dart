@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
@@ -7,9 +8,10 @@ import 'package:pedometer/common/config/app_colors.dart';
 import 'package:pedometer/common/config/app_dimens.dart';
 import 'package:pedometer/feature/home/components/sync_data_detail_components.dart';
 import 'package:pedometer/feature/home/model/health_repository.dart';
+import 'package:pedometer/feature/home/model/health_sync_models.dart';
+import 'package:pedometer/feature/home/model/health_sync_source_policy.dart';
 import 'package:pedometer/feature/home/model/sync_data_detail_model.dart';
 import 'package:pedometer/feature/home/resources/home_resource.dart';
-import 'package:pedometer_health/pedometer_health.dart';
 
 /// 单个健康数据来源的连接与同步设置页。
 class SyncSourceDetailPage extends StatefulWidget {
@@ -24,12 +26,20 @@ class SyncSourceDetailPage extends StatefulWidget {
 }
 
 class _SyncSourceDetailPageState extends State<SyncSourceDetailPage> {
+  static const _permissionTypes = [
+    HealthSyncDataType.steps,
+    HealthSyncDataType.distance,
+    HealthSyncDataType.calories,
+    HealthSyncDataType.activeMinutes,
+  ];
+
   late final SyncSourceDetailData data;
   late int _selectedModeIndex;
   late List<bool> _manualSelections;
   bool _syncing = false;
   String? _syncMessage;
   bool _syncSucceeded = false;
+  String? _permissionStatus;
 
   bool get _isManualSyncSelected =>
       data.modeOptions[_selectedModeIndex].title == '手动同步';
@@ -53,6 +63,51 @@ class _SyncSourceDetailPageState extends State<SyncSourceDetailPage> {
     );
     _selectedModeIndex = selectedIndex == -1 ? 0 : selectedIndex;
     _manualSelections = [for (final item in data.manualItems) item.selected];
+    // 健康权限在进入来源（Apple Health）详情页时申请，并按平台判断来源。
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _requestPermissions();
+    });
+  }
+
+  Future<void> _requestPermissions() async {
+    final source = HealthSyncSourcePolicy.sourceForTitle(data.source.title);
+    if (source == null) return;
+
+    if (!HealthSyncSourcePolicy.isSupported(source, defaultTargetPlatform)) {
+      _setPermissionStatus('当前平台不支持 ${data.source.title}');
+      return;
+    }
+
+    _setPermissionStatus('正在请求 ${data.source.title} 权限…');
+    final service = HealthPluginSyncService();
+    try {
+      final available = await service.isAvailable(source: source);
+      if (!mounted) return;
+      if (!available) {
+        _setPermissionStatus('${data.source.title} 不可用');
+        return;
+      }
+
+      final granted = await service.requestAuthorization(
+        source: source,
+        types: _permissionTypes,
+      );
+      if (!mounted) return;
+      _setPermissionStatus(
+        granted ? '已授权 ${data.source.title} 健康数据' : '${data.source.title} 未授权',
+      );
+    } catch (error) {
+      if (!mounted) return;
+      final status = error is MissingPluginException
+          ? '${data.source.title} 不可用'
+          : '${data.source.title} 授权失败';
+      _setPermissionStatus(status);
+    }
+  }
+
+  void _setPermissionStatus(String status) {
+    if (!mounted) return;
+    setState(() => _permissionStatus = status);
   }
 
   @override
@@ -85,7 +140,10 @@ class _SyncSourceDetailPageState extends State<SyncSourceDetailPage> {
                   SizedBox(height: AppSpacing.md),
                   _SourceConnectionCard(data: data),
                   SizedBox(height: AppSpacing.lg),
-                  _PermissionCard(items: data.permissions),
+                  _PermissionCard(
+                    items: data.permissions,
+                    statusText: _permissionStatus,
+                  ),
                   SizedBox(height: AppSpacing.lg),
                   _SyncModeCard(
                     options: data.modeOptions,
@@ -151,16 +209,16 @@ class _SyncSourceDetailPageState extends State<SyncSourceDetailPage> {
       final source = data.source.title == 'Health Connect'
           ? HealthSyncSource.healthConnect
           : HealthSyncSource.appleHealth;
-      final client = PedometerHealthClient();
+      final service = HealthPluginSyncService();
       final types = _selectedHealthTypes();
 
-      final available = await client.isAvailable(source: source);
+      final available = await service.isAvailable(source: source);
       if (!available) {
         _setSyncResult('${data.source.title} 当前设备不可用', false);
         return;
       }
 
-      final requested = await client.requestAuthorization(
+      final requested = await service.requestAuthorization(
         source: source,
         types: types,
       );
@@ -170,12 +228,18 @@ class _SyncSourceDetailPageState extends State<SyncSourceDetailPage> {
       }
 
       final now = DateTime.now();
-      final syncedSource = await HealthPluginSyncService(client: client).sync(
+      final syncedSource = await service.sync(
         source: source,
         startDate: now.subtract(const Duration(days: 30)),
         endDate: now,
         types: types,
       );
+      // iOS 只读授权即使用户未勾选也会回调成功；这里以是否读到有效数据为准，
+      // 避免“同步成功”却把首页数据刷成 0（模拟器无数据/未勾选读取时同理）。
+      if (!syncedSource.hasData) {
+        _setSyncResult('${data.source.title} 未读取到健康数据，请在系统“健康”中允许读取后重试', false);
+        return;
+      }
       HealthSyncRuntime.replaceRealDataSource(syncedSource);
       _setSyncResult('${data.source.title} 同步成功', true);
     } catch (error) {
@@ -358,8 +422,9 @@ class _SourceConnectionCard extends StatelessWidget {
 
 class _PermissionCard extends StatelessWidget {
   final List<SyncSourcePermission> items;
+  final String? statusText;
 
-  const _PermissionCard({required this.items});
+  const _PermissionCard({required this.items, this.statusText});
 
   @override
   Widget build(BuildContext context) {
@@ -383,7 +448,7 @@ class _PermissionCard extends StatelessWidget {
           ],
           SizedBox(height: AppSpacing.sm),
           Text(
-            '需授权后才可同步对应健康数据',
+            statusText ?? '需授权后才可同步对应健康数据',
             style: TextStyle(color: AppColors.textSecondary, fontSize: 13),
           ),
         ],

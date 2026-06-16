@@ -36,10 +36,13 @@ class WorkoutMapSection extends StatefulWidget {
 
 class _WorkoutMapSectionState extends State<WorkoutMapSection> {
   final _mapKey = GlobalKey<_WorkoutMapViewState>();
+  late final WorkoutTrackingController _controller =
+      Get.isRegistered<WorkoutTrackingController>()
+      ? Get.find<WorkoutTrackingController>()
+      : Get.put(WorkoutTrackingController());
 
   @override
   Widget build(BuildContext context) {
-    final data = widget.data;
     return SizedBox(
       height: 386,
       child: Stack(
@@ -52,20 +55,23 @@ class _WorkoutMapSectionState extends State<WorkoutMapSection> {
             right: 0,
             child: Center(
               child: GpsStatusPill(
-                label: data.gpsLabel,
-                status: data.gpsStatus,
+                label: widget.data.gpsLabel,
+                status: widget.data.gpsStatus,
               ),
             ),
           ),
-          if (data.status != WorkoutStatus.ended)
-            _AnimatedDistanceOverlayAnchor(data: data),
-          if (data.status == WorkoutStatus.ended)
-            Positioned(
-              left: AppSpacing.lg,
-              right: AppSpacing.lg,
-              bottom: AppSpacing.lg,
-              child: WorkoutEndedMapSummary(data: data),
-            ),
+          Obx(() {
+            final data = _liveData();
+            if (data.status == WorkoutStatus.ended) {
+              return Positioned(
+                left: AppSpacing.lg,
+                right: AppSpacing.lg,
+                bottom: AppSpacing.lg,
+                child: WorkoutEndedMapSummary(data: data),
+              );
+            }
+            return _AnimatedDistanceOverlayAnchor(data: data);
+          }),
           Positioned(
             left: 14,
             bottom: 24,
@@ -75,6 +81,16 @@ class _WorkoutMapSectionState extends State<WorkoutMapSection> {
           ),
         ],
       ),
+    );
+  }
+
+  WorkoutTrackingData _liveData() {
+    return widget.data.copyWith(
+      status: _controller.status.value,
+      distanceKm: _controller.distanceKmText,
+      duration: _controller.durationText,
+      calories: _controller.caloriesText,
+      pace: _controller.paceText,
     );
   }
 }
@@ -91,7 +107,10 @@ class _WorkoutMapViewState extends State<WorkoutMapView> {
     target: LatLng(31.2304, 121.4737),
     zoom: WorkoutMapZoomPolicy.defaultZoom,
   );
-  static const _mapWarmupDelay = Duration(milliseconds: 450);
+  static const _cameraMoveThrottle = Duration(milliseconds: 900);
+  static const _cameraAnimationTimeout = Duration(milliseconds: 700);
+  static const _headingPaintInterval = Duration(milliseconds: 160);
+  static const _headingPaintDelta = 3.0;
 
   // 显示层：决定“是否显示当前位置 + 状态文案”，对粗定位宽松。
   final _displayPolicy = const LocationDisplayPolicy();
@@ -101,16 +120,21 @@ class _WorkoutMapViewState extends State<WorkoutMapView> {
 
   late final WorkoutTrackingController _controller =
       Get.isRegistered<WorkoutTrackingController>()
-          ? Get.find<WorkoutTrackingController>()
-          : Get.put(WorkoutTrackingController());
+      ? Get.find<WorkoutTrackingController>()
+      : Get.put(WorkoutTrackingController());
 
   GoogleMapController? _mapController;
   StreamSubscription<Position>? _positionSubscription;
   StreamSubscription<CompassEvent>? _compassSubscription;
+  Worker? _statusWorker;
   BitmapDescriptor? _currentLocationMarkerIcon;
   LatLng? _currentPosition;
   double _currentZoom = WorkoutMapZoomPolicy.defaultZoom;
-  bool _allowPlatformMap = false;
+  bool _locationAuthorized = false;
+  bool? _positionStreamUsesTrackingSettings;
+  bool _cameraMoving = false;
+  DateTime? _lastCameraMoveAt;
+  DateTime? _lastHeadingPaintAt;
   // 设备罗盘朝向（度，0=正北，顺时针）。驱动当前位置箭头随手机方向旋转。
   double _headingDegrees = 0;
 
@@ -118,10 +142,16 @@ class _WorkoutMapViewState extends State<WorkoutMapView> {
   void initState() {
     super.initState();
     if (!_isWidgetTest) {
-      unawaited(_loadCurrentLocationMarkerIcon());
-      _schedulePlatformMapCreation();
-      _prepareLocation();
-      _startCompass();
+      _statusWorker = ever<WorkoutStatus>(
+        _controller.status,
+        _handleWorkoutStatusChanged,
+      );
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        unawaited(_loadCurrentLocationMarkerIcon());
+        unawaited(_prepareLocation());
+        _startCompass();
+      });
     }
   }
 
@@ -131,10 +161,22 @@ class _WorkoutMapViewState extends State<WorkoutMapView> {
     _compassSubscription = stream.listen((event) {
       final heading = event.heading;
       if (heading == null || !mounted) return; // 校准中 / 无可靠朝向
-      // 仅在朝向变化明显时刷新，避免高频重建。
-      if (_headingDegrees != 0 && (heading - _headingDegrees).abs() < 1.5) {
+      if (_currentPosition == null || _currentLocationMarkerIcon == null) {
         return;
       }
+      // 仅在朝向变化明显时刷新，避免高频重建。
+      final delta = (heading - _headingDegrees).abs();
+      final normalizedDelta = delta > 180 ? 360 - delta : delta;
+      if (_headingDegrees != 0 && normalizedDelta < _headingPaintDelta) {
+        return;
+      }
+      final now = DateTime.now();
+      final lastPaint = _lastHeadingPaintAt;
+      if (lastPaint != null &&
+          now.difference(lastPaint) < _headingPaintInterval) {
+        return;
+      }
+      _lastHeadingPaintAt = now;
       setState(() => _headingDegrees = heading);
     });
   }
@@ -143,6 +185,7 @@ class _WorkoutMapViewState extends State<WorkoutMapView> {
   void dispose() {
     _positionSubscription?.cancel();
     _compassSubscription?.cancel();
+    _statusWorker?.dispose();
     _mapController?.dispose();
     super.dispose();
   }
@@ -150,16 +193,13 @@ class _WorkoutMapViewState extends State<WorkoutMapView> {
   @override
   Widget build(BuildContext context) {
     final canCreatePlatformMap = WorkoutMapRenderPolicy.canCreatePlatformMap(
-      allowPlatformMap: _allowPlatformMap,
       isWidgetTest: _isWidgetTest,
     );
 
     if (!canCreatePlatformMap) {
       return Stack(
         key: const Key('workout-google-map'),
-        children: [
-          const Positioned.fill(child: _WorkoutMapFallback()),
-        ],
+        children: [const Positioned.fill(child: _WorkoutMapFallback())],
       );
     }
 
@@ -167,55 +207,45 @@ class _WorkoutMapViewState extends State<WorkoutMapView> {
       key: const Key('workout-google-map'),
       children: [
         Positioned.fill(
-          child: Obx(
-            () {
-              final routePoints = _controller.pathPoints.toList(
-                growable: false,
-              );
-              return GoogleMap(
-                initialCameraPosition: _currentPosition == null
-                    ? _defaultCameraPosition
-                    : CameraPosition(
-                        target: _currentPosition!,
-                        zoom: _currentZoom,
-                      ),
-                minMaxZoomPreference: const MinMaxZoomPreference(
-                  WorkoutMapZoomPolicy.minZoom,
-                  WorkoutMapZoomPolicy.maxZoom,
-                ),
-                myLocationEnabled: false,
-                myLocationButtonEnabled: false,
-                markers: _trackingMarkers,
-                polylines: WorkoutRoutePolylinePolicy.build(routePoints),
-                mapToolbarEnabled: false,
-                zoomControlsEnabled: false,
-                compassEnabled: false,
-                zoomGesturesEnabled: true,
-                scrollGesturesEnabled: true,
-                rotateGesturesEnabled: true,
-                tiltGesturesEnabled: false,
-                onCameraMove: (position) {
-                  _currentZoom = WorkoutMapZoomPolicy.clampZoom(position.zoom);
-                },
-                onMapCreated: (controller) {
-                  _mapController = controller;
-                  final position = _currentPosition;
-                  if (position != null) {
-                    _moveCamera(position);
-                  }
-                },
-              );
-            },
-          ),
+          child: Obx(() {
+            final routePoints = _controller.pathPoints.toList(growable: false);
+            return GoogleMap(
+              initialCameraPosition: _currentPosition == null
+                  ? _defaultCameraPosition
+                  : CameraPosition(
+                      target: _currentPosition!,
+                      zoom: _currentZoom,
+                    ),
+              minMaxZoomPreference: const MinMaxZoomPreference(
+                WorkoutMapZoomPolicy.minZoom,
+                WorkoutMapZoomPolicy.maxZoom,
+              ),
+              myLocationEnabled: false,
+              myLocationButtonEnabled: false,
+              markers: _trackingMarkers,
+              polylines: WorkoutRoutePolylinePolicy.build(routePoints),
+              mapToolbarEnabled: false,
+              zoomControlsEnabled: false,
+              compassEnabled: false,
+              zoomGesturesEnabled: true,
+              scrollGesturesEnabled: true,
+              rotateGesturesEnabled: true,
+              tiltGesturesEnabled: false,
+              onCameraMove: (position) {
+                _currentZoom = WorkoutMapZoomPolicy.clampZoom(position.zoom);
+              },
+              onMapCreated: (controller) {
+                _mapController = controller;
+                final position = _currentPosition;
+                if (position != null) {
+                  unawaited(_moveCamera(position, immediate: true));
+                }
+              },
+            );
+          }),
         ),
       ],
     );
-  }
-
-  Future<void> _schedulePlatformMapCreation() async {
-    await Future<void>.delayed(_mapWarmupDelay);
-    if (!mounted) return;
-    setState(() => _allowPlatformMap = true);
   }
 
   Future<void> _prepareLocation() async {
@@ -236,27 +266,65 @@ class _WorkoutMapViewState extends State<WorkoutMapView> {
         return;
       }
 
-      _startPositionStream();
+      _locationAuthorized = true;
       await _seedLastKnownPosition();
-      unawaited(_requestPreciseLocationIfNeeded());
-      unawaited(_refreshCurrentPosition());
+      if (!mounted) return;
+      final status = _controller.status.value;
+      final tracking = _usesTrackingLocationSettings(status);
+      _syncPositionStreamWithStatus(status);
+      if (tracking) {
+        unawaited(_requestPreciseLocationIfNeeded());
+      }
+      unawaited(_refreshCurrentPosition(tracking: tracking));
     } on TimeoutException {
       if (!mounted) return;
-      _startPositionStream();
+      _locationAuthorized = true;
+      _syncPositionStreamWithStatus(_controller.status.value);
     } catch (_) {
       if (!mounted) return;
       return;
     }
   }
 
-  void _startPositionStream() {
-    if (_positionSubscription != null) return;
-    _positionSubscription =
-        Geolocator.getPositionStream(
-          locationSettings: WorkoutLocationSettingsPolicy.streamSettingsFor(
+  void _handleWorkoutStatusChanged(WorkoutStatus status) {
+    if (!_locationAuthorized || !mounted) return;
+    _syncPositionStreamWithStatus(status);
+    if (_usesTrackingLocationSettings(status)) {
+      unawaited(_requestPreciseLocationIfNeeded());
+      unawaited(_refreshCurrentPosition(tracking: true));
+    }
+  }
+
+  void _syncPositionStreamWithStatus(WorkoutStatus status) {
+    if (status == WorkoutStatus.ended) {
+      unawaited(_positionSubscription?.cancel());
+      _positionSubscription = null;
+      _positionStreamUsesTrackingSettings = null;
+      return;
+    }
+    _startPositionStream(tracking: _usesTrackingLocationSettings(status));
+  }
+
+  bool _usesTrackingLocationSettings(WorkoutStatus status) {
+    return status == WorkoutStatus.running || status == WorkoutStatus.paused;
+  }
+
+  void _startPositionStream({required bool tracking}) {
+    if (_positionSubscription != null &&
+        _positionStreamUsesTrackingSettings == tracking) {
+      return;
+    }
+    unawaited(_positionSubscription?.cancel());
+    _positionSubscription = null;
+    _positionStreamUsesTrackingSettings = tracking;
+    final settings = tracking
+        ? WorkoutLocationSettingsPolicy.streamSettingsFor(defaultTargetPlatform)
+        : WorkoutLocationSettingsPolicy.startupStreamSettingsFor(
             defaultTargetPlatform,
-          ),
-        ).listen(_acceptPosition, onError: _handlePositionError);
+          );
+    _positionSubscription = Geolocator.getPositionStream(
+      locationSettings: settings,
+    ).listen(_acceptPosition, onError: _handlePositionError);
   }
 
   Future<void> _seedLastKnownPosition() async {
@@ -276,12 +344,16 @@ class _WorkoutMapViewState extends State<WorkoutMapView> {
     }
   }
 
-  Future<void> _refreshCurrentPosition() async {
+  Future<void> _refreshCurrentPosition({required bool tracking}) async {
     try {
       final current = await Geolocator.getCurrentPosition(
-        locationSettings: WorkoutLocationSettingsPolicy.currentFixSettingsFor(
-          defaultTargetPlatform,
-        ),
+        locationSettings: tracking
+            ? WorkoutLocationSettingsPolicy.currentFixSettingsFor(
+                defaultTargetPlatform,
+              )
+            : WorkoutLocationSettingsPolicy.startupCurrentFixSettingsFor(
+                defaultTargetPlatform,
+              ),
       );
       _acceptPosition(current);
     } on TimeoutException {
@@ -348,23 +420,47 @@ class _WorkoutMapViewState extends State<WorkoutMapView> {
     });
 
     if (isStable || isFirstFix) {
-      _moveCamera(latLng);
+      unawaited(_moveCamera(latLng, immediate: isFirstFix));
     }
     _controller.onFix(position, latLng);
   }
 
-  Future<void> _moveCamera(LatLng target) async {
-    await _mapController?.animateCamera(
-      CameraUpdate.newCameraPosition(
-        CameraPosition(target: target, zoom: _currentZoom),
-      ),
+  Future<void> _moveCamera(LatLng target, {bool immediate = false}) async {
+    final controller = _mapController;
+    if (controller == null) return;
+
+    final now = DateTime.now();
+    if (!immediate) {
+      final lastMove = _lastCameraMoveAt;
+      if (_cameraMoving ||
+          (lastMove != null &&
+              now.difference(lastMove) < _cameraMoveThrottle)) {
+        return;
+      }
+    }
+
+    _cameraMoving = true;
+    _lastCameraMoveAt = now;
+    final update = CameraUpdate.newCameraPosition(
+      CameraPosition(target: target, zoom: _currentZoom),
     );
+    try {
+      if (immediate) {
+        await controller.moveCamera(update);
+      } else {
+        await controller.animateCamera(update).timeout(_cameraAnimationTimeout);
+      }
+    } catch (_) {
+      // Platform-map camera calls can fail during creation/disposal races.
+    } finally {
+      _cameraMoving = false;
+    }
   }
 
   Future<void> centerOnCurrentLocation() async {
     final position = _currentPosition;
     if (position == null) return;
-    await _moveCamera(position);
+    await _moveCamera(position, immediate: true);
   }
 
   Set<Marker> get _trackingMarkers {
@@ -423,10 +519,10 @@ class _WorkoutMapViewState extends State<WorkoutMapView> {
 
   Future<Uint8List> _drawCurrentLocationMarkerPng() async {
     const pixelRatio = WorkoutLocationMarkerStyle.renderPixelRatio;
-    final width =
-        (WorkoutLocationMarkerStyle.logicalSize.width * pixelRatio).round();
-    final height =
-        (WorkoutLocationMarkerStyle.logicalSize.height * pixelRatio).round();
+    final width = (WorkoutLocationMarkerStyle.logicalSize.width * pixelRatio)
+        .round();
+    final height = (WorkoutLocationMarkerStyle.logicalSize.height * pixelRatio)
+        .round();
 
     final recorder = ui.PictureRecorder();
     final canvas = Canvas(
@@ -837,19 +933,13 @@ class _EndedMetric extends StatelessWidget {
 class MapControlButtons extends StatelessWidget {
   final VoidCallback? onLocate;
 
-  const MapControlButtons({
-    super.key,
-    this.onLocate,
-  });
+  const MapControlButtons({super.key, this.onLocate});
 
   @override
   Widget build(BuildContext context) {
     return Column(
       children: [
-        CircleGlassIconButton(
-          icon: Icons.my_location_rounded,
-          onTap: onLocate,
-        ),
+        CircleGlassIconButton(icon: Icons.my_location_rounded, onTap: onLocate),
       ],
     );
   }
@@ -1088,7 +1178,10 @@ class NeonPauseButton extends StatefulWidget {
 
 class _NeonPauseButtonState extends State<NeonPauseButton>
     with SingleTickerProviderStateMixin {
+  static const _holdActivationDelay = Duration(milliseconds: 220);
+
   late final AnimationController _hold;
+  Timer? _holdStartTimer;
   bool _completed = false;
 
   bool get _holdEnabled => widget.onHoldComplete != null;
@@ -1107,17 +1200,23 @@ class _NeonPauseButtonState extends State<NeonPauseButton>
 
   @override
   void dispose() {
+    _holdStartTimer?.cancel();
     _hold.dispose();
     super.dispose();
   }
 
-  void _handleTapDown(TapDownDetails _) {
+  void _handlePressStart() {
     if (!_holdEnabled) return;
     _completed = false;
-    _hold.forward(from: 0);
+    _holdStartTimer?.cancel();
+    _holdStartTimer = Timer(_holdActivationDelay, () {
+      if (!mounted || !_holdEnabled) return;
+      _hold.forward(from: 0);
+    });
   }
 
   void _handleHoldRelease() {
+    _holdStartTimer?.cancel();
     if (_holdEnabled && !_completed) _hold.reset();
   }
 
@@ -1133,49 +1232,51 @@ class _NeonPauseButtonState extends State<NeonPauseButton>
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
-      onTapDown: _handleTapDown,
-      onTapUp: (_) => _handleHoldRelease(),
-      onTapCancel: _handleHoldRelease,
-      onTap: _handleTap,
-      child: SizedBox(
-        width: 108,
-        height: 108,
-        child: Stack(
-          alignment: Alignment.center,
-          children: [
-            Container(
-              width: 108,
-              height: 108,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                gradient: RadialGradient(
-                  colors: [
-                    AppColors.brandLime,
-                    AppColors.brandGreen,
-                    AppColors.brandGreenDark,
-                  ],
-                  stops: const [0, 0.62, 1],
+    return Listener(
+      onPointerDown: (_) => _handlePressStart(),
+      onPointerUp: (_) => _handleHoldRelease(),
+      onPointerCancel: (_) => _handleHoldRelease(),
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: _handleTap,
+        child: SizedBox(
+          width: 108,
+          height: 108,
+          child: Stack(
+            alignment: Alignment.center,
+            children: [
+              Container(
+                width: 108,
+                height: 108,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: RadialGradient(
+                    colors: [
+                      AppColors.brandLime,
+                      AppColors.brandGreen,
+                      AppColors.brandGreenDark,
+                    ],
+                    stops: const [0, 0.62, 1],
+                  ),
+                ),
+                child: Icon(
+                  widget.showStartIcon
+                      ? Icons.play_arrow_rounded
+                      : Icons.pause_rounded,
+                  color: AppColors.bgPrimary,
+                  size: 56,
                 ),
               ),
-              child: Icon(
-                widget.showStartIcon
-                    ? Icons.play_arrow_rounded
-                    : Icons.pause_rounded,
-                color: AppColors.bgPrimary,
-                size: 56,
-              ),
-            ),
-            if (_holdEnabled)
-              Positioned.fill(
-                child: AnimatedBuilder(
-                  animation: _hold,
-                  builder: (_, _) =>
-                      CustomPaint(painter: _HoldRingPainter(_hold.value)),
+              if (_holdEnabled)
+                Positioned.fill(
+                  child: AnimatedBuilder(
+                    animation: _hold,
+                    builder: (_, _) =>
+                        CustomPaint(painter: _HoldRingPainter(_hold.value)),
+                  ),
                 ),
-              ),
-          ],
+            ],
+          ),
         ),
       ),
     );

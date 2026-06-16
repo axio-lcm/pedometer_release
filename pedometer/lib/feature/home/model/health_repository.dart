@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:health/health.dart';
 import 'package:pedometer/common/config/app_colors.dart';
 import 'package:pedometer/feature/home/model/home_model.dart';
+import 'package:pedometer/feature/home/model/health_sync_models.dart';
 import 'package:pedometer/feature/home/model/sport_detail_model.dart';
-import 'package:pedometer_health/pedometer_health.dart';
 
 class HealthHomeSnapshot {
   final StepData step;
@@ -169,9 +170,40 @@ class MockHealthDataSource implements HealthDataSource {
 }
 
 class HealthPluginSyncService {
-  final PedometerHealthClient client;
+  final Health health;
 
-  const HealthPluginSyncService({required this.client});
+  HealthPluginSyncService({Health? health}) : health = health ?? Health();
+
+  Future<bool> isAvailable({required HealthSyncSource source}) async {
+    if (!_sourceMatchesPlatform(source)) return false;
+    await health.configure();
+    if (source == HealthSyncSource.healthConnect) {
+      final status = await health.getHealthConnectSdkStatus();
+      return status == HealthConnectSdkStatus.sdkAvailable;
+    }
+    return true;
+  }
+
+  Future<bool> requestAuthorization({
+    required HealthSyncSource source,
+    List<HealthSyncDataType> types = const [
+      HealthSyncDataType.steps,
+      HealthSyncDataType.distance,
+      HealthSyncDataType.calories,
+      HealthSyncDataType.activeMinutes,
+    ],
+  }) async {
+    if (!await isAvailable(source: source)) return false;
+    final healthTypes = _healthTypesFor(source: source, types: types);
+    if (healthTypes.isEmpty) return false;
+    return health.requestAuthorization(
+      healthTypes,
+      permissions: List<HealthDataAccess>.filled(
+        healthTypes.length,
+        HealthDataAccess.READ,
+      ),
+    );
+  }
 
   Future<SyncedHealthDataSource> sync({
     required HealthSyncSource source,
@@ -184,20 +216,137 @@ class HealthPluginSyncService {
       HealthSyncDataType.activeMinutes,
     ],
   }) async {
-    final summaries = await client.fetchDailySummaries(
-      source: source,
-      startDate: startDate,
-      endDate: endDate,
-      types: types,
+    if (!await requestAuthorization(source: source, types: types)) {
+      return const SyncedHealthDataSource(summaries: []);
+    }
+    final healthTypes = _healthTypesFor(source: source, types: types);
+    final points = await health.getHealthDataFromTypes(
+      types: healthTypes,
+      startTime: startDate,
+      endTime: endDate,
     );
-    return SyncedHealthDataSource(summaries: summaries);
+    return SyncedHealthDataSource(
+      summaries: _dailySummariesFromPoints(
+        points,
+        source: source,
+        startDate: startDate,
+        endDate: endDate,
+      ),
+    );
   }
+
+  bool _sourceMatchesPlatform(HealthSyncSource source) {
+    return switch (health.platformType) {
+      HealthPlatformType.appleHealth => source == HealthSyncSource.appleHealth,
+      HealthPlatformType.googleHealthConnect =>
+        source == HealthSyncSource.healthConnect,
+    };
+  }
+
+  List<HealthDataType> _healthTypesFor({
+    required HealthSyncSource source,
+    required List<HealthSyncDataType> types,
+  }) {
+    final healthTypes = <HealthDataType>[];
+    for (final type in types) {
+      final mapped = _healthTypeFor(source: source, type: type);
+      if (mapped != null && !healthTypes.contains(mapped)) {
+        healthTypes.add(mapped);
+      }
+    }
+    return healthTypes;
+  }
+
+  HealthDataType? _healthTypeFor({
+    required HealthSyncSource source,
+    required HealthSyncDataType type,
+  }) {
+    return switch (type) {
+      HealthSyncDataType.steps => HealthDataType.STEPS,
+      HealthSyncDataType.distance =>
+        source == HealthSyncSource.appleHealth
+            ? HealthDataType.DISTANCE_WALKING_RUNNING
+            : HealthDataType.DISTANCE_DELTA,
+      HealthSyncDataType.calories =>
+        source == HealthSyncSource.appleHealth
+            ? HealthDataType.ACTIVE_ENERGY_BURNED
+            : HealthDataType.TOTAL_CALORIES_BURNED,
+      HealthSyncDataType.activeMinutes =>
+        source == HealthSyncSource.appleHealth
+            ? HealthDataType.EXERCISE_TIME
+            : HealthDataType.ACTIVITY_INTENSITY,
+    };
+  }
+
+  List<HealthDailySummary> _dailySummariesFromPoints(
+    List<HealthDataPoint> points, {
+    required HealthSyncSource source,
+    required DateTime startDate,
+    required DateTime endDate,
+  }) {
+    final byDay = <DateTime, _DailyHealthAccumulator>{};
+    for (final point in points) {
+      final day = _dateOnly(point.dateFrom.toLocal());
+      if (day.isBefore(_dateOnly(startDate)) ||
+          day.isAfter(_dateOnly(endDate))) {
+        continue;
+      }
+      final summary = byDay.putIfAbsent(day, _DailyHealthAccumulator.new);
+      final value = _numericHealthValue(point);
+      switch (point.type) {
+        case HealthDataType.STEPS:
+          summary.steps += value.round();
+        case HealthDataType.DISTANCE_WALKING_RUNNING:
+        case HealthDataType.DISTANCE_DELTA:
+          summary.distanceKm += value / 1000;
+        case HealthDataType.ACTIVE_ENERGY_BURNED:
+        case HealthDataType.TOTAL_CALORIES_BURNED:
+          summary.caloriesKcal += value;
+        case HealthDataType.EXERCISE_TIME:
+        case HealthDataType.ACTIVITY_INTENSITY:
+          summary.activeMinutes += value.round();
+        default:
+          break;
+      }
+    }
+
+    final summaries = [
+      for (final entry in byDay.entries)
+        HealthDailySummary(
+          date: entry.key,
+          steps: entry.value.steps,
+          distanceKm: entry.value.distanceKm,
+          caloriesKcal: entry.value.caloriesKcal,
+          activeMinutes: entry.value.activeMinutes,
+          source: source,
+        ),
+    ];
+    summaries.sort((a, b) => a.date.compareTo(b.date));
+    return summaries;
+  }
+}
+
+class _DailyHealthAccumulator {
+  int steps = 0;
+  double distanceKm = 0;
+  double caloriesKcal = 0;
+  int activeMinutes = 0;
 }
 
 class SyncedHealthDataSource implements HealthDataSource {
   final List<HealthDailySummary> summaries;
 
   const SyncedHealthDataSource({required this.summaries});
+
+  /// 是否读到任何有效健康数据（非空且至少一天有非零指标）。
+  /// 用于区分“同步成功但全为 0”（如模拟器无数据/未授权读取）的情况。
+  bool get hasData => summaries.any(
+    (s) =>
+        s.steps > 0 ||
+        s.distanceKm > 0 ||
+        s.caloriesKcal > 0 ||
+        s.activeMinutes > 0,
+  );
 
   List<HealthDailySummary> get _sorted {
     final sorted = [...summaries];
@@ -559,6 +708,16 @@ String _dateTitle(DateTime date) {
 }
 
 String _shortDate(DateTime date) => '${date.month}月${date.day}日';
+
+DateTime _dateOnly(DateTime date) => DateTime(date.year, date.month, date.day);
+
+double _numericHealthValue(HealthDataPoint point) {
+  final value = point.value;
+  if (value is NumericHealthValue) {
+    return value.numericValue.toDouble();
+  }
+  return 0;
+}
 
 String _bestDayText(List<HealthDailySummary> items) {
   if (items.isEmpty) return '暂无数据';

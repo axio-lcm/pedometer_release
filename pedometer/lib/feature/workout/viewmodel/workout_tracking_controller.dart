@@ -17,8 +17,8 @@ class WorkoutTrackingController extends GetxController {
     WorkoutPacePolicy? pacePolicy,
     this.minMoveMeters = 2.5,
     this.minRoutePointMeters = 1.5,
-  })  : _caloriePolicy = caloriePolicy ?? const WorkoutCaloriePolicy(),
-        _pacePolicy = pacePolicy ?? WorkoutPacePolicy();
+  }) : _caloriePolicy = caloriePolicy ?? const WorkoutCaloriePolicy(),
+       _pacePolicy = pacePolicy ?? WorkoutPacePolicy();
 
   final WorkoutCaloriePolicy _caloriePolicy;
   final WorkoutPacePolicy _pacePolicy;
@@ -50,6 +50,13 @@ class WorkoutTrackingController extends GetxController {
   // ---- 状态机 ----
 
   void start() {
+    if (status.value == WorkoutStatus.running) return;
+    if (status.value == WorkoutStatus.paused) {
+      resume();
+      return;
+    }
+    if (status.value == WorkoutStatus.ended) return;
+
     distanceMeters.value = 0;
     elapsed.value = Duration.zero;
     calories.value = 0;
@@ -90,10 +97,13 @@ class WorkoutTrackingController extends GetxController {
     switch (status.value) {
       case WorkoutStatus.ready:
         start();
+        break;
       case WorkoutStatus.running:
         pause();
+        break;
       case WorkoutStatus.paused:
         resume();
+        break;
       case WorkoutStatus.ended:
         break;
     }
