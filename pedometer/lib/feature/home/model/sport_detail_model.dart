@@ -159,6 +159,13 @@ class SportPeriodData {
 class SportDetailFixtures {
   SportDetailFixtures._();
 
+  /// 当天日期标题，例如「6月10日 周二」，随系统日期实时变化。
+  static String _todayTitle() {
+    const labels = ['周一', '周二', '周三', '周四', '周五', '周六', '周日'];
+    final now = DateTime.now();
+    return '${now.month}月${now.day}日 ${labels[now.weekday - 1]}';
+  }
+
   static SportPeriodData byPeriod(SportPeriod period) {
     return switch (period) {
       SportPeriod.day => day,
@@ -167,9 +174,9 @@ class SportDetailFixtures {
     };
   }
 
-  static final SportPeriodData day = SportPeriodData(
+  static SportPeriodData get day => SportPeriodData(
     period: SportPeriod.day,
-    dateTitle: '6月10日 周二',
+    dateTitle: _todayTitle(),
     progress: const SportProgressData(
       title: '今日步数',
       value: 5276,
