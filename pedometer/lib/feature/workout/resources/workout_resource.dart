@@ -40,8 +40,6 @@ class WorkoutResource {
       _string('beginner_runner', WorkoutText.beginnerRunner);
   static String get persistent => _string('persistent', WorkoutText.persistent);
   static String get hundredKm => _string('hundred_km', WorkoutText.hundredKm);
-  static String get trackingGpsGood =>
-      _string('tracking_gps_good', WorkoutText.trackingGpsGood);
   static String get trackingEndHint =>
       _string('tracking_end_hint', WorkoutText.trackingEndHint);
   static String get trackingMusicTitle =>
@@ -107,7 +105,8 @@ class WorkoutResource {
       _string('result_complete_title', WorkoutText.resultCompleteTitle);
   static String get resultCompleteSubtitle =>
       _string('result_complete_subtitle', WorkoutText.resultCompleteSubtitle);
-  static String get resultDone => _string('result_done', WorkoutText.resultDone);
+  static String get resultDone =>
+      _string('result_done', WorkoutText.resultDone);
   static String get resultShare =>
       _string('result_share', WorkoutText.resultShare);
   static String get resultSteps =>
@@ -150,7 +149,6 @@ class WorkoutText {
   static const beginnerRunner = '初级跑者';
   static const persistent = '坚持不懈';
   static const hundredKm = '百公里';
-  static const trackingGpsGood = '信号良好';
   static const trackingEndHint = '长按结束';
   static const trackingMusicTitle = '运动音乐';
   static const trackingMusicStatus = '播放中';

@@ -51,8 +51,6 @@ enum WorkoutStatus { ready, running, paused, ended }
 class WorkoutTrackingData {
   final String workoutTitle;
   final WorkoutStatus status;
-  final String gpsLabel;
-  final String gpsStatus;
   final String distanceKm;
   final String targetKm;
   final String duration;
@@ -65,8 +63,6 @@ class WorkoutTrackingData {
   const WorkoutTrackingData({
     required this.workoutTitle,
     required this.status,
-    required this.gpsLabel,
-    required this.gpsStatus,
     required this.distanceKm,
     required this.targetKm,
     required this.duration,
@@ -80,8 +76,6 @@ class WorkoutTrackingData {
   static const mock = WorkoutTrackingData(
     workoutTitle: WorkoutText.outdoorRun,
     status: WorkoutStatus.ready,
-    gpsLabel: 'GPS',
-    gpsStatus: WorkoutText.trackingGpsGood,
     distanceKm: '2.35',
     targetKm: '8.00',
     duration: '00:18:36',
@@ -102,8 +96,6 @@ class WorkoutTrackingData {
     return WorkoutTrackingData(
       workoutTitle: workoutTitle,
       status: status ?? this.status,
-      gpsLabel: gpsLabel,
-      gpsStatus: gpsStatus,
       distanceKm: distanceKm ?? this.distanceKm,
       targetKm: targetKm,
       duration: duration ?? this.duration,
