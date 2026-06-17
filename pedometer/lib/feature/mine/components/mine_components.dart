@@ -109,7 +109,9 @@ class _StatusPill extends StatelessWidget {
 /// 设置入口分组卡片：玻璃卡片内纵向排列入口行，行间细分割线。
 class MineSettingsCard extends StatelessWidget {
   final List<MineEntry> entries;
-  final ValueChanged<MineEntry>? onEntryTap;
+
+  /// [origin] 为被点击行在屏幕上的矩形，供 iOS 分享面板等定位锚点。
+  final void Function(MineEntry entry, Rect origin)? onEntryTap;
 
   const MineSettingsCard({super.key, required this.entries, this.onEntryTap});
 
@@ -129,7 +131,7 @@ class MineSettingsCard extends StatelessWidget {
               showDivider: i != entries.length - 1,
               onTap: onEntryTap == null
                   ? null
-                  : () => onEntryTap!(entries[i]),
+                  : (origin) => onEntryTap!(entries[i], origin),
             ),
         ],
       ),
@@ -141,7 +143,9 @@ class MineSettingsCard extends StatelessWidget {
 class MineEntryRow extends StatelessWidget {
   final MineEntry entry;
   final bool showDivider;
-  final VoidCallback? onTap;
+
+  /// 回调携带该行在屏幕上的矩形（供分享面板等锚点定位）。
+  final ValueChanged<Rect>? onTap;
 
   static const double _iconBaseSize = 40;
 
@@ -152,13 +156,20 @@ class MineEntryRow extends StatelessWidget {
     this.onTap,
   });
 
+  /// 计算当前行在屏幕坐标系中的矩形。
+  Rect _resolveOrigin(BuildContext context) {
+    final box = context.findRenderObject() as RenderBox?;
+    if (box == null || !box.hasSize) return Rect.zero;
+    return box.localToGlobal(Offset.zero) & box.size;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Column(
       children: [
         GestureDetector(
           behavior: HitTestBehavior.opaque,
-          onTap: onTap,
+          onTap: onTap == null ? null : () => onTap!(_resolveOrigin(context)),
           child: SizedBox(
             height: 66,
             child: Row(

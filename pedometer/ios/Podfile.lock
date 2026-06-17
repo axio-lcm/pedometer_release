@@ -22,6 +22,8 @@ PODS:
     - Flutter
   - package_info_plus (0.4.5):
     - Flutter
+  - share_plus (0.0.1):
+    - Flutter
 
 DEPENDENCIES:
   - device_info_plus (from `.symlinks/plugins/device_info_plus/ios`)
@@ -31,6 +33,7 @@ DEPENDENCIES:
   - google_maps_flutter_ios (from `.symlinks/plugins/google_maps_flutter_ios/ios`)
   - health (from `.symlinks/plugins/health/ios`)
   - package_info_plus (from `.symlinks/plugins/package_info_plus/ios`)
+  - share_plus (from `.symlinks/plugins/share_plus/ios`)
 
 SPEC REPOS:
   trunk:
@@ -52,6 +55,8 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/health/ios"
   package_info_plus:
     :path: ".symlinks/plugins/package_info_plus/ios"
+  share_plus:
+    :path: ".symlinks/plugins/share_plus/ios"
 
 SPEC CHECKSUMS:
   device_info_plus: 21fcca2080fbcd348be798aa36c3e5ed849eefbe
@@ -63,6 +68,7 @@ SPEC CHECKSUMS:
   GoogleMaps: 8939898920281c649150e0af74aa291c60f2e77d
   health: 4decf5d74e8f54c58a8c07a385fc72f629a831d9
   package_info_plus: af8e2ca6888548050f16fa2f1938db7b5a5df499
+  share_plus: 50da8cb520a8f0f65671c6c6a99b3617ed10a58a
 
 PODFILE CHECKSUM: d71a8f9d234bf288cee64b372c30c196c8075224
 

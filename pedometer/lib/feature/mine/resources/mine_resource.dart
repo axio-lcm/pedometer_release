@@ -25,6 +25,10 @@ class MineResource {
       _string('theme_setting', MineText.themeSetting);
   static String get language => _string('language', MineText.language);
   static String get shareApp => _string('share_app', MineText.shareApp);
+  static String get shareAppContent =>
+      _string('share_app_content', MineText.shareAppContent);
+  static String get shareAppSubject =>
+      _string('share_app_subject', MineText.shareAppSubject);
   static String get rateUs => _string('rate_us', MineText.rateUs);
   static String get userAgreement =>
       _string('user_agreement', MineText.userAgreement);
@@ -53,6 +57,9 @@ class MineText {
   static const themeSetting = '主题设置';
   static const language = '语言';
   static const shareApp = '分享应用';
+  static const shareAppSubject = '推荐一款好用的计步运动 App';  //这个是应用分享的宣传语
+  static const shareAppContent =
+      '我正在用这款计步运动 App 记录每天的步数和锻炼，一起来打卡运动吧！';
   static const rateUs = '给我们评分';
   static const userAgreement = '用户协议';
   static const privacyPolicy = '隐私政策';

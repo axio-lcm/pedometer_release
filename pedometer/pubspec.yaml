@@ -54,6 +54,8 @@ dependencies:
   flutter_compass: ^0.8.1
   # 本地健康数据同步：iOS Apple Health / Android Health Connect
   health: ^13.3.1
+  # 系统分享面板（分享应用）
+  share_plus: ^11.0.0
 
 dev_dependencies:
   flutter_test:
