@@ -117,11 +117,6 @@ class MinePageData {
       MineEntry(
         icon: Icons.info_outline_rounded,
         color: _cyan,
-        title: MineText.aboutUs,
-      ),
-      MineEntry(
-        icon: Icons.info_outline_rounded,
-        color: _cyan,
         title: MineText.version,
         trailingText: '1.0.0',
       ),
