@@ -125,6 +125,19 @@ class WorkoutPageData {
     required this.achievements,
   });
 
+  WorkoutPageData copyWith({
+    List<GoalMetric>? goalMetrics,
+    List<Achievement>? achievements,
+  }) {
+    return WorkoutPageData(
+      heroTitle: heroTitle,
+      heroSubtitle: heroSubtitle,
+      workoutTypes: workoutTypes,
+      goalMetrics: goalMetrics ?? this.goalMetrics,
+      achievements: achievements ?? this.achievements,
+    );
+  }
+
   // 颜色使用与 AppColors fallback 一致的字面量，保证可 const 化（对齐 sync_data_detail_model 写法）。
   static const _green = Color(0xFF24F04E);
   static const _cyan = Color(0xFF0CD9FF);
@@ -159,21 +172,21 @@ class WorkoutPageData {
     goalMetrics: [
       GoalMetric(
         title: WorkoutText.goalKm,
-        value: '8.00 / 8.00',
+        value: '0.00 / 8.00',
         unit: WorkoutText.distanceUnit,
         icon: Icons.adjust_rounded,
         color: _green,
       ),
       GoalMetric(
         title: WorkoutText.goalDuration,
-        value: '60 / 60',
+        value: '0 / 60',
         unit: WorkoutText.durationUnit,
         icon: Icons.timer_outlined,
         color: _cyan,
       ),
       GoalMetric(
         title: WorkoutText.goalCalorie,
-        value: '500 / 500',
+        value: '0 / 500',
         unit: 'kcal',
         icon: Icons.local_fire_department_rounded,
         color: _orange,

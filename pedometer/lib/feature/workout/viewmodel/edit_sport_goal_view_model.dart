@@ -1,6 +1,7 @@
 import 'package:get/get.dart';
 import 'package:pedometer/common/mvvm/ibase_view_model.dart';
 import 'package:pedometer/feature/workout/resources/workout_resource.dart';
+import 'package:pedometer/feature/workout/viewmodel/workout_view_model.dart';
 
 /// 编辑运动目标页 view model：距离 / 时长 / 消耗调节与自由训练开关。
 class EditSportGoalViewModel extends GetxController implements IBaseViewModel {
@@ -41,7 +42,16 @@ class EditSportGoalViewModel extends GetxController implements IBaseViewModel {
   }
 
   @override
-  void init() {}
+  void init() {
+    // 进入编辑页时，回填运动栏当前的目标设置。
+    if (Get.isRegistered<WorkoutViewModel>()) {
+      final workout = Get.find<WorkoutViewModel>();
+      distance.value = workout.goalDistance;
+      duration.value = workout.goalDuration;
+      calories.value = workout.goalCalories;
+      freeTraining.value = workout.goalFreeTraining;
+    }
+  }
 
   @override
   void unInit() {}
@@ -83,9 +93,19 @@ class EditSportGoalViewModel extends GetxController implements IBaseViewModel {
     );
   }
 
-  /// 保存目标。
-  // TODO: 接入真实目标持久化逻辑。
-  SportGoalResult save() => buildResult();
+  /// 保存目标，并同步到运动栏的「目标与成就」模块展示。
+  SportGoalResult save() {
+    final result = buildResult();
+    if (Get.isRegistered<WorkoutViewModel>()) {
+      Get.find<WorkoutViewModel>().applyGoal(
+        distance: result.distance,
+        duration: result.duration,
+        calories: result.calories,
+        freeTraining: result.freeTraining,
+      );
+    }
+    return result;
+  }
 }
 
 /// 保存目标返回结果。

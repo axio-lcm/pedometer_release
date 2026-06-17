@@ -146,6 +146,7 @@ class WorkoutText {
   static const goalCalorie = '消耗';
   static const freeTraining = '自由训练';
   static const noGoal = '不设定目标';
+  static const freeTrainingOn = '已开启';
   static const beginnerRunner = '初级跑者';
   static const persistent = '坚持不懈';
   static const hundredKm = '百公里';
