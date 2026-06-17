@@ -82,54 +82,14 @@ class _WorkoutBackground extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // 与首页 / 我的页背景保持一致，统一顶部安全区底色。
     return DecoratedBox(
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [
-            AppColors.bgPrimary,
-            AppColors.bgRadialBlue,
-            AppColors.bgPrimary,
-          ],
+        gradient: RadialGradient(
+          center: const Alignment(0, -0.6),
+          radius: 1.2,
+          colors: [AppColors.bgRadialBlue, AppColors.bgPrimary],
         ),
-      ),
-      child: Stack(
-        children: [
-          Positioned(
-            top: 120,
-            left: -80,
-            right: -80,
-            height: 320,
-            child: DecoratedBox(
-              decoration: BoxDecoration(
-                gradient: RadialGradient(
-                  colors: [
-                    AppColors.bgRadialGreen.withValues(alpha: 0.5),
-                    AppColors.bgRadialBlue.withValues(alpha: 0.14),
-                    Colors.transparent,
-                  ],
-                ),
-              ),
-            ),
-          ),
-          Positioned(
-            bottom: 100,
-            left: -90,
-            right: -90,
-            height: 340,
-            child: DecoratedBox(
-              decoration: BoxDecoration(
-                gradient: RadialGradient(
-                  colors: [
-                    AppColors.brandGreenDark.withValues(alpha: 0.18),
-                    Colors.transparent,
-                  ],
-                ),
-              ),
-            ),
-          ),
-        ],
       ),
     );
   }

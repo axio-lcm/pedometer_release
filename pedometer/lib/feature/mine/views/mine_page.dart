@@ -30,7 +30,7 @@ class MinePage extends GetView<MineViewModel> {
               // 底部留白避让 MainPage 的玻璃胶囊导航栏。
               padding: EdgeInsets.fromLTRB(
                 AppSpacing.lg,
-                AppSpacing.xxxl,
+                AppSpacing.md,
                 AppSpacing.lg,
                 120,
               ),
