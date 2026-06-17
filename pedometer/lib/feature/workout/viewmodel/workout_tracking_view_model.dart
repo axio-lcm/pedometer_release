@@ -10,6 +10,7 @@ import 'package:pedometer/feature/workout/model/workout_calorie_policy.dart';
 import 'package:pedometer/feature/workout/model/workout_model.dart';
 import 'package:pedometer/feature/workout/model/workout_pace_policy.dart';
 import 'package:pedometer/feature/workout/resources/workout_resource.dart';
+import 'package:pedometer/feature/workout/viewmodel/workout_view_model.dart';
 
 /// 户外运动会话 view model：持有实时距离 / 时长 / 卡路里 / 配速 / 轨迹 / 方位，
 /// 作为运动追踪页与地图的唯一数据源。
@@ -28,7 +29,8 @@ class WorkoutTrackingViewModel extends GetxController
   final WorkoutPacePolicy _pacePolicy;
 
   /// 页面静态模板（标题 / 目标 / GPS / 音乐等），实时值由状态合并。
-  final WorkoutTrackingData template;
+  /// 目标里程在 [init] 中与运动栏的目标设置同步。
+  WorkoutTrackingData template;
 
   /// 小于该距离（米）的相邻定位不累计运动距离；可视轨迹另由
   /// [minRoutePointMeters] 控制。
@@ -237,6 +239,16 @@ class WorkoutTrackingViewModel extends GetxController
     } else if (args is String && args.trim().isNotEmpty) {
       workoutTitle.value = args;
     }
+    _syncGoalFromWorkout();
+  }
+
+  /// 同步运动栏「目标与成就」中的目标里程，使地图上的「目标 X 公里」与之一致。
+  void _syncGoalFromWorkout() {
+    if (!Get.isRegistered<WorkoutViewModel>()) return;
+    final workout = Get.find<WorkoutViewModel>();
+    template = template.copyWith(
+      targetKm: workout.goalDistance.toStringAsFixed(2),
+    );
   }
 
   @override

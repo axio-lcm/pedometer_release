@@ -15,6 +15,7 @@ import 'package:pedometer/feature/workout/model/map_coordinate_converter.dart';
 import 'package:pedometer/feature/workout/model/workout_location_marker_style.dart';
 import 'package:pedometer/feature/workout/model/workout_location_startup_policy.dart';
 import 'package:pedometer/feature/workout/model/workout_map_render_policy.dart';
+import 'package:pedometer/feature/workout/model/workout_map_style.dart';
 import 'package:pedometer/feature/workout/model/workout_map_zoom_policy.dart';
 import 'package:pedometer/feature/workout/model/workout_model.dart';
 import 'package:pedometer/feature/workout/model/workout_route_polyline_policy.dart';
@@ -200,6 +201,7 @@ class _WorkoutMapViewState extends State<WorkoutMapView> {
           child: Obx(() {
             final routePoints = _controller.pathPoints.toList(growable: false);
             return GoogleMap(
+              style: WorkoutMapStyle.night,
               initialCameraPosition: _currentPosition == null
                   ? _defaultCameraPosition
                   : CameraPosition(
@@ -671,28 +673,15 @@ class WorkoutDistanceOverlay extends StatelessWidget {
             ),
             const SizedBox(width: 8),
             Flexible(
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Flexible(
-                    child: Text(
-                      WorkoutResource.trackingTarget(data.targetKm),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        color: AppColors.textPrimary,
-                        fontSize: compactFontSize,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 4),
-                  Icon(
-                    Icons.edit_outlined,
-                    color: AppColors.brandLime,
-                    size: 15,
-                  ),
-                ],
+              child: Text(
+                WorkoutResource.trackingTarget(data.targetKm),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  color: AppColors.textPrimary,
+                  fontSize: compactFontSize,
+                  fontWeight: FontWeight.w500,
+                ),
               ),
             ),
           ],
@@ -734,24 +723,16 @@ class WorkoutDistanceOverlay extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 8),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Flexible(
-                child: Text(
-                  WorkoutResource.trackingTarget(data.targetKm),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    color: AppColors.textPrimary,
-                    fontSize: 15,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ),
-              const SizedBox(width: 6),
-              Icon(Icons.edit_outlined, color: AppColors.brandLime, size: 16),
-            ],
+          Text(
+            WorkoutResource.trackingTarget(data.targetKm),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: AppColors.textPrimary,
+              fontSize: 15,
+              fontWeight: FontWeight.w500,
+            ),
           ),
         ],
       ),
