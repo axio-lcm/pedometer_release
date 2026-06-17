@@ -180,6 +180,18 @@ class SportDetailFixtures {
     return '${monday.month}月${monday.day}日 - ${sunday.month}月${sunday.day}日';
   }
 
+  /// 指定月偏移的当月第一天（0 = 本月，-1 = 上月，依此类推）。
+  static DateTime monthAnchor(int offset) {
+    final now = DateTime.now();
+    return DateTime(now.year, now.month + offset, 1);
+  }
+
+  /// 指定月偏移的年月标题，例如「2026年6月」，随系统日期实时变化。
+  static String monthTitle({int offset = 0}) {
+    final anchor = monthAnchor(offset);
+    return '${anchor.year}年${anchor.month}月';
+  }
+
   static SportPeriodData byPeriod(SportPeriod period) {
     return switch (period) {
       SportPeriod.day => day,
@@ -342,9 +354,9 @@ class SportDetailFixtures {
     ),
   );
 
-  static final SportPeriodData month = SportPeriodData(
+  static SportPeriodData get month => SportPeriodData(
     period: SportPeriod.month,
-    dateTitle: '2026年6月',
+    dateTitle: monthTitle(),
     progress: const SportProgressData(
       title: '本月步数',
       value: 162500,

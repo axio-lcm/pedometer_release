@@ -1017,14 +1017,45 @@ class SportMiniAnalysisCard extends StatelessWidget {
 }
 
 /// 月度热力圆形日历。
-class MonthlyHeatCalendarCard extends StatelessWidget {
+class MonthlyHeatCalendarCard extends StatefulWidget {
   final List<MonthlyDayData> days;
 
-  const MonthlyHeatCalendarCard({super.key, required this.days});
+  /// 滑动切换月份后回调，offset：0 = 本月，-1 = 上月，依此类推。
+  final void Function(int offset)? onMonthChanged;
+
+  const MonthlyHeatCalendarCard({
+    super.key,
+    required this.days,
+    this.onMonthChanged,
+  });
+
+  @override
+  State<MonthlyHeatCalendarCard> createState() =>
+      _MonthlyHeatCalendarCardState();
+}
+
+class _MonthlyHeatCalendarCardState extends State<MonthlyHeatCalendarCard> {
+  // 用一个较大的基准页代表「本月」：左滑（更早）页码减小，
+  // 而本月即最大页（itemCount 上限），故无法滑向未来月份。
+  static const int _basePage = 100000;
+  late final PageController _controller = PageController(
+    initialPage: _basePage,
+  );
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  DateTime _monthForOffset(int offset) {
+    final now = DateTime.now();
+    return DateTime(now.year, now.month + offset, 1);
+  }
 
   @override
   Widget build(BuildContext context) {
-    final byDay = {for (final day in days) day.day: day};
+    final byDay = {for (final day in widget.days) day.day: day};
     return GlassCard(
       radius: AppRadius.xl,
       padding: EdgeInsets.all(AppSpacing.lg),
@@ -1061,20 +1092,32 @@ class MonthlyHeatCalendarCard extends StatelessWidget {
             ],
           ),
           SizedBox(height: AppSpacing.sm),
-          GridView.builder(
-            itemCount: 35,
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 7,
-              mainAxisSpacing: AppSpacing.sm,
-              crossAxisSpacing: AppSpacing.sm,
-            ),
-            itemBuilder: (context, index) {
-              final day = index + 1;
-              if (day > 30) return const SizedBox.shrink();
-              final step = byDay[day]?.steps ?? 0;
-              return _HeatDayCircle(day: day, steps: step);
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final spacing = AppSpacing.sm;
+              final cell = (constraints.maxWidth - spacing * 6) / 7;
+              // 固定 6 行，保证各月等高，PageView 翻页时高度不跳动。
+              final gridHeight = cell * 6 + spacing * 5;
+              return SizedBox(
+                height: gridHeight,
+                child: PageView.builder(
+                  controller: _controller,
+                  // 上限 = 本月（_basePage），不能滑向未来。
+                  itemCount: _basePage + 1,
+                  onPageChanged: (page) =>
+                      widget.onMonthChanged?.call(page - _basePage),
+                  itemBuilder: (context, page) {
+                    final monthDate = _monthForOffset(page - _basePage);
+                    return _MonthGrid(
+                      year: monthDate.year,
+                      month: monthDate.month,
+                      byDay: byDay,
+                      cellExtent: cell,
+                      spacing: spacing,
+                    );
+                  },
+                ),
+              );
             },
           ),
           SizedBox(height: AppSpacing.sm),
@@ -1116,6 +1159,50 @@ class MonthlyHeatCalendarCard extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+/// 单个月份的热力网格（固定 6 行）。
+class _MonthGrid extends StatelessWidget {
+  final int year;
+  final int month;
+  final Map<int, MonthlyDayData> byDay;
+  final double cellExtent;
+  final double spacing;
+
+  const _MonthGrid({
+    required this.year,
+    required this.month,
+    required this.byDay,
+    required this.cellExtent,
+    required this.spacing,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    // 当月 1 号是周几（1=周一…7=周日），决定前导空格数。
+    final leading = DateTime(year, month, 1).weekday - 1;
+    // 当月天数：下个月的第 0 天即本月最后一天。
+    final daysInMonth = DateTime(year, month + 1, 0).day;
+    return GridView.builder(
+      padding: EdgeInsets.zero,
+      itemCount: 42,
+      physics: const NeverScrollableScrollPhysics(),
+      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 7,
+        mainAxisSpacing: spacing,
+        crossAxisSpacing: spacing,
+        mainAxisExtent: cellExtent,
+      ),
+      itemBuilder: (context, index) {
+        final day = index - leading + 1;
+        if (index < leading || day > daysInMonth) {
+          return const SizedBox.shrink();
+        }
+        final step = byDay[day]?.steps ?? 0;
+        return _HeatDayCircle(day: day, steps: step);
+      },
     );
   }
 }

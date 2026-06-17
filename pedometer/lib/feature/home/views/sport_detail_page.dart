@@ -33,6 +33,9 @@ class _SportDetailPageState extends State<SportDetailPage> {
   /// 周视图的周偏移：0 = 本周，-1 = 上周……不可大于 0（即不能查看未来）。
   int _weekOffset = 0;
 
+  /// 月视图的月偏移：0 = 本月，-1 = 上月……不可大于 0（即不能查看未来）。
+  int _monthOffset = 0;
+
   @override
   void initState() {
     super.initState();
@@ -49,9 +52,11 @@ class _SportDetailPageState extends State<SportDetailPage> {
   Widget build(BuildContext context) {
     final data = _repository.sportPeriodData(_period);
     final isWeek = _period == SportPeriod.week;
-    final title = isWeek
-        ? SportDetailFixtures.weekTitle(offset: _weekOffset)
-        : data.dateTitle;
+    final title = switch (_period) {
+      SportPeriod.week => SportDetailFixtures.weekTitle(offset: _weekOffset),
+      SportPeriod.month => SportDetailFixtures.monthTitle(offset: _monthOffset),
+      SportPeriod.day => data.dateTitle,
+    };
     return Scaffold(
       backgroundColor: HomeResource.background,
       body: Stack(
@@ -80,6 +85,7 @@ class _SportDetailPageState extends State<SportDetailPage> {
                           })
                         : null,
                     titleNextEnabled: isWeek && _weekOffset < 0,
+                    animateTitleChanges: _period != SportPeriod.month,
                     onBack: () {
                       if (Get.key.currentState?.canPop() ?? false) {
                         Get.back<void>();
@@ -89,7 +95,11 @@ class _SportDetailPageState extends State<SportDetailPage> {
                   SizedBox(height: AppSpacing.sm),
                   SportHeroSection(data: data),
                   SizedBox(height: AppSpacing.md),
-                  _PeriodSpecificContent(data: data),
+                  _PeriodSpecificContent(
+                    data: data,
+                    onMonthChanged: (offset) =>
+                        setState(() => _monthOffset = offset),
+                  ),
                 ],
               ),
             ),
@@ -104,6 +114,7 @@ class _SportDetailPageState extends State<SportDetailPage> {
                 onChanged: (period) => setState(() {
                   _period = period;
                   _weekOffset = 0;
+                  _monthOffset = 0;
                 }),
               ),
             ),
@@ -178,15 +189,22 @@ class _SportDetailBackground extends StatelessWidget {
 
 class _PeriodSpecificContent extends StatelessWidget {
   final SportPeriodData data;
+  final void Function(int offset) onMonthChanged;
 
-  const _PeriodSpecificContent({required this.data});
+  const _PeriodSpecificContent({
+    required this.data,
+    required this.onMonthChanged,
+  });
 
   @override
   Widget build(BuildContext context) {
     return switch (data.period) {
       SportPeriod.day => _DayContent(data: data),
       SportPeriod.week => _WeekContent(data: data),
-      SportPeriod.month => _MonthContent(data: data),
+      SportPeriod.month => _MonthContent(
+        data: data,
+        onMonthChanged: onMonthChanged,
+      ),
     };
   }
 }
@@ -233,15 +251,19 @@ class _WeekContent extends StatelessWidget {
 
 class _MonthContent extends StatelessWidget {
   final SportPeriodData data;
+  final void Function(int offset) onMonthChanged;
 
-  const _MonthContent({required this.data});
+  const _MonthContent({required this.data, required this.onMonthChanged});
 
   @override
   Widget build(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        MonthlyHeatCalendarCard(days: data.monthly),
+        MonthlyHeatCalendarCard(
+          days: data.monthly,
+          onMonthChanged: onMonthChanged,
+        ),
         SizedBox(height: AppSpacing.md),
         _AnalysisRow(analyses: data.analyses),
         SizedBox(height: AppSpacing.md),

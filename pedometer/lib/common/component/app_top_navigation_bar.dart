@@ -17,6 +17,9 @@ class AppTopNavigationBar extends StatelessWidget {
   /// 右侧箭头是否可用，false 时变暗并禁用点击（如已到当前周不能再往后）。
   final bool titleNextEnabled;
 
+  /// 标题变化时是否使用淡入淡出动画。
+  final bool animateTitleChanges;
+
   const AppTopNavigationBar({
     super.key,
     required this.onBack,
@@ -26,6 +29,7 @@ class AppTopNavigationBar extends StatelessWidget {
     this.onTitlePrev,
     this.onTitleNext,
     this.titleNextEnabled = true,
+    this.animateTitleChanges = true,
   });
 
   bool get _showTitleArrows => onTitlePrev != null || onTitleNext != null;
@@ -86,16 +90,31 @@ class AppTopNavigationBar extends StatelessWidget {
   }
 
   Widget _titleText() {
-    return Text(
-      title!,
-      maxLines: 1,
-      overflow: TextOverflow.ellipsis,
-      textAlign: TextAlign.center,
-      style: TextStyle(
-        color: AppColors.textPrimary,
-        fontSize: 18,
-        fontWeight: FontWeight.w500,
-      ),
+    Widget buildText({Key? key}) {
+      return Text(
+        title!,
+        key: key,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+        textAlign: TextAlign.center,
+        style: TextStyle(
+          color: AppColors.textPrimary,
+          fontSize: 18,
+          fontWeight: FontWeight.w500,
+        ),
+      );
+    }
+
+    if (!animateTitleChanges) {
+      return buildText();
+    }
+
+    return AnimatedSwitcher(
+      duration: const Duration(milliseconds: 280),
+      transitionBuilder: (child, animation) =>
+          FadeTransition(opacity: animation, child: child),
+      // key 随标题变化，标题更新时触发淡入淡出。
+      child: buildText(key: ValueKey(title)),
     );
   }
 }
@@ -118,9 +137,7 @@ class _TitleArrow extends StatelessWidget {
         child: Icon(
           icon,
           size: 26,
-          color: AppColors.textPrimary.withValues(
-            alpha: enabled ? 1.0 : 0.3,
-          ),
+          color: AppColors.textPrimary.withValues(alpha: enabled ? 1.0 : 0.3),
         ),
       ),
     );
