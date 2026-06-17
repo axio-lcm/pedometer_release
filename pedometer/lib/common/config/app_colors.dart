@@ -17,8 +17,14 @@ class AppColors {
   static Color get gridLine => ResourceLoader.color('common', 'gridLine', fallback: const Color(0x1FFFFFFF));
   static Color get brandGreen => ResourceLoader.color('common', 'brandGreen', fallback: const Color(0xFF24F04E));
   static Color get brandGreenLight => ResourceLoader.color('common', 'brandGreenLight', fallback: const Color(0xFF6CFF3D));
+  static Color get brandGreenMid => ResourceLoader.color('common', 'brandGreenMid', fallback: const Color(0xFF00B956));
+  static Color get brandGreenShade => ResourceLoader.color('common', 'brandGreenShade', fallback: const Color(0xFF0A7739));
   static Color get brandGreenDark => ResourceLoader.color('common', 'brandGreenDark', fallback: const Color(0xFF063F22));
   static Color get brandLime => ResourceLoader.color('common', 'brandLime', fallback: const Color(0xFFB7FF24));
+  static Color get pillGreenStart => ResourceLoader.color('common', 'pillGreenStart', fallback: const Color(0xFF0C682D));
+  static Color get pillGreenEnd => ResourceLoader.color('common', 'pillGreenEnd', fallback: const Color(0xFF0E8E37));
+  static Color get surfaceCapsule => ResourceLoader.color('common', 'surfaceCapsule', fallback: const Color(0xDB030F14));
+  static Color get tabInactive => ResourceLoader.color('common', 'tabInactive', fallback: const Color(0xB3A5A5A5));
   static Color get accentOrange => ResourceLoader.color('common', 'accentOrange', fallback: const Color(0xFFFF9F12));
   static Color get accentCyan => ResourceLoader.color('common', 'accentCyan', fallback: const Color(0xFF0CD9FF));
   static Color get accentPurple => ResourceLoader.color('common', 'accentPurple', fallback: const Color(0xFF7A3DFF));

@@ -6,85 +6,16 @@ import 'package:pedometer/common/config/app_dimens.dart';
 import 'package:pedometer/feature/workout/components/edit_sport_goal_components.dart';
 import 'package:pedometer/feature/workout/components/workout_components.dart';
 import 'package:pedometer/feature/workout/resources/workout_resource.dart';
+import 'package:pedometer/feature/workout/viewmodel/edit_sport_goal_view_model.dart';
 
 /// 编辑运动目标页：由运动页「编辑」进入，调节距离 / 时长 / 消耗与自由训练开关。
-class EditSportGoalPage extends StatefulWidget {
+class EditSportGoalPage extends GetView<EditSportGoalViewModel> {
   static const String routeName = WorkoutRouteTable.pathEditGoal;
 
-  /// 保存目标回调，预留实际业务接入位置。
-  final ValueChanged<SportGoalResult>? onSaved;
-
-  const EditSportGoalPage({super.key, this.onSaved});
-
-  @override
-  State<EditSportGoalPage> createState() => _EditSportGoalPageState();
-}
-
-class _EditSportGoalPageState extends State<EditSportGoalPage> {
-  // 默认值
-  static const double _defaultDistance = 8.0;
-  static const int _defaultDuration = 60;
-  static const int _defaultCalories = 500;
-
-  // 取值范围与步长
-  static const double _distanceMin = 3.0;
-  static const double _distanceMax = 20.0;
-  static const double _distanceStep = 0.5;
-  static const int _durationMin = 10;
-  static const int _durationMax = 300;
-  static const int _durationStep = 5;
-  static const int _caloriesMin = 100;
-  static const int _caloriesMax = 2000;
-  static const int _caloriesStep = 50;
-
-  static const List<String> _suggestions = [
-    WorkoutText.suggestionDistance,
-    WorkoutText.suggestionDuration,
-    WorkoutText.suggestionCalorie,
-  ];
-
-  double _distance = _defaultDistance;
-  int _duration = _defaultDuration;
-  int _calories = _defaultCalories;
-  bool _freeTraining = false;
-
-  void _changeDistance(double delta) {
-    setState(
-      () => _distance = (_distance + delta).clamp(_distanceMin, _distanceMax),
-    );
-  }
-
-  void _changeDuration(int delta) {
-    setState(
-      () => _duration = (_duration + delta).clamp(_durationMin, _durationMax),
-    );
-  }
-
-  void _changeCalories(int delta) {
-    setState(
-      () => _calories = (_calories + delta).clamp(_caloriesMin, _caloriesMax),
-    );
-  }
-
-  void _restoreDefaults() {
-    setState(() {
-      _distance = _defaultDistance;
-      _duration = _defaultDuration;
-      _calories = _defaultCalories;
-      _freeTraining = false;
-    });
-  }
+  const EditSportGoalPage({super.key});
 
   void _save() {
-    // TODO: 接入真实目标持久化逻辑。
-    widget.onSaved?.call(
-      SportGoalResult(
-        distance: _distance,
-        duration: _duration,
-        calories: _calories,
-        freeTraining: _freeTraining,
-      ),
-    );
+    controller.save();
     _back();
   }
 
@@ -96,7 +27,6 @@ class _EditSportGoalPageState extends State<EditSportGoalPage> {
 
   @override
   Widget build(BuildContext context) {
-    final enabled = !_freeTraining;
     return Scaffold(
       backgroundColor: WorkoutResource.background,
       body: Stack(
@@ -130,48 +60,70 @@ class _EditSportGoalPageState extends State<EditSportGoalPage> {
                     ),
                   ),
                   SizedBox(height: AppSpacing.xl),
-                  GoalAdjustCard(
-                    icon: Icons.adjust_rounded,
-                    color: AppColors.brandGreen,
-                    title: WorkoutResource.targetDistance,
-                    value: _distance.toStringAsFixed(2),
-                    unit: WorkoutResource.distanceUnit,
-                    suggestion: WorkoutResource.targetDistanceSuggestion,
-                    enabled: enabled,
-                    onDecrease: () => _changeDistance(-_distanceStep),
-                    onIncrease: () => _changeDistance(_distanceStep),
+                  Obx(
+                    () => GoalAdjustCard(
+                      icon: Icons.adjust_rounded,
+                      color: AppColors.brandGreen,
+                      title: WorkoutResource.targetDistance,
+                      value: controller.distance.value.toStringAsFixed(2),
+                      unit: WorkoutResource.distanceUnit,
+                      suggestion: WorkoutResource.targetDistanceSuggestion,
+                      enabled: controller.adjustEnabled,
+                      onDecrease: () => controller.changeDistance(
+                        -EditSportGoalViewModel.distanceStep,
+                      ),
+                      onIncrease: () => controller.changeDistance(
+                        EditSportGoalViewModel.distanceStep,
+                      ),
+                    ),
                   ),
                   SizedBox(height: AppSpacing.lg),
-                  GoalAdjustCard(
-                    icon: Icons.timer_outlined,
-                    color: AppColors.accentCyan,
-                    title: WorkoutResource.targetDuration,
-                    value: '$_duration',
-                    unit: WorkoutResource.durationUnit,
-                    suggestion: WorkoutResource.targetDurationSuggestion,
-                    enabled: enabled,
-                    onDecrease: () => _changeDuration(-_durationStep),
-                    onIncrease: () => _changeDuration(_durationStep),
+                  Obx(
+                    () => GoalAdjustCard(
+                      icon: Icons.timer_outlined,
+                      color: AppColors.accentCyan,
+                      title: WorkoutResource.targetDuration,
+                      value: '${controller.duration.value}',
+                      unit: WorkoutResource.durationUnit,
+                      suggestion: WorkoutResource.targetDurationSuggestion,
+                      enabled: controller.adjustEnabled,
+                      onDecrease: () => controller.changeDuration(
+                        -EditSportGoalViewModel.durationStep,
+                      ),
+                      onIncrease: () => controller.changeDuration(
+                        EditSportGoalViewModel.durationStep,
+                      ),
+                    ),
                   ),
                   SizedBox(height: AppSpacing.lg),
-                  GoalAdjustCard(
-                    icon: Icons.local_fire_department_rounded,
-                    color: AppColors.accentOrange,
-                    title: WorkoutResource.targetCalorie,
-                    value: '$_calories',
-                    unit: 'kcal',
-                    suggestion: WorkoutResource.targetCalorieSuggestion,
-                    enabled: enabled,
-                    onDecrease: () => _changeCalories(-_caloriesStep),
-                    onIncrease: () => _changeCalories(_caloriesStep),
+                  Obx(
+                    () => GoalAdjustCard(
+                      icon: Icons.local_fire_department_rounded,
+                      color: AppColors.accentOrange,
+                      title: WorkoutResource.targetCalorie,
+                      value: '${controller.calories.value}',
+                      unit: 'kcal',
+                      suggestion: WorkoutResource.targetCalorieSuggestion,
+                      enabled: controller.adjustEnabled,
+                      onDecrease: () => controller.changeCalories(
+                        -EditSportGoalViewModel.caloriesStep,
+                      ),
+                      onIncrease: () => controller.changeCalories(
+                        EditSportGoalViewModel.caloriesStep,
+                      ),
+                    ),
                   ),
                   SizedBox(height: AppSpacing.lg),
-                  FreeTrainingCard(
-                    value: _freeTraining,
-                    onChanged: (v) => setState(() => _freeTraining = v),
+                  Obx(
+                    () => FreeTrainingCard(
+                      value: controller.freeTraining.value,
+                      onChanged: controller.setFreeTraining,
+                    ),
                   ),
                   SizedBox(height: AppSpacing.lg),
-                  const GoalSuggestionCard(suggestions: _suggestions),
+                  const GoalSuggestionCard(
+                    suggestions: EditSportGoalViewModel.suggestions,
+                  ),
                   SizedBox(height: AppSpacing.xl),
                   GradientActionButton(
                     label: WorkoutResource.saveGoal,
@@ -181,7 +133,7 @@ class _EditSportGoalPageState extends State<EditSportGoalPage> {
                   Center(
                     child: GestureDetector(
                       behavior: HitTestBehavior.opaque,
-                      onTap: _restoreDefaults,
+                      onTap: controller.restoreDefaults,
                       child: Padding(
                         padding: EdgeInsets.symmetric(vertical: AppSpacing.sm),
                         child: Text(
@@ -203,21 +155,6 @@ class _EditSportGoalPageState extends State<EditSportGoalPage> {
       ),
     );
   }
-}
-
-/// 保存目标返回结果。
-class SportGoalResult {
-  final double distance;
-  final int duration;
-  final int calories;
-  final bool freeTraining;
-
-  const SportGoalResult({
-    required this.distance,
-    required this.duration,
-    required this.calories,
-    required this.freeTraining,
-  });
 }
 
 class _EditGoalBackground extends StatelessWidget {

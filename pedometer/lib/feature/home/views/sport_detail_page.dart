@@ -4,59 +4,18 @@ import 'package:pedometer/common/component/app_top_navigation_bar.dart';
 import 'package:pedometer/common/config/app_colors.dart';
 import 'package:pedometer/common/config/app_dimens.dart';
 import 'package:pedometer/feature/home/components/sport_detail_components.dart';
-import 'package:pedometer/feature/home/model/health_repository.dart';
 import 'package:pedometer/feature/home/model/sport_detail_model.dart';
 import 'package:pedometer/feature/home/resources/home_resource.dart';
+import 'package:pedometer/feature/home/viewmodel/sport_detail_view_model.dart';
 
 /// 二级运动详情页：日 / 周 / 月三态。
-class SportDetailPage extends StatefulWidget {
+class SportDetailPage extends GetView<SportDetailViewModel> {
   static const String routeName = HomeRouteTable.pathSportDetail;
 
-  final SportPeriod initialPeriod;
-  final HealthRepository? repository;
-
-  const SportDetailPage({
-    super.key,
-    this.initialPeriod = SportPeriod.day,
-    this.repository,
-  });
-
-  @override
-  State<SportDetailPage> createState() => _SportDetailPageState();
-}
-
-class _SportDetailPageState extends State<SportDetailPage> {
-  late SportPeriod _period = widget.initialPeriod;
-  late final HealthRepository _repository =
-      widget.repository ?? HealthRepository.defaultRepository();
-
-  /// 周视图的周偏移：0 = 本周，-1 = 上周……不可大于 0（即不能查看未来）。
-  int _weekOffset = 0;
-
-  /// 月视图的月偏移：0 = 本月，-1 = 上月……不可大于 0（即不能查看未来）。
-  int _monthOffset = 0;
-
-  @override
-  void initState() {
-    super.initState();
-    HealthSyncRuntime.revision.addListener(_refreshSyncedHealth);
-  }
-
-  @override
-  void dispose() {
-    HealthSyncRuntime.revision.removeListener(_refreshSyncedHealth);
-    super.dispose();
-  }
+  const SportDetailPage({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final data = _repository.sportPeriodData(_period);
-    final isWeek = _period == SportPeriod.week;
-    final title = switch (_period) {
-      SportPeriod.week => SportDetailFixtures.weekTitle(offset: _weekOffset),
-      SportPeriod.month => SportDetailFixtures.monthTitle(offset: _monthOffset),
-      SportPeriod.day => data.dateTitle,
-    };
     return Scaffold(
       backgroundColor: HomeResource.background,
       body: Stack(
@@ -74,31 +33,32 @@ class _SportDetailPageState extends State<SportDetailPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  AppTopNavigationBar(
-                    title: title,
-                    onTitlePrev: isWeek
-                        ? () => setState(() => _weekOffset -= 1)
-                        : null,
-                    onTitleNext: isWeek
-                        ? () => setState(() {
-                            if (_weekOffset < 0) _weekOffset += 1;
-                          })
-                        : null,
-                    titleNextEnabled: isWeek && _weekOffset < 0,
-                    animateTitleChanges: _period != SportPeriod.month,
-                    onBack: () {
-                      if (Get.key.currentState?.canPop() ?? false) {
-                        Get.back<void>();
-                      }
-                    },
+                  Obx(
+                    () => AppTopNavigationBar(
+                      title: controller.title,
+                      onTitlePrev: controller.isWeek
+                          ? controller.prevWeek
+                          : null,
+                      onTitleNext: controller.isWeek
+                          ? controller.nextWeek
+                          : null,
+                      titleNextEnabled: controller.titleNextEnabled,
+                      animateTitleChanges: controller.animateTitleChanges,
+                      onBack: () {
+                        if (Get.key.currentState?.canPop() ?? false) {
+                          Get.back<void>();
+                        }
+                      },
+                    ),
                   ),
                   SizedBox(height: AppSpacing.sm),
-                  SportHeroSection(data: data),
+                  Obx(() => SportHeroSection(data: controller.data.value)),
                   SizedBox(height: AppSpacing.md),
-                  _PeriodSpecificContent(
-                    data: data,
-                    onMonthChanged: (offset) =>
-                        setState(() => _monthOffset = offset),
+                  Obx(
+                    () => _PeriodSpecificContent(
+                      data: controller.data.value,
+                      onMonthChanged: controller.changeMonth,
+                    ),
                   ),
                 ],
               ),
@@ -109,23 +69,17 @@ class _SportDetailPageState extends State<SportDetailPage> {
             right: 0,
             bottom: AppBottomTabBarMetrics.bottomOffset,
             child: Center(
-              child: SportPeriodTabBar(
-                current: _period,
-                onChanged: (period) => setState(() {
-                  _period = period;
-                  _weekOffset = 0;
-                  _monthOffset = 0;
-                }),
+              child: Obx(
+                () => SportPeriodTabBar(
+                  current: controller.period.value,
+                  onChanged: controller.changePeriod,
+                ),
               ),
             ),
           ),
         ],
       ),
     );
-  }
-
-  void _refreshSyncedHealth() {
-    if (mounted) setState(() {});
   }
 }
 

@@ -329,10 +329,10 @@ class _RingCenter extends StatelessWidget {
 
 /// 霓虹绿色圆环进度。
 class NeonRingProgress extends StatelessWidget {
-  static const List<Color> progressGradientColors = [
-    Color(0xFF00B956),
-    Color(0xFF24F04E),
-    Color(0xFF6CFF3D),
+  static List<Color> get progressGradientColors => [
+    AppColors.brandGreenMid,
+    AppColors.brandGreen,
+    AppColors.brandGreenLight,
   ];
 
   final double size;
@@ -399,7 +399,7 @@ class _NeonRingPainter extends CustomPainter {
     canvas.drawArc(rect, start, sweep * progress, false, glowPaint);
 
     final fgPaint = Paint()
-      ..shader = const LinearGradient(
+      ..shader = LinearGradient(
         begin: Alignment.bottomLeft,
         end: Alignment.topRight,
         colors: NeonRingProgress.progressGradientColors,
@@ -743,9 +743,9 @@ class WeeklyTrendCard extends StatelessWidget {
                   begin: Alignment.bottomCenter,
                   end: Alignment.topCenter,
                   colors: data[i].label == todayLabel
-                      ? const [Color(0xFF00B956), Color(0xFF6CFF3D)]
+                      ? [AppColors.brandGreenMid, AppColors.brandGreenLight]
                       : [
-                          const Color(0xFF0A7739),
+                          AppColors.brandGreenShade,
                           AppColors.brandGreen.withValues(alpha: 0.72),
                         ],
                 ),
@@ -1401,8 +1401,8 @@ class _GreenPillButton extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(AppRadius.full),
-        gradient: const LinearGradient(
-          colors: [Color(0xFF0C682D), Color(0xFF0E8E37)],
+        gradient: LinearGradient(
+          colors: [AppColors.pillGreenStart, AppColors.pillGreenEnd],
         ),
         boxShadow: [
           BoxShadow(
@@ -1445,7 +1445,7 @@ class SportPeriodTabBar extends StatelessWidget {
       padding: EdgeInsets.symmetric(horizontal: AppSpacing.sm),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(AppRadius.full),
-        color: const Color(0xDB030F14),
+        color: AppColors.surfaceCapsule,
         border: Border.all(color: AppColors.strokeCard),
         boxShadow: [
           BoxShadow(
@@ -1526,7 +1526,7 @@ class _PeriodTabButton extends StatelessWidget {
             child: Text(
               label,
               style: TextStyle(
-                color: selected ? AppColors.bgPrimary : const Color(0xB3A5A5A5),
+                color: selected ? AppColors.bgPrimary : AppColors.tabInactive,
                 fontSize: 18,
                 fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
               ),

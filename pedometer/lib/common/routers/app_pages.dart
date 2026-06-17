@@ -7,11 +7,14 @@ import 'package:pedometer/feature/home/views/sync_history_list_page.dart';
 import 'package:pedometer/feature/home/views/sync_history_detail_page.dart';
 import 'package:pedometer/feature/home/views/sport_detail_page.dart';
 import 'package:pedometer/feature/workout/resources/workout_resource.dart';
-import 'package:pedometer/feature/workout/viewmodel/workout_tracking_controller.dart';
+import 'package:pedometer/feature/workout/viewmodel/edit_sport_goal_view_model.dart';
+import 'package:pedometer/feature/workout/viewmodel/workout_tracking_view_model.dart';
+import 'package:pedometer/feature/workout/viewmodel/workout_view_model.dart';
 import 'package:pedometer/feature/workout/views/edit_sport_goal_page.dart';
 import 'package:pedometer/feature/workout/views/exercise_result_page.dart';
 import 'package:pedometer/feature/workout/views/workout_tracking_page.dart';
 import 'package:pedometer/feature/home/viewmodel/home_view_model.dart';
+import 'package:pedometer/feature/home/viewmodel/sport_detail_view_model.dart';
 import 'package:pedometer/products/phone/views/main_page.dart';
 
 /// 统一路由管理
@@ -26,11 +29,15 @@ class AppPages {
       page: () => const MainPage(),
       binding: BindingsBuilder(() {
         Get.lazyPut<HomeViewModel>(() => HomeViewModel());
+        Get.lazyPut<WorkoutViewModel>(() => WorkoutViewModel());
       }),
     ),
     GetPage(
       name: HomeRouteTable.pathSportDetail,
       page: () => const SportDetailPage(),
+      binding: BindingsBuilder(() {
+        Get.lazyPut<SportDetailViewModel>(() => SportDetailViewModel());
+      }),
     ),
     GetPage(
       name: HomeRouteTable.pathSyncDataDetail,
@@ -51,13 +58,16 @@ class AppPages {
     GetPage(
       name: WorkoutRouteTable.pathEditGoal,
       page: () => const EditSportGoalPage(),
+      binding: BindingsBuilder(() {
+        Get.lazyPut<EditSportGoalViewModel>(() => EditSportGoalViewModel());
+      }),
     ),
     GetPage(
       name: WorkoutRouteTable.pathTracking,
       page: () => const WorkoutTrackingPage(),
       binding: BindingsBuilder(() {
-        Get.lazyPut<WorkoutTrackingController>(
-          () => WorkoutTrackingController(),
+        Get.lazyPut<WorkoutTrackingViewModel>(
+          () => WorkoutTrackingViewModel(),
         );
       }),
     ),

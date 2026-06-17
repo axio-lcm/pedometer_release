@@ -22,7 +22,7 @@ import 'package:pedometer/feature/workout/model/workout_model.dart';
 import 'package:pedometer/feature/workout/model/workout_route_polyline_policy.dart';
 import 'package:pedometer/feature/workout/resources/workout_resource.dart';
 import 'package:get/get.dart';
-import 'package:pedometer/feature/workout/viewmodel/workout_tracking_controller.dart';
+import 'package:pedometer/feature/workout/viewmodel/workout_tracking_view_model.dart';
 
 /// 红框标准区域对应的地图容器：底层后续替换为真实地图，浮层保持不变。
 class WorkoutMapSection extends StatefulWidget {
@@ -36,10 +36,10 @@ class WorkoutMapSection extends StatefulWidget {
 
 class _WorkoutMapSectionState extends State<WorkoutMapSection> {
   final _mapKey = GlobalKey<_WorkoutMapViewState>();
-  late final WorkoutTrackingController _controller =
-      Get.isRegistered<WorkoutTrackingController>()
-      ? Get.find<WorkoutTrackingController>()
-      : Get.put(WorkoutTrackingController());
+  late final WorkoutTrackingViewModel _controller =
+      Get.isRegistered<WorkoutTrackingViewModel>()
+      ? Get.find<WorkoutTrackingViewModel>()
+      : Get.put(WorkoutTrackingViewModel());
 
   @override
   Widget build(BuildContext context) {
@@ -118,10 +118,10 @@ class _WorkoutMapViewState extends State<WorkoutMapView> {
   // 避免再次把粗定位整体丢弃导致卡死。
   final _stabilityFilter = LocationStabilityFilter(maxAccuracyMeters: 200);
 
-  late final WorkoutTrackingController _controller =
-      Get.isRegistered<WorkoutTrackingController>()
-      ? Get.find<WorkoutTrackingController>()
-      : Get.put(WorkoutTrackingController());
+  late final WorkoutTrackingViewModel _controller =
+      Get.isRegistered<WorkoutTrackingViewModel>()
+      ? Get.find<WorkoutTrackingViewModel>()
+      : Get.put(WorkoutTrackingViewModel());
 
   GoogleMapController? _mapController;
   StreamSubscription<Position>? _positionSubscription;

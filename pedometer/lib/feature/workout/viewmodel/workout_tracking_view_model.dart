@@ -4,17 +4,21 @@ import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:pedometer/common/config/app_colors.dart';
+import 'package:pedometer/common/mvvm/ibase_view_model.dart';
 import 'package:pedometer/feature/workout/model/workout_calorie_policy.dart';
 import 'package:pedometer/feature/workout/model/workout_model.dart';
 import 'package:pedometer/feature/workout/model/workout_pace_policy.dart';
 import 'package:pedometer/feature/workout/resources/workout_resource.dart';
 
-/// 户外运动会话控制器：持有实时距离 / 时长 / 卡路里 / 配速 / 轨迹 / 方位，
+/// 户外运动会话 view model：持有实时距离 / 时长 / 卡路里 / 配速 / 轨迹 / 方位，
 /// 作为运动追踪页与地图的唯一数据源。
-class WorkoutTrackingController extends GetxController {
-  WorkoutTrackingController({
+class WorkoutTrackingViewModel extends GetxController
+    implements IBaseViewModel {
+  WorkoutTrackingViewModel({
     WorkoutCaloriePolicy? caloriePolicy,
     WorkoutPacePolicy? pacePolicy,
+    this.template = WorkoutTrackingData.mock,
     this.minMoveMeters = 2.5,
     this.minRoutePointMeters = 1.5,
   }) : _caloriePolicy = caloriePolicy ?? const WorkoutCaloriePolicy(),
@@ -22,6 +26,9 @@ class WorkoutTrackingController extends GetxController {
 
   final WorkoutCaloriePolicy _caloriePolicy;
   final WorkoutPacePolicy _pacePolicy;
+
+  /// 页面静态模板（标题 / 目标 / GPS / 音乐等），实时值由状态合并。
+  final WorkoutTrackingData template;
 
   /// 小于该距离（米）的相邻定位不累计运动距离；可视轨迹另由
   /// [minRoutePointMeters] 控制。
@@ -216,8 +223,16 @@ class WorkoutTrackingController extends GetxController {
   }
 
   @override
-  void onClose() {
+  void init() {}
+
+  @override
+  void unInit() {
     _stopTicker();
+  }
+
+  @override
+  void onClose() {
+    unInit();
     super.onClose();
   }
 
@@ -234,6 +249,15 @@ class WorkoutTrackingController extends GetxController {
   }
 
   String get caloriesText => calories.value.round().toString();
+
+  /// 模板叠加实时值后的展示数据。
+  WorkoutTrackingData get liveData => template.copyWith(
+    status: status.value,
+    distanceKm: distanceKmText,
+    duration: durationText,
+    calories: caloriesText,
+    pace: paceText,
+  );
 
   String get paceText {
     final p = pace.value;
@@ -254,19 +278,19 @@ class WorkoutTrackingController extends GetxController {
       metrics: [
         ExerciseResultMetric(
           icon: Icons.schedule_rounded,
-          color: const Color(0xFF24F04E),
+          color: AppColors.brandGreen,
           label: WorkoutText.metricDuration,
           value: durationText,
         ),
         ExerciseResultMetric(
           icon: Icons.local_fire_department_rounded,
-          color: const Color(0xFFFF9F12),
+          color: AppColors.accentOrange,
           label: WorkoutText.metricCalorieKcal,
           value: caloriesText,
         ),
         ExerciseResultMetric(
           icon: Icons.speed_rounded,
-          color: const Color(0xFF0CD9FF),
+          color: AppColors.accentCyan,
           label: WorkoutText.metricPaceMinKm,
           value: paceText,
         ),

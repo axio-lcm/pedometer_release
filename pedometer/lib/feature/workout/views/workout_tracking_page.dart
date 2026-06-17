@@ -4,28 +4,15 @@ import 'package:pedometer/common/component/app_top_navigation_bar.dart';
 import 'package:pedometer/common/config/app_colors.dart';
 import 'package:pedometer/common/config/app_dimens.dart';
 import 'package:pedometer/feature/workout/components/workout_tracking_components.dart';
-import 'package:pedometer/feature/workout/model/workout_model.dart';
 import 'package:pedometer/feature/workout/resources/workout_resource.dart';
-import 'package:pedometer/feature/workout/viewmodel/workout_tracking_controller.dart';
+import 'package:pedometer/feature/workout/viewmodel/workout_tracking_view_model.dart';
 import 'package:pedometer/feature/workout/views/exercise_result_page.dart';
 
 /// 点击「开始运动」后的运动记录中页面。
-class WorkoutTrackingPage extends StatefulWidget {
+class WorkoutTrackingPage extends GetView<WorkoutTrackingViewModel> {
   static const String routeName = WorkoutRouteTable.pathTracking;
 
-  final WorkoutTrackingData data;
-
-  const WorkoutTrackingPage({super.key, this.data = WorkoutTrackingData.mock});
-
-  @override
-  State<WorkoutTrackingPage> createState() => _WorkoutTrackingPageState();
-}
-
-class _WorkoutTrackingPageState extends State<WorkoutTrackingPage> {
-  late final WorkoutTrackingController controller =
-      Get.isRegistered<WorkoutTrackingController>()
-      ? Get.find<WorkoutTrackingController>()
-      : Get.put(WorkoutTrackingController());
+  const WorkoutTrackingPage({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -41,7 +28,7 @@ class _WorkoutTrackingPageState extends State<WorkoutTrackingPage> {
                 Padding(
                   padding: EdgeInsets.symmetric(horizontal: AppSpacing.lg),
                   child: AppTopNavigationBar(
-                    title: widget.data.workoutTitle,
+                    title: controller.template.workoutTitle,
                     onBack: _back,
                   ),
                 ),
@@ -50,14 +37,14 @@ class _WorkoutTrackingPageState extends State<WorkoutTrackingPage> {
                     padding: EdgeInsets.only(bottom: AppSpacing.xl),
                     child: Column(
                       children: [
-                        WorkoutMapSection(data: widget.data),
+                        WorkoutMapSection(data: controller.template),
                         const SizedBox(height: 4),
                         Padding(
                           padding: EdgeInsets.symmetric(
                             horizontal: AppSpacing.lg,
                           ),
                           child: Obx(() {
-                            final data = _liveData();
+                            final data = controller.liveData;
                             return Column(
                               children: [
                                 WorkoutMetricPanel(data: data),
@@ -92,16 +79,6 @@ class _WorkoutTrackingPageState extends State<WorkoutTrackingPage> {
       Get.back();
       return;
     }
-  }
-
-  WorkoutTrackingData _liveData() {
-    return widget.data.copyWith(
-      status: controller.status.value,
-      distanceKm: controller.distanceKmText,
-      duration: controller.durationText,
-      calories: controller.caloriesText,
-      pace: controller.paceText,
-    );
   }
 
   // 结束运动：聚合真实数据并跳结果页（替换记录中页，结果页「完成」回到运动主页）。
