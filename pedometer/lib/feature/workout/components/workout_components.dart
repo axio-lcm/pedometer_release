@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:pedometer/common/component/glass_card.dart';
 import 'package:pedometer/common/config/app_colors.dart';
+import 'package:pedometer/common/config/app_resource.dart';
 import 'package:pedometer/common/config/app_dimens.dart';
 import 'package:pedometer/feature/workout/model/workout_model.dart';
 import 'package:pedometer/feature/workout/resources/workout_resource.dart';
@@ -234,69 +235,121 @@ class WorkoutHeroCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GlassCard(
-      radius: AppRadius.xl,
-      padding: EdgeInsets.all(AppSpacing.xxl),
-      child: SizedBox(
-        height: 230,
-        child: Stack(
-          children: [
-            // 复杂插画（夜间森林跑道 / 3D 跑步人物）先占位，后续替换素材。
-            Positioned(
-              right: 0,
-              bottom: 0,
-              child: WorkoutHeroIllustrationPlaceholder(),
-            ),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    color: AppColors.textPrimary,
-                    fontSize: 24,
-                    fontWeight: FontWeight.w800,
-                    height: 1.2,
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(AppRadius.xl),
+        border: Border.all(color: AppColors.strokeCard, width: 1),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.35),
+            blurRadius: 24,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(AppRadius.xl),
+        child: SizedBox(
+          height: 230,
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              // 背景板：bkimage.png 铺满整张卡片，缺失时回退占位。
+              Image.asset(
+                AppImage.workoutHeroBackground,
+                fit: BoxFit.cover,
+                errorBuilder: (_, _, _) =>
+                    const _WorkoutHeroFallbackBackground(),
+              ),
+              // 左侧暗角，保证文本在任意背景上的可读性。
+              DecoratedBox(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.centerLeft,
+                    end: Alignment.centerRight,
+                    colors: [
+                      Colors.black.withValues(alpha: 0.45),
+                      Colors.black.withValues(alpha: 0.0),
+                    ],
                   ),
                 ),
-                SizedBox(height: AppSpacing.md),
-                Row(
+              ),
+              Padding(
+                padding: EdgeInsets.all(AppSpacing.xxl),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Icon(
-                      Icons.location_on_outlined,
-                      color: AppColors.brandGreen,
-                      size: 18,
+                    Text(
+                      title,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        color: AppColors.textPrimary,
+                        fontSize: 24,
+                        fontWeight: FontWeight.w800,
+                        height: 1.2,
+                      ),
                     ),
-                    SizedBox(width: AppSpacing.xs),
-                    Flexible(
-                      child: Text(
-                        subtitle,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          color: AppColors.textSecondary,
-                          fontSize: 15,
+                    SizedBox(height: AppSpacing.md),
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.location_on_outlined,
+                          color: AppColors.brandGreen,
+                          size: 18,
                         ),
+                        SizedBox(width: AppSpacing.xs),
+                        Flexible(
+                          child: Text(
+                            subtitle,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              color: AppColors.textSecondary,
+                              fontSize: 15,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const Spacer(),
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: GradientActionButton(
+                        label: actionLabel ?? WorkoutResource.startWorkout,
+                        icon: Icons.play_arrow_rounded,
+                        glow: false,
+                        onTap: onStart,
                       ),
                     ),
                   ],
                 ),
-                const Spacer(),
-                Align(
-                  alignment: Alignment.centerLeft,
-                  child: GradientActionButton(
-                    label: actionLabel ?? WorkoutResource.startWorkout,
-                    icon: Icons.play_arrow_rounded,
-                    glow: false,
-                    onTap: onStart,
-                  ),
-                ),
-              ],
-            ),
-          ],
+              ),
+            ],
+          ),
         ),
+      ),
+    );
+  }
+}
+
+/// Hero 卡背景板缺失时的回退：玻璃渐变 + 角落跑步插画占位。
+class _WorkoutHeroFallbackBackground extends StatelessWidget {
+  const _WorkoutHeroFallbackBackground();
+
+  @override
+  Widget build(BuildContext context) {
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [AppColors.surfaceCardTop, AppColors.surfaceCardBottom],
+        ),
+      ),
+      child: const Align(
+        alignment: Alignment.bottomRight,
+        child: WorkoutHeroIllustrationPlaceholder(),
       ),
     );
   }
