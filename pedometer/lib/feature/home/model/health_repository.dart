@@ -133,15 +133,7 @@ class MockHealthDataSource implements HealthDataSource {
           unit: 'min',
         ),
       ],
-      trend: const [
-        TrendPoint(label: 'WED', value: 4500),
-        TrendPoint(label: 'THU', value: 6600),
-        TrendPoint(label: 'FRI', value: 4200),
-        TrendPoint(label: 'SAT', value: 8000),
-        TrendPoint(label: 'SUN', value: 6500),
-        TrendPoint(label: 'MON', value: 4100),
-        TrendPoint(label: 'TUE', value: 7200, highlight: true),
-      ],
+      trend: _mockHomeTrend(),
       analyses: [
         AnalysisData(
           title: '卡路里分析',
@@ -401,14 +393,7 @@ class SyncedHealthDataSource implements HealthDataSource {
           unit: 'min',
         ),
       ],
-      trend: [
-        for (var i = 0; i < recent.length; i++)
-          TrendPoint(
-            label: _weekdayLabel(recent[i].date),
-            value: recent[i].steps.toDouble(),
-            highlight: i == recent.length - 1,
-          ),
-      ],
+      trend: _homeTrendEndingToday(_sorted),
       analyses: [
         AnalysisData(
           title: '卡路里分析',
@@ -675,6 +660,39 @@ String _sourceTitle(HealthSyncSource source) {
     HealthSyncSource.appleHealth => 'Apple Health',
     HealthSyncSource.healthConnect => 'Health Connect',
   };
+}
+
+List<TrendPoint> _mockHomeTrend() {
+  const values = [4500.0, 6600.0, 4200.0, 8000.0, 6500.0, 4100.0, 7200.0];
+  final today = _dateOnly(DateTime.now());
+  return [
+    for (var i = 0; i < values.length; i++)
+      TrendPoint(
+        label: _weekdayLabel(
+          today.subtract(Duration(days: values.length - 1 - i)),
+        ),
+        value: values[i],
+        highlight: i == values.length - 1,
+      ),
+  ];
+}
+
+List<TrendPoint> _homeTrendEndingToday(List<HealthDailySummary> summaries) {
+  final byDate = {
+    for (final summary in summaries) _dateOnly(summary.date): summary.steps,
+  };
+  final today = _dateOnly(DateTime.now());
+  return [
+    for (var i = 0; i < 7; i++)
+      () {
+        final date = today.subtract(Duration(days: 6 - i));
+        return TrendPoint(
+          label: _weekdayLabel(date),
+          value: (byDate[date] ?? 0).toDouble(),
+          highlight: i == 6,
+        );
+      }(),
+  ];
 }
 
 String _formatDecimal(double value) {
