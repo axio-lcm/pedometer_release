@@ -7,9 +7,10 @@ import 'package:pedometer/feature/home/components/sync_data_detail_components.da
 import 'package:pedometer/feature/home/components/sync_history_detail_components.dart';
 import 'package:pedometer/feature/home/model/sync_data_detail_model.dart';
 import 'package:pedometer/feature/home/resources/home_resource.dart';
+import 'package:pedometer/feature/home/viewmodel/sync_history_detail_view_model.dart';
 
 /// 单条同步历史详情页。
-class SyncHistoryDetailPage extends StatelessWidget {
+class SyncHistoryDetailPage extends GetView<SyncHistoryDetailViewModel> {
   static const String routeName = HomeRouteTable.pathSyncHistoryDetail;
 
   final SyncHistoryDetailData data;
@@ -21,6 +22,8 @@ class SyncHistoryDetailPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    controller.useData(data);
+
     return Scaffold(
       backgroundColor: HomeResource.background,
       body: Stack(
@@ -35,36 +38,38 @@ class SyncHistoryDetailPage extends StatelessWidget {
                 AppSpacing.lg,
                 AppSpacing.xxl,
               ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  AppTopNavigationBar(
-                    title: '同步历史详情',
-                    onBack: () {
-                      if (Get.key.currentState?.canPop() ?? false) {
-                        Get.back<void>();
-                      }
-                    },
-                  ),
-                  SyncHistoryStatusHero(data: data),
-                  CurrentSyncDataCard(items: data.syncedItems),
-                  SizedBox(height: AppSpacing.lg),
-                  SourceAndMethodCard(
-                    sources: data.sources,
-                    methodItems: data.methodItems,
-                  ),
-                  SizedBox(height: AppSpacing.lg),
-                  SyncInfoCard(items: data.infoItems),
-                  SizedBox(height: AppSpacing.xl),
-                  DataSecurityFooter(text: data.safetyText),
-                  SizedBox(height: AppSpacing.xxxl),
-                ],
-              ),
+              child: Obx(() {
+                final data = controller.data.value;
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    AppTopNavigationBar(title: '同步历史详情', onBack: _back),
+                    SyncHistoryStatusHero(data: data),
+                    CurrentSyncDataCard(items: data.syncedItems),
+                    SizedBox(height: AppSpacing.lg),
+                    SourceAndMethodCard(
+                      sources: data.sources,
+                      methodItems: data.methodItems,
+                    ),
+                    SizedBox(height: AppSpacing.lg),
+                    SyncInfoCard(items: data.infoItems),
+                    SizedBox(height: AppSpacing.xl),
+                    DataSecurityFooter(text: data.safetyText),
+                    SizedBox(height: AppSpacing.xxxl),
+                  ],
+                );
+              }),
             ),
           ),
         ],
       ),
     );
+  }
+
+  void _back() {
+    if (Get.key.currentState?.canPop() ?? false) {
+      Get.back<void>();
+    }
   }
 }
 

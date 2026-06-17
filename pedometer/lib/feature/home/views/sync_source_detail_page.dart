@@ -1,20 +1,16 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:pedometer/common/component/app_top_navigation_bar.dart';
 import 'package:pedometer/common/component/glass_card.dart';
 import 'package:pedometer/common/config/app_colors.dart';
 import 'package:pedometer/common/config/app_dimens.dart';
 import 'package:pedometer/feature/home/components/sync_data_detail_components.dart';
-import 'package:pedometer/feature/home/model/health_repository.dart';
-import 'package:pedometer/feature/home/model/health_sync_models.dart';
-import 'package:pedometer/feature/home/model/health_sync_source_policy.dart';
 import 'package:pedometer/feature/home/model/sync_data_detail_model.dart';
 import 'package:pedometer/feature/home/resources/home_resource.dart';
+import 'package:pedometer/feature/home/viewmodel/sync_source_detail_view_model.dart';
 
 /// 单个健康数据来源的连接与同步设置页。
-class SyncSourceDetailPage extends StatefulWidget {
+class SyncSourceDetailPage extends GetView<SyncSourceDetailViewModel> {
   static const String routeName = HomeRouteTable.pathSyncSourceDetail;
 
   final SyncDataSource? source;
@@ -22,96 +18,12 @@ class SyncSourceDetailPage extends StatefulWidget {
   const SyncSourceDetailPage({super.key, this.source});
 
   @override
-  State<SyncSourceDetailPage> createState() => _SyncSourceDetailPageState();
-}
-
-class _SyncSourceDetailPageState extends State<SyncSourceDetailPage> {
-  static const _permissionTypes = [
-    HealthSyncDataType.steps,
-    HealthSyncDataType.distance,
-    HealthSyncDataType.calories,
-    HealthSyncDataType.activeMinutes,
-  ];
-
-  late final SyncSourceDetailData data;
-  late int _selectedModeIndex;
-  late List<bool> _manualSelections;
-  bool _syncing = false;
-  String? _syncMessage;
-  bool _syncSucceeded = false;
-  String? _permissionStatus;
-
-  bool get _isManualSyncSelected =>
-      data.modeOptions[_selectedModeIndex].title == '手动同步';
-
-  List<ManualSyncSelectionItem> get _manualItems {
-    return [
-      for (var i = 0; i < data.manualItems.length; i++)
-        ManualSyncSelectionItem(
-          title: data.manualItems[i].title,
-          selected: _manualSelections[i],
-        ),
-    ];
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    data = SyncSourceDetailData.forSource(_resolveSource());
-    final selectedIndex = data.modeOptions.indexWhere(
-      (option) => option.selected,
-    );
-    _selectedModeIndex = selectedIndex == -1 ? 0 : selectedIndex;
-    _manualSelections = [for (final item in data.manualItems) item.selected];
-    // 健康权限在进入来源（Apple Health）详情页时申请，并按平台判断来源。
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _requestPermissions();
-    });
-  }
-
-  Future<void> _requestPermissions() async {
-    final source = HealthSyncSourcePolicy.sourceForTitle(data.source.title);
-    if (source == null) return;
-
-    if (!HealthSyncSourcePolicy.isSupported(source, defaultTargetPlatform)) {
-      _setPermissionStatus('当前平台不支持 ${data.source.title}');
-      return;
-    }
-
-    _setPermissionStatus('正在请求 ${data.source.title} 权限…');
-    final service = HealthPluginSyncService();
-    try {
-      final available = await service.isAvailable(source: source);
-      if (!mounted) return;
-      if (!available) {
-        _setPermissionStatus('${data.source.title} 不可用');
-        return;
-      }
-
-      final granted = await service.requestAuthorization(
-        source: source,
-        types: _permissionTypes,
-      );
-      if (!mounted) return;
-      _setPermissionStatus(
-        granted ? '已授权 ${data.source.title} 健康数据' : '${data.source.title} 未授权',
-      );
-    } catch (error) {
-      if (!mounted) return;
-      final status = error is MissingPluginException
-          ? '${data.source.title} 不可用'
-          : '${data.source.title} 授权失败';
-      _setPermissionStatus(status);
-    }
-  }
-
-  void _setPermissionStatus(String status) {
-    if (!mounted) return;
-    setState(() => _permissionStatus = status);
-  }
-
-  @override
   Widget build(BuildContext context) {
+    final source = this.source;
+    if (source != null) {
+      controller.useSource(source);
+    }
+
     return Scaffold(
       backgroundColor: HomeResource.background,
       body: Stack(
@@ -126,51 +38,54 @@ class _SyncSourceDetailPageState extends State<SyncSourceDetailPage> {
                 AppSpacing.lg,
                 AppSpacing.xxl,
               ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  AppTopNavigationBar(
-                    title: data.source.title,
-                    onBack: () {
-                      if (Get.key.currentState?.canPop() ?? false) {
-                        Get.back<void>();
-                      }
-                    },
-                  ),
-                  SizedBox(height: AppSpacing.md),
-                  _SourceConnectionCard(data: data),
-                  SizedBox(height: AppSpacing.lg),
-                  _PermissionCard(
-                    items: data.permissions,
-                    statusText: _permissionStatus,
-                  ),
-                  SizedBox(height: AppSpacing.lg),
-                  _SyncModeCard(
-                    options: data.modeOptions,
-                    selectedIndex: _selectedModeIndex,
-                    onChanged: _selectSyncMode,
-                  ),
-                  if (_isManualSyncSelected) ...[
-                    SizedBox(height: AppSpacing.lg),
-                    _ManualSelectionCard(
-                      items: _manualItems,
-                      onItemTap: _toggleManualSelection,
-                    ),
-                  ],
-                  SizedBox(height: AppSpacing.xl),
-                  if (_syncMessage != null) ...[
-                    _SyncResultBanner(
-                      message: _syncMessage!,
-                      succeeded: _syncSucceeded,
+              child: Obx(() {
+                final data = controller.data.value;
+                final message = controller.syncMessage.value;
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    AppTopNavigationBar(
+                      title: data.source.title,
+                      onBack: _back,
                     ),
                     SizedBox(height: AppSpacing.md),
+                    _SourceConnectionCard(data: data),
+                    SizedBox(height: AppSpacing.lg),
+                    _PermissionCard(
+                      items: data.permissions,
+                      statusText: controller.permissionStatus.value,
+                    ),
+                    SizedBox(height: AppSpacing.lg),
+                    _SyncModeCard(
+                      options: data.modeOptions,
+                      selectedIndex: controller.selectedModeIndex.value,
+                      onChanged: controller.selectSyncMode,
+                    ),
+                    if (controller.isManualSyncSelected) ...[
+                      SizedBox(height: AppSpacing.lg),
+                      _ManualSelectionCard(
+                        items: controller.manualItems,
+                        onItemTap: controller.toggleManualSelection,
+                      ),
+                    ],
+                    SizedBox(height: AppSpacing.xl),
+                    if (message != null) ...[
+                      _SyncResultBanner(
+                        message: message,
+                        succeeded: controller.syncSucceeded.value,
+                      ),
+                      SizedBox(height: AppSpacing.md),
+                    ],
+                    _SourceActionBar(
+                      syncing: controller.syncing.value,
+                      onSave: controller.syncHealthData,
+                    ),
+                    SizedBox(height: AppSpacing.lg),
+                    DataSecurityFooter(text: data.safetyText),
+                    SizedBox(height: AppSpacing.xxl),
                   ],
-                  _SourceActionBar(syncing: _syncing, onSave: _syncHealthData),
-                  SizedBox(height: AppSpacing.lg),
-                  DataSecurityFooter(text: data.safetyText),
-                  SizedBox(height: AppSpacing.xxl),
-                ],
-              ),
+                );
+              }),
             ),
           ),
         ],
@@ -178,120 +93,10 @@ class _SyncSourceDetailPageState extends State<SyncSourceDetailPage> {
     );
   }
 
-  SyncDataSource _resolveSource() {
-    final argument = Get.arguments;
-    if (widget.source != null) return widget.source!;
-    if (argument is SyncDataSource) return argument;
-    return SyncDataDetailData.mock.sources.first;
-  }
-
-  void _selectSyncMode(int index) {
-    setState(() {
-      _selectedModeIndex = index;
-    });
-  }
-
-  void _toggleManualSelection(int index) {
-    setState(() {
-      _manualSelections[index] = !_manualSelections[index];
-    });
-  }
-
-  Future<void> _syncHealthData() async {
-    if (_syncing) return;
-    setState(() {
-      _syncing = true;
-      _syncSucceeded = false;
-      _syncMessage = '${data.source.title} 同步中';
-    });
-
-    try {
-      final source = data.source.title == 'Health Connect'
-          ? HealthSyncSource.healthConnect
-          : HealthSyncSource.appleHealth;
-      final service = HealthPluginSyncService();
-      final types = _selectedHealthTypes();
-
-      final available = await service.isAvailable(source: source);
-      if (!available) {
-        _setSyncResult('${data.source.title} 当前设备不可用', false);
-        return;
-      }
-
-      final requested = await service.requestAuthorization(
-        source: source,
-        types: types,
-      );
-      if (!requested) {
-        _setSyncResult('${data.source.title} 未完成授权', false);
-        return;
-      }
-
-      final now = DateTime.now();
-      final syncedSource = await service.sync(
-        source: source,
-        startDate: now.subtract(const Duration(days: 30)),
-        endDate: now,
-        types: types,
-      );
-      // iOS 只读授权即使用户未勾选也会回调成功；这里以是否读到有效数据为准，
-      // 避免“同步成功”却把首页数据刷成 0（模拟器无数据/未勾选读取时同理）。
-      if (!syncedSource.hasData) {
-        _setSyncResult('${data.source.title} 未读取到健康数据，请在系统“健康”中允许读取后重试', false);
-        return;
-      }
-      HealthSyncRuntime.replaceRealDataSource(syncedSource);
-      _setSyncResult('${data.source.title} 同步成功', true);
-    } catch (error) {
-      _setSyncResult(
-        '${data.source.title} 同步失败：${_syncErrorText(error)}',
-        false,
-      );
-    } finally {
-      if (mounted) setState(() => _syncing = false);
+  void _back() {
+    if (Get.key.currentState?.canPop() ?? false) {
+      Get.back<void>();
     }
-  }
-
-  void _setSyncResult(String message, bool succeeded) {
-    if (!mounted) return;
-    setState(() {
-      _syncMessage = message;
-      _syncSucceeded = succeeded;
-    });
-  }
-
-  String _syncErrorText(Object error) {
-    if (error is PlatformException) {
-      return error.message ?? error.code;
-    }
-    return error.toString();
-  }
-
-  List<HealthSyncDataType> _selectedHealthTypes() {
-    if (!_isManualSyncSelected) {
-      return const [
-        HealthSyncDataType.steps,
-        HealthSyncDataType.distance,
-        HealthSyncDataType.calories,
-        HealthSyncDataType.activeMinutes,
-      ];
-    }
-
-    final selected = <HealthSyncDataType>[];
-    for (var i = 0; i < _manualItems.length; i++) {
-      if (!_manualItems[i].selected) continue;
-      switch (_manualItems[i].title) {
-        case '步数':
-          selected.add(HealthSyncDataType.steps);
-        case '距离':
-          selected.add(HealthSyncDataType.distance);
-        case '卡路里':
-          selected.add(HealthSyncDataType.calories);
-        case '活动时间':
-          selected.add(HealthSyncDataType.activeMinutes);
-      }
-    }
-    return selected.isEmpty ? const [HealthSyncDataType.steps] : selected;
   }
 }
 

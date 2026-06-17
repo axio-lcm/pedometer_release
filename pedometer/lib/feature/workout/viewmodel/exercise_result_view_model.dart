@@ -5,8 +5,10 @@ import 'package:pedometer/feature/workout/model/workout_model.dart';
 /// 运动结果页 view model：持有结果展示数据。
 ///
 /// 运动结束跳转时通过 `Get.arguments` 传入真实聚合结果，优先于默认 mock。
-class ExerciseResultViewModel extends GetxController
-    implements IBaseViewModel {
+class ExerciseResultViewModel extends GetxController implements IBaseViewModel {
+  ExerciseResultViewModel({this.fallbackData = ExerciseResultData.mock});
+
+  final ExerciseResultData fallbackData;
   late ExerciseResultData data;
 
   @override
@@ -18,7 +20,7 @@ class ExerciseResultViewModel extends GetxController
   @override
   void init() {
     final args = Get.arguments;
-    data = args is ExerciseResultData ? args : ExerciseResultData.mock;
+    data = args is ExerciseResultData ? args : fallbackData;
   }
 
   @override

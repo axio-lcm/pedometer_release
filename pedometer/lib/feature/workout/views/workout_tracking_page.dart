@@ -37,7 +37,10 @@ class WorkoutTrackingPage extends GetView<WorkoutTrackingViewModel> {
                     padding: EdgeInsets.only(bottom: AppSpacing.xl),
                     child: Column(
                       children: [
-                        WorkoutMapSection(data: controller.template),
+                        WorkoutMapSection(
+                          data: controller.template,
+                          controller: controller,
+                        ),
                         const SizedBox(height: 4),
                         Padding(
                           padding: EdgeInsets.symmetric(

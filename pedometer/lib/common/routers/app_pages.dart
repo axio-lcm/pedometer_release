@@ -6,8 +6,14 @@ import 'package:pedometer/feature/home/views/sync_source_detail_page.dart';
 import 'package:pedometer/feature/home/views/sync_history_list_page.dart';
 import 'package:pedometer/feature/home/views/sync_history_detail_page.dart';
 import 'package:pedometer/feature/home/views/sport_detail_page.dart';
+import 'package:pedometer/feature/home/viewmodel/sync_data_detail_view_model.dart';
+import 'package:pedometer/feature/home/viewmodel/sync_history_detail_view_model.dart';
+import 'package:pedometer/feature/home/viewmodel/sync_history_list_view_model.dart';
+import 'package:pedometer/feature/home/viewmodel/sync_source_detail_view_model.dart';
+import 'package:pedometer/feature/mine/viewmodel/mine_view_model.dart';
 import 'package:pedometer/feature/workout/resources/workout_resource.dart';
 import 'package:pedometer/feature/workout/viewmodel/edit_sport_goal_view_model.dart';
+import 'package:pedometer/feature/workout/viewmodel/exercise_result_view_model.dart';
 import 'package:pedometer/feature/workout/viewmodel/workout_tracking_view_model.dart';
 import 'package:pedometer/feature/workout/viewmodel/workout_view_model.dart';
 import 'package:pedometer/feature/workout/views/edit_sport_goal_page.dart';
@@ -15,6 +21,7 @@ import 'package:pedometer/feature/workout/views/exercise_result_page.dart';
 import 'package:pedometer/feature/workout/views/workout_tracking_page.dart';
 import 'package:pedometer/feature/home/viewmodel/home_view_model.dart';
 import 'package:pedometer/feature/home/viewmodel/sport_detail_view_model.dart';
+import 'package:pedometer/products/phone/viewmodel/main_view_model.dart';
 import 'package:pedometer/products/phone/views/main_page.dart';
 
 /// 统一路由管理
@@ -28,8 +35,10 @@ class AppPages {
       name: MainPage.routeName,
       page: () => const MainPage(),
       binding: BindingsBuilder(() {
+        Get.lazyPut<MainViewModel>(() => MainViewModel());
         Get.lazyPut<HomeViewModel>(() => HomeViewModel());
         Get.lazyPut<WorkoutViewModel>(() => WorkoutViewModel());
+        Get.lazyPut<MineViewModel>(() => MineViewModel());
       }),
     ),
     GetPage(
@@ -42,18 +51,34 @@ class AppPages {
     GetPage(
       name: HomeRouteTable.pathSyncDataDetail,
       page: () => const SyncDataDetailPage(),
+      binding: BindingsBuilder(() {
+        Get.lazyPut<SyncDataDetailViewModel>(() => SyncDataDetailViewModel());
+      }),
     ),
     GetPage(
       name: HomeRouteTable.pathSyncSourceDetail,
       page: () => const SyncSourceDetailPage(),
+      binding: BindingsBuilder(() {
+        Get.lazyPut<SyncSourceDetailViewModel>(
+          () => SyncSourceDetailViewModel(),
+        );
+      }),
     ),
     GetPage(
       name: HomeRouteTable.pathSyncHistoryList,
       page: () => const SyncHistoryListPage(),
+      binding: BindingsBuilder(() {
+        Get.lazyPut<SyncHistoryListViewModel>(() => SyncHistoryListViewModel());
+      }),
     ),
     GetPage(
       name: HomeRouteTable.pathSyncHistoryDetail,
       page: () => const SyncHistoryDetailPage(),
+      binding: BindingsBuilder(() {
+        Get.lazyPut<SyncHistoryDetailViewModel>(
+          () => SyncHistoryDetailViewModel(),
+        );
+      }),
     ),
     GetPage(
       name: WorkoutRouteTable.pathEditGoal,
@@ -66,14 +91,15 @@ class AppPages {
       name: WorkoutRouteTable.pathTracking,
       page: () => const WorkoutTrackingPage(),
       binding: BindingsBuilder(() {
-        Get.lazyPut<WorkoutTrackingViewModel>(
-          () => WorkoutTrackingViewModel(),
-        );
+        Get.lazyPut<WorkoutTrackingViewModel>(() => WorkoutTrackingViewModel());
       }),
     ),
     GetPage(
       name: WorkoutRouteTable.pathResult,
       page: () => const ExerciseResultPage(),
+      binding: BindingsBuilder(() {
+        Get.lazyPut<ExerciseResultViewModel>(() => ExerciseResultViewModel());
+      }),
     ),
   ];
 

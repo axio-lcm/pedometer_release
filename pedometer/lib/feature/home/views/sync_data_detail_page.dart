@@ -1,42 +1,27 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:pedometer/common/component/app_top_navigation_bar.dart';
 import 'package:pedometer/common/config/app_colors.dart';
 import 'package:pedometer/common/config/app_dimens.dart';
 import 'package:pedometer/feature/home/components/sync_data_detail_components.dart';
-import 'package:pedometer/feature/home/model/health_sync_source_policy.dart';
 import 'package:pedometer/feature/home/model/sync_data_detail_model.dart';
 import 'package:pedometer/feature/home/resources/home_resource.dart';
-import 'package:pedometer/feature/home/views/sync_history_detail_page.dart';
-import 'package:pedometer/feature/home/views/sync_history_list_page.dart';
-import 'package:pedometer/feature/home/views/sync_source_detail_page.dart';
+import 'package:pedometer/feature/home/viewmodel/sync_data_detail_view_model.dart';
 
 /// Health 同步数据详情页。
 ///
 /// 数据来源按平台过滤：iOS 仅展示 Apple Health，Android 仅展示 Health Connect。
 /// 健康权限的申请已移动到来源详情页（[SyncSourceDetailPage]）进入时进行。
-class SyncDataDetailPage extends StatelessWidget {
+class SyncDataDetailPage extends GetView<SyncDataDetailViewModel> {
   static const String routeName = HomeRouteTable.pathSyncDataDetail;
 
   final SyncDataDetailData data;
 
   const SyncDataDetailPage({super.key, this.data = SyncDataDetailData.mock});
 
-  /// 仅保留当前平台支持的来源；平台无匹配时回退到原始列表，避免空白。
-  List<SyncDataSource> _platformSources(TargetPlatform platform) {
-    final allowedTitles = HealthSyncSourcePolicy.sourcesFor(
-      platform,
-    ).map(HealthSyncSourcePolicy.titleFor).toSet();
-    final filtered = data.sources
-        .where((source) => allowedTitles.contains(source.title))
-        .toList();
-    return filtered.isEmpty ? data.sources : filtered;
-  }
-
   @override
   Widget build(BuildContext context) {
-    final sources = _platformSources(defaultTargetPlatform);
+    controller.useData(data);
 
     return Scaffold(
       backgroundColor: HomeResource.background,
@@ -52,46 +37,42 @@ class SyncDataDetailPage extends StatelessWidget {
                 AppSpacing.lg,
                 AppSpacing.xxl,
               ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  AppTopNavigationBar(
-                    title: '同步数据详情',
-                    onBack: () {
-                      if (Get.key.currentState?.canPop() ?? false) {
-                        Get.back<void>();
-                      }
-                    },
-                  ),
-                  SyncStatusHero(data: data),
-                  SyncOverviewCard(
-                    sources: sources,
-                    onSourceView: (source) => Get.toNamed(
-                      SyncSourceDetailPage.routeName,
-                      arguments: source,
+              child: Obx(() {
+                final data = controller.data.value;
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    AppTopNavigationBar(title: '同步数据详情', onBack: _back),
+                    SyncStatusHero(data: data),
+                    SyncOverviewCard(
+                      sources: controller.platformSources,
+                      onSourceView: controller.openSource,
                     ),
-                  ),
-                  SizedBox(height: AppSpacing.lg),
-                  DataTypeCard(items: data.dataTypes),
-                  SizedBox(height: AppSpacing.lg),
-                  SyncHistoryCard(
-                    histories: data.histories,
-                    onHistoryTap: (record) => Get.toNamed(
-                      SyncHistoryDetailPage.routeName,
-                      arguments: record,
+                    SizedBox(height: AppSpacing.lg),
+                    DataTypeCard(items: data.dataTypes),
+                    SizedBox(height: AppSpacing.lg),
+                    SyncHistoryCard(
+                      histories: data.histories,
+                      onHistoryTap: controller.openHistory,
+                      onViewAll: controller.openAllHistory,
                     ),
-                    onViewAll: () => Get.toNamed(SyncHistoryListPage.routeName),
-                  ),
-                  SizedBox(height: AppSpacing.xl),
-                  DataSecurityFooter(text: data.safetyText),
-                  SizedBox(height: AppSpacing.xxl),
-                ],
-              ),
+                    SizedBox(height: AppSpacing.xl),
+                    DataSecurityFooter(text: data.safetyText),
+                    SizedBox(height: AppSpacing.xxl),
+                  ],
+                );
+              }),
             ),
           ),
         ],
       ),
     );
+  }
+
+  void _back() {
+    if (Get.key.currentState?.canPop() ?? false) {
+      Get.back<void>();
+    }
   }
 }
 

@@ -4,7 +4,6 @@ import 'dart:ui' as ui;
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_compass/flutter_compass.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:pedometer/common/component/glass_card.dart';
@@ -14,21 +13,26 @@ import 'package:pedometer/feature/workout/model/location_display_policy.dart';
 import 'package:pedometer/feature/workout/model/location_stability_filter.dart';
 import 'package:pedometer/feature/workout/model/map_coordinate_converter.dart';
 import 'package:pedometer/feature/workout/model/workout_location_marker_style.dart';
-import 'package:pedometer/feature/workout/model/workout_location_settings_policy.dart';
 import 'package:pedometer/feature/workout/model/workout_location_startup_policy.dart';
 import 'package:pedometer/feature/workout/model/workout_map_render_policy.dart';
 import 'package:pedometer/feature/workout/model/workout_map_zoom_policy.dart';
 import 'package:pedometer/feature/workout/model/workout_model.dart';
 import 'package:pedometer/feature/workout/model/workout_route_polyline_policy.dart';
 import 'package:pedometer/feature/workout/resources/workout_resource.dart';
+import 'package:pedometer/feature/workout/service/workout_location_service.dart';
 import 'package:get/get.dart';
 import 'package:pedometer/feature/workout/viewmodel/workout_tracking_view_model.dart';
 
 /// 红框标准区域对应的地图容器：底层后续替换为真实地图，浮层保持不变。
 class WorkoutMapSection extends StatefulWidget {
   final WorkoutTrackingData data;
+  final WorkoutTrackingViewModel controller;
 
-  const WorkoutMapSection({super.key, required this.data});
+  const WorkoutMapSection({
+    super.key,
+    required this.data,
+    required this.controller,
+  });
 
   @override
   State<WorkoutMapSection> createState() => _WorkoutMapSectionState();
@@ -36,10 +40,6 @@ class WorkoutMapSection extends StatefulWidget {
 
 class _WorkoutMapSectionState extends State<WorkoutMapSection> {
   final _mapKey = GlobalKey<_WorkoutMapViewState>();
-  late final WorkoutTrackingViewModel _controller =
-      Get.isRegistered<WorkoutTrackingViewModel>()
-      ? Get.find<WorkoutTrackingViewModel>()
-      : Get.put(WorkoutTrackingViewModel());
 
   @override
   Widget build(BuildContext context) {
@@ -48,7 +48,9 @@ class _WorkoutMapSectionState extends State<WorkoutMapSection> {
       child: Stack(
         clipBehavior: Clip.none,
         children: [
-          Positioned.fill(child: WorkoutMapView(key: _mapKey)),
+          Positioned.fill(
+            child: WorkoutMapView(key: _mapKey, controller: widget.controller),
+          ),
           Positioned(
             top: 14,
             left: 0,
@@ -86,17 +88,19 @@ class _WorkoutMapSectionState extends State<WorkoutMapSection> {
 
   WorkoutTrackingData _liveData() {
     return widget.data.copyWith(
-      status: _controller.status.value,
-      distanceKm: _controller.distanceKmText,
-      duration: _controller.durationText,
-      calories: _controller.caloriesText,
-      pace: _controller.paceText,
+      status: widget.controller.status.value,
+      distanceKm: widget.controller.distanceKmText,
+      duration: widget.controller.durationText,
+      calories: widget.controller.caloriesText,
+      pace: widget.controller.paceText,
     );
   }
 }
 
 class WorkoutMapView extends StatefulWidget {
-  const WorkoutMapView({super.key});
+  final WorkoutTrackingViewModel controller;
+
+  const WorkoutMapView({super.key, required this.controller});
 
   @override
   State<WorkoutMapView> createState() => _WorkoutMapViewState();
@@ -117,15 +121,13 @@ class _WorkoutMapViewState extends State<WorkoutMapView> {
   // 抖动抑制：仅用于过滤不可能的跳变，精度上限放宽到与显示层一致，
   // 避免再次把粗定位整体丢弃导致卡死。
   final _stabilityFilter = LocationStabilityFilter(maxAccuracyMeters: 200);
+  final _locationService = WorkoutLocationService();
 
-  late final WorkoutTrackingViewModel _controller =
-      Get.isRegistered<WorkoutTrackingViewModel>()
-      ? Get.find<WorkoutTrackingViewModel>()
-      : Get.put(WorkoutTrackingViewModel());
+  WorkoutTrackingViewModel get _controller => widget.controller;
 
   GoogleMapController? _mapController;
   StreamSubscription<Position>? _positionSubscription;
-  StreamSubscription<CompassEvent>? _compassSubscription;
+  StreamSubscription<double>? _compassSubscription;
   Worker? _statusWorker;
   BitmapDescriptor? _currentLocationMarkerIcon;
   LatLng? _currentPosition;
@@ -156,11 +158,10 @@ class _WorkoutMapViewState extends State<WorkoutMapView> {
   }
 
   void _startCompass() {
-    final stream = FlutterCompass.events;
+    final stream = _locationService.headingStream();
     if (stream == null) return; // 设备无磁力计
-    _compassSubscription = stream.listen((event) {
-      final heading = event.heading;
-      if (heading == null || !mounted) return; // 校准中 / 无可靠朝向
+    _compassSubscription = stream.listen((heading) {
+      if (!mounted) return;
       if (_currentPosition == null || _currentLocationMarkerIcon == null) {
         return;
       }
@@ -250,21 +251,9 @@ class _WorkoutMapViewState extends State<WorkoutMapView> {
 
   Future<void> _prepareLocation() async {
     try {
-      final serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      final authorized = await _locationService.ensureAuthorized();
       if (!mounted) return;
-      if (!serviceEnabled) return;
-
-      var permission = await Geolocator.checkPermission();
-      if (!mounted) return;
-      if (permission == LocationPermission.denied) {
-        permission = await Geolocator.requestPermission();
-      }
-      if (!mounted) return;
-
-      if (permission == LocationPermission.denied ||
-          permission == LocationPermission.deniedForever) {
-        return;
-      }
+      if (!authorized) return;
 
       _locationAuthorized = true;
       await _seedLastKnownPosition();
@@ -317,19 +306,14 @@ class _WorkoutMapViewState extends State<WorkoutMapView> {
     unawaited(_positionSubscription?.cancel());
     _positionSubscription = null;
     _positionStreamUsesTrackingSettings = tracking;
-    final settings = tracking
-        ? WorkoutLocationSettingsPolicy.streamSettingsFor(defaultTargetPlatform)
-        : WorkoutLocationSettingsPolicy.startupStreamSettingsFor(
-            defaultTargetPlatform,
-          );
-    _positionSubscription = Geolocator.getPositionStream(
-      locationSettings: settings,
-    ).listen(_acceptPosition, onError: _handlePositionError);
+    _positionSubscription = _locationService
+        .positionStream(tracking: tracking)
+        .listen(_acceptPosition, onError: _handlePositionError);
   }
 
   Future<void> _seedLastKnownPosition() async {
     try {
-      final cached = await Geolocator.getLastKnownPosition();
+      final cached = await _locationService.lastKnownPosition();
       if (cached == null || !mounted) return;
       if (!WorkoutLocationStartupPolicy.canUseCachedPosition(
         recordedAt: cached.timestamp,
@@ -346,14 +330,8 @@ class _WorkoutMapViewState extends State<WorkoutMapView> {
 
   Future<void> _refreshCurrentPosition({required bool tracking}) async {
     try {
-      final current = await Geolocator.getCurrentPosition(
-        locationSettings: tracking
-            ? WorkoutLocationSettingsPolicy.currentFixSettingsFor(
-                defaultTargetPlatform,
-              )
-            : WorkoutLocationSettingsPolicy.startupCurrentFixSettingsFor(
-                defaultTargetPlatform,
-              ),
+      final current = await _locationService.currentPosition(
+        tracking: tracking,
       );
       _acceptPosition(current);
     } on TimeoutException {
@@ -369,12 +347,7 @@ class _WorkoutMapViewState extends State<WorkoutMapView> {
 
   Future<void> _requestPreciseLocationIfNeeded() async {
     try {
-      final accuracyStatus = await Geolocator.getLocationAccuracy();
-      if (accuracyStatus == LocationAccuracyStatus.reduced) {
-        await Geolocator.requestTemporaryFullAccuracy(
-          purposeKey: 'WorkoutPreciseLocation',
-        );
-      }
+      await _locationService.requestPreciseLocationIfNeeded();
     } catch (_) {
       // Android and older iOS versions may not need or support this flow.
     }

@@ -7,6 +7,7 @@ import 'package:pedometer/common/config/app_dimens.dart';
 import 'package:pedometer/feature/workout/components/exercise_result_components.dart';
 import 'package:pedometer/feature/workout/model/workout_model.dart';
 import 'package:pedometer/feature/workout/resources/workout_resource.dart';
+import 'package:pedometer/feature/workout/viewmodel/exercise_result_view_model.dart';
 
 /// 运动结束（运动完成）结果页：长按结束运动后进入，进入时在完成图标区域播放礼花。
 class ExerciseResultPage extends StatefulWidget {
@@ -30,6 +31,10 @@ class ExerciseResultPage extends StatefulWidget {
 class _ExerciseResultPageState extends State<ExerciseResultPage> {
   final GlobalKey _iconAreaKey = GlobalKey();
   ConfettiController? _confetti;
+  late final ExerciseResultViewModel _controller =
+      Get.isRegistered<ExerciseResultViewModel>()
+      ? Get.find<ExerciseResultViewModel>()
+      : Get.put(ExerciseResultViewModel(fallbackData: widget.data));
 
   @override
   void initState() {
@@ -81,10 +86,7 @@ class _ExerciseResultPageState extends State<ExerciseResultPage> {
 
   @override
   Widget build(BuildContext context) {
-    // 运动结束跳转时通过 Get.arguments 传入真实聚合结果，优先于默认 mock；
-    // 直接以 widget.data 构造（如测试 / 预览）时回退到该值。
-    final args = Get.arguments;
-    final data = args is ExerciseResultData ? args : widget.data;
+    final data = _controller.data;
     return Scaffold(
       backgroundColor: WorkoutResource.background,
       body: Stack(

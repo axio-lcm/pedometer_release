@@ -6,10 +6,10 @@ import 'package:pedometer/common/config/app_dimens.dart';
 import 'package:pedometer/feature/home/components/sync_data_detail_components.dart';
 import 'package:pedometer/feature/home/model/sync_data_detail_model.dart';
 import 'package:pedometer/feature/home/resources/home_resource.dart';
-import 'package:pedometer/feature/home/views/sync_history_detail_page.dart';
+import 'package:pedometer/feature/home/viewmodel/sync_history_list_view_model.dart';
 
 /// 同步历史「查看全部」列表页。
-class SyncHistoryListPage extends StatelessWidget {
+class SyncHistoryListPage extends GetView<SyncHistoryListViewModel> {
   static const String routeName = HomeRouteTable.pathSyncHistoryList;
 
   final SyncHistoryListData data;
@@ -18,6 +18,8 @@ class SyncHistoryListPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    controller.useData(data);
+
     return Scaffold(
       backgroundColor: HomeResource.background,
       body: Stack(
@@ -32,33 +34,32 @@ class SyncHistoryListPage extends StatelessWidget {
                 AppSpacing.lg,
                 AppSpacing.xxl,
               ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  AppTopNavigationBar(
-                    title: '同步历史',
-                    onBack: () {
-                      if (Get.key.currentState?.canPop() ?? false) {
-                        Get.back<void>();
-                      }
-                    },
-                  ),
-                  SizedBox(height: AppSpacing.md),
-                  SyncHistoryListCard(
-                    records: data.records,
-                    onRecordTap: (record) => Get.toNamed(
-                      SyncHistoryDetailPage.routeName,
-                      arguments: record,
+              child: Obx(() {
+                final data = controller.data.value;
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    AppTopNavigationBar(title: '同步历史', onBack: _back),
+                    SizedBox(height: AppSpacing.md),
+                    SyncHistoryListCard(
+                      records: data.records,
+                      onRecordTap: controller.openRecord,
                     ),
-                  ),
-                  SizedBox(height: AppSpacing.xxl),
-                ],
-              ),
+                    SizedBox(height: AppSpacing.xxl),
+                  ],
+                );
+              }),
             ),
           ),
         ],
       ),
     );
+  }
+
+  void _back() {
+    if (Get.key.currentState?.canPop() ?? false) {
+      Get.back<void>();
+    }
   }
 }
 
