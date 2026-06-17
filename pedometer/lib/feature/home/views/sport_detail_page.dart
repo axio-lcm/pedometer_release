@@ -30,6 +30,9 @@ class _SportDetailPageState extends State<SportDetailPage> {
   late final HealthRepository _repository =
       widget.repository ?? HealthRepository.defaultRepository();
 
+  /// 周视图的周偏移：0 = 本周，-1 = 上周……不可大于 0（即不能查看未来）。
+  int _weekOffset = 0;
+
   @override
   void initState() {
     super.initState();
@@ -45,6 +48,10 @@ class _SportDetailPageState extends State<SportDetailPage> {
   @override
   Widget build(BuildContext context) {
     final data = _repository.sportPeriodData(_period);
+    final isWeek = _period == SportPeriod.week;
+    final title = isWeek
+        ? SportDetailFixtures.weekTitle(offset: _weekOffset)
+        : data.dateTitle;
     return Scaffold(
       backgroundColor: HomeResource.background,
       body: Stack(
@@ -63,7 +70,16 @@ class _SportDetailPageState extends State<SportDetailPage> {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   AppTopNavigationBar(
-                    title: data.dateTitle,
+                    title: title,
+                    onTitlePrev: isWeek
+                        ? () => setState(() => _weekOffset -= 1)
+                        : null,
+                    onTitleNext: isWeek
+                        ? () => setState(() {
+                            if (_weekOffset < 0) _weekOffset += 1;
+                          })
+                        : null,
+                    titleNextEnabled: isWeek && _weekOffset < 0,
                     onBack: () {
                       if (Get.key.currentState?.canPop() ?? false) {
                         Get.back<void>();
@@ -85,7 +101,10 @@ class _SportDetailPageState extends State<SportDetailPage> {
             child: Center(
               child: SportPeriodTabBar(
                 current: _period,
-                onChanged: (period) => setState(() => _period = period),
+                onChanged: (period) => setState(() {
+                  _period = period;
+                  _weekOffset = 0;
+                }),
               ),
             ),
           ),

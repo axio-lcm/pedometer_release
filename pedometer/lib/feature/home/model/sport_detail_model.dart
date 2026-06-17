@@ -166,6 +166,20 @@ class SportDetailFixtures {
     return '${now.month}月${now.day}日 ${labels[now.weekday - 1]}';
   }
 
+  /// 指定周偏移的周一日期（0 = 本周，-1 = 上周，依此类推）。
+  static DateTime weekMonday(int offset) {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    return today.subtract(Duration(days: now.weekday - 1 - offset * 7));
+  }
+
+  /// 指定周偏移的日期范围标题，例如「6月15日 - 6月21日」，随系统日期实时变化。
+  static String weekTitle({int offset = 0}) {
+    final monday = weekMonday(offset);
+    final sunday = monday.add(const Duration(days: 6));
+    return '${monday.month}月${monday.day}日 - ${sunday.month}月${sunday.day}日';
+  }
+
   static SportPeriodData byPeriod(SportPeriod period) {
     return switch (period) {
       SportPeriod.day => day,
@@ -255,9 +269,9 @@ class SportDetailFixtures {
     ),
   );
 
-  static final SportPeriodData week = SportPeriodData(
+  static SportPeriodData get week => SportPeriodData(
     period: SportPeriod.week,
-    dateTitle: '6月8日 - 6月14日',
+    dateTitle: weekTitle(),
     progress: const SportProgressData(
       title: '本周步数',
       value: 42380,
