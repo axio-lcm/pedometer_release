@@ -64,7 +64,12 @@ class WorkoutPage extends GetView<WorkoutViewModel> {
     );
   }
 
-  void _onStart() => Get.toNamed(WorkoutTrackingPage.routeName);
+  void _onStart() {
+    Get.toNamed(
+      WorkoutTrackingPage.routeName,
+      arguments: controller.selectedWorkoutType,
+    );
+  }
 
   void _onEdit() => Get.toNamed(EditSportGoalPage.routeName);
 

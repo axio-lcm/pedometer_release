@@ -9,6 +9,13 @@ class WorkoutViewModel extends GetxController implements IBaseViewModel {
   RxInt get selectedType => vo.selectedType;
   Rx<WorkoutPageData> get data => vo.data;
 
+  WorkoutType get selectedWorkoutType {
+    final types = vo.data.value.workoutTypes;
+    if (types.isEmpty) return WorkoutPageData.mock.workoutTypes.first;
+    final index = vo.selectedType.value.clamp(0, types.length - 1).toInt();
+    return types[index];
+  }
+
   @override
   void onInit() {
     super.onInit();
@@ -30,7 +37,11 @@ class WorkoutViewModel extends GetxController implements IBaseViewModel {
   }
 
   /// 选择运动类型。
-  void selectType(int index) => vo.selectedType.value = index;
+  void selectType(int index) {
+    final types = vo.data.value.workoutTypes;
+    if (types.isEmpty) return;
+    vo.selectedType.value = index.clamp(0, types.length - 1).toInt();
+  }
 }
 
 /// 运动主页状态对象。

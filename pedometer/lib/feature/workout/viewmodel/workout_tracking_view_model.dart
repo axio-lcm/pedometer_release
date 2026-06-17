@@ -47,6 +47,7 @@ class WorkoutTrackingViewModel extends GetxController
   final calories = 0.0.obs;
   final bearing = 0.0.obs;
   final pace = Rxn<Duration>();
+  late final RxString workoutTitle = template.workoutTitle.obs;
 
   Timer? _ticker;
   Position? _lastRaw; // 上一个被接受的原始定位（算距离 / 方位）
@@ -223,7 +224,20 @@ class WorkoutTrackingViewModel extends GetxController
   }
 
   @override
-  void init() {}
+  void onInit() {
+    super.onInit();
+    init();
+  }
+
+  @override
+  void init() {
+    final args = Get.arguments;
+    if (args is WorkoutType) {
+      workoutTitle.value = args.title;
+    } else if (args is String && args.trim().isNotEmpty) {
+      workoutTitle.value = args;
+    }
+  }
 
   @override
   void unInit() {
@@ -252,6 +266,7 @@ class WorkoutTrackingViewModel extends GetxController
 
   /// 模板叠加实时值后的展示数据。
   WorkoutTrackingData get liveData => template.copyWith(
+    workoutTitle: workoutTitle.value,
     status: status.value,
     distanceKm: distanceKmText,
     duration: durationText,
@@ -271,7 +286,7 @@ class WorkoutTrackingViewModel extends GetxController
   /// 结束后用于结果页的聚合数据。
   ExerciseResultData toResultData() {
     return ExerciseResultData(
-      sportType: WorkoutText.outdoorRun,
+      sportType: workoutTitle.value,
       dateText: ExerciseResultData.mock.dateText,
       distance: distanceKmText,
       distanceUnit: WorkoutText.distanceUnit,

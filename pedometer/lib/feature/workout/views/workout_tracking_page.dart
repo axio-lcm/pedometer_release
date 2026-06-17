@@ -27,9 +27,11 @@ class WorkoutTrackingPage extends GetView<WorkoutTrackingViewModel> {
               children: [
                 Padding(
                   padding: EdgeInsets.symmetric(horizontal: AppSpacing.lg),
-                  child: AppTopNavigationBar(
-                    title: controller.template.workoutTitle,
-                    onBack: _back,
+                  child: Obx(
+                    () => AppTopNavigationBar(
+                      title: controller.workoutTitle.value,
+                      onBack: _back,
+                    ),
                   ),
                 ),
                 Expanded(

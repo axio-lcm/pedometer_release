@@ -87,6 +87,7 @@ class WorkoutTrackingData {
   );
 
   WorkoutTrackingData copyWith({
+    String? workoutTitle,
     WorkoutStatus? status,
     String? distanceKm,
     String? duration,
@@ -94,7 +95,7 @@ class WorkoutTrackingData {
     String? pace,
   }) {
     return WorkoutTrackingData(
-      workoutTitle: workoutTitle,
+      workoutTitle: workoutTitle ?? this.workoutTitle,
       status: status ?? this.status,
       distanceKm: distanceKm ?? this.distanceKm,
       targetKm: targetKm,
