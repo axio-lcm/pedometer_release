@@ -51,17 +51,6 @@ class _WorkoutMapSectionState extends State<WorkoutMapSection> {
           Positioned.fill(
             child: WorkoutMapView(key: _mapKey, controller: widget.controller),
           ),
-          Positioned(
-            top: 14,
-            left: 0,
-            right: 0,
-            child: Center(
-              child: GpsStatusPill(
-                label: widget.data.gpsLabel,
-                status: widget.data.gpsStatus,
-              ),
-            ),
-          ),
           Obx(() {
             final data = _liveData();
             if (data.status == WorkoutStatus.ended) {
@@ -587,74 +576,6 @@ class _WorkoutMapFallback extends StatelessWidget {
         ),
       ),
       child: CustomPaint(painter: _MapPlaceholderPainter()),
-    );
-  }
-}
-
-class GpsStatusPill extends StatelessWidget {
-  final String label;
-  final String status;
-
-  const GpsStatusPill({super.key, required this.label, required this.status});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-      decoration: BoxDecoration(
-        color: AppColors.bgPrimary.withValues(alpha: 0.62),
-        borderRadius: BorderRadius.circular(AppRadius.full),
-        border: Border.all(color: AppColors.strokeGreen),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.brandGreen.withValues(alpha: 0.16),
-            blurRadius: 18,
-          ),
-        ],
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(
-            Icons.location_on_outlined,
-            color: AppColors.brandGreen,
-            size: 15,
-          ),
-          const SizedBox(width: 5),
-          Text(
-            label,
-            style: TextStyle(
-              color: AppColors.textPrimary,
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-          const SizedBox(width: 8),
-          _SignalDot(color: AppColors.brandGreen),
-          const SizedBox(width: 4),
-          _SignalDot(color: AppColors.brandGreen),
-          const SizedBox(width: 8),
-          Text(
-            status,
-            style: TextStyle(color: AppColors.textSecondary, fontSize: 12),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _SignalDot extends StatelessWidget {
-  final Color color;
-
-  const _SignalDot({required this.color});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: 4,
-      height: 4,
-      decoration: BoxDecoration(color: color, shape: BoxShape.circle),
     );
   }
 }
