@@ -447,13 +447,44 @@ class TransparentAssetPlaceholder extends StatelessWidget {
 }
 
 /// 每日小时趋势卡。
-class HourlyStepTrendCard extends StatelessWidget {
+class HourlyStepTrendCard extends StatefulWidget {
   final List<HourlyStepData> data;
 
   const HourlyStepTrendCard({super.key, required this.data});
 
+  static const double _chartMaxY = 5000;
+  static const double _leftTitleReservedSize = 34;
+  static const double _bottomTitleReservedSize = 26;
+  static const double _tooltipWidth = 126;
+  static const double _tooltipHeight = 32;
+  static const double _tooltipGap = 8;
+
+  @override
+  State<HourlyStepTrendCard> createState() => _HourlyStepTrendCardState();
+}
+
+class _HourlyStepTrendCardState extends State<HourlyStepTrendCard> {
+  int? _selectedIndex;
+
+  int get _effectiveSelectedIndex {
+    if (widget.data.isEmpty) return -1;
+    final selectedIndex = _selectedIndex;
+    if (selectedIndex != null &&
+        selectedIndex >= 0 &&
+        selectedIndex < widget.data.length) {
+      return selectedIndex;
+    }
+    final noonIndex = widget.data.indexWhere((item) => item.label == '12:00');
+    return noonIndex == -1 ? widget.data.length ~/ 2 : noonIndex;
+  }
+
   @override
   Widget build(BuildContext context) {
+    final selectedIndex = _effectiveSelectedIndex;
+    final selectedItem = selectedIndex < 0 ? null : widget.data[selectedIndex];
+    final tooltipText = selectedItem == null
+        ? null
+        : '${selectedItem.label} · ${NumberFormat.decimalPattern().format(selectedItem.steps)} 步';
     return GlassCard(
       radius: AppRadius.xl,
       padding: EdgeInsets.fromLTRB(
@@ -469,16 +500,61 @@ class HourlyStepTrendCard extends StatelessWidget {
           SizedBox(height: AppSpacing.md),
           SizedBox(
             height: 150,
-            child: Stack(
-              clipBehavior: Clip.none,
-              children: [
-                LineChart(_lineData(), duration: Duration.zero),
-                Positioned(
-                  top: 0,
-                  left: 186,
-                  child: _ChartTooltip(text: '12:00 · 4,210 步'),
-                ),
-              ],
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                final selectedPoint = selectedIndex < 0
+                    ? null
+                    : _chartPointFor(
+                        constraints.biggest,
+                        selectedIndex,
+                        widget.data[selectedIndex].steps,
+                      );
+                return GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTapDown: (details) {
+                    _selectIndexAt(
+                      details.localPosition.dx,
+                      constraints.maxWidth,
+                    );
+                  },
+                  onHorizontalDragDown: (details) {
+                    _selectIndexAt(
+                      details.localPosition.dx,
+                      constraints.maxWidth,
+                    );
+                  },
+                  onHorizontalDragUpdate: (details) {
+                    _selectIndexAt(
+                      details.localPosition.dx,
+                      constraints.maxWidth,
+                    );
+                  },
+                  child: Stack(
+                    clipBehavior: Clip.none,
+                    children: [
+                      LineChart(
+                        _lineData(selectedIndex),
+                        duration: Duration.zero,
+                      ),
+                      if (tooltipText != null && selectedPoint != null)
+                        Positioned(
+                          left: _tooltipLeftFor(
+                            selectedPoint.dx,
+                            constraints.maxWidth,
+                          ),
+                          top: _tooltipTopFor(
+                            selectedPoint.dy,
+                            constraints.maxHeight,
+                          ),
+                          child: SizedBox(
+                            width: HourlyStepTrendCard._tooltipWidth,
+                            child: _ChartTooltip(text: tooltipText),
+                          ),
+                        ),
+                    ],
+                  ),
+                );
+              },
             ),
           ),
         ],
@@ -486,16 +562,57 @@ class HourlyStepTrendCard extends StatelessWidget {
     );
   }
 
-  LineChartData _lineData() {
+  void _selectIndexAt(double dx, double chartWidth) {
+    if (widget.data.isEmpty) return;
+    const left = HourlyStepTrendCard._leftTitleReservedSize;
+    const right = 0.0;
+    final width = chartWidth - left - right;
+    if (width <= 0) return;
+    final index = (((dx - left) / width) * (widget.data.length - 1))
+        .round()
+        .clamp(0, widget.data.length - 1);
+    if (_selectedIndex == index) return;
+    setState(() => _selectedIndex = index);
+  }
+
+  Offset _chartPointFor(Size size, int index, int steps) {
+    const left = HourlyStepTrendCard._leftTitleReservedSize;
+    const right = 0.0;
+    const top = 0.0;
+    const bottom = HourlyStepTrendCard._bottomTitleReservedSize;
+    final width = size.width - left - right;
+    final height = size.height - top - bottom;
+    final divisor = math.max(1, widget.data.length - 1);
+    final yRatio =
+        1 -
+        steps.clamp(0, HourlyStepTrendCard._chartMaxY) /
+            HourlyStepTrendCard._chartMaxY;
+    return Offset(left + width * index / divisor, top + height * yRatio);
+  }
+
+  double _tooltipLeftFor(double pointX, double chartWidth) {
+    final preferred = pointX + HourlyStepTrendCard._tooltipGap;
+    return preferred.clamp(0.0, chartWidth - HourlyStepTrendCard._tooltipWidth);
+  }
+
+  double _tooltipTopFor(double pointY, double chartHeight) {
+    final preferred = pointY - HourlyStepTrendCard._tooltipHeight / 2;
+    return preferred.clamp(
+      0.0,
+      chartHeight - HourlyStepTrendCard._tooltipHeight,
+    );
+  }
+
+  LineChartData _lineData(int selectedIndex) {
     final spots = <FlSpot>[
-      for (var i = 0; i < data.length; i++)
-        FlSpot(i.toDouble(), data[i].steps.toDouble()),
+      for (var i = 0; i < widget.data.length; i++)
+        FlSpot(i.toDouble(), widget.data[i].steps.toDouble()),
     ];
     return LineChartData(
       minX: 0,
-      maxX: (data.length - 1).toDouble(),
+      maxX: (widget.data.length - 1).toDouble(),
       minY: 0,
-      maxY: 5000,
+      maxY: HourlyStepTrendCard._chartMaxY,
       lineTouchData: const LineTouchData(enabled: false),
       gridData: FlGridData(
         show: true,
@@ -527,7 +644,7 @@ class HourlyStepTrendCard extends StatelessWidget {
           sideTitles: SideTitles(
             showTitles: true,
             interval: 1000,
-            reservedSize: 34,
+            reservedSize: HourlyStepTrendCard._leftTitleReservedSize,
             getTitlesWidget: (value, meta) => Text(
               value == 0 ? '0' : '${(value / 1000).round()}K',
               style: TextStyle(color: AppColors.textSecondary, fontSize: 11),
@@ -538,7 +655,7 @@ class HourlyStepTrendCard extends StatelessWidget {
           sideTitles: SideTitles(
             showTitles: true,
             interval: 2.5,
-            reservedSize: 26,
+            reservedSize: HourlyStepTrendCard._bottomTitleReservedSize,
             getTitlesWidget: (value, meta) {
               final labels = {
                 0: '00:00',
@@ -576,11 +693,12 @@ class HourlyStepTrendCard extends StatelessWidget {
           barWidth: 2.5,
           dotData: FlDotData(
             show: true,
-            checkToShowDot: (spot, bar) => spot.x == 5 || spot.x % 2 == 0,
+            checkToShowDot: (spot, bar) =>
+                spot.x == selectedIndex || spot.x % 2 == 0,
             getDotPainter: (spot, percent, bar, index) => FlDotCirclePainter(
-              radius: spot.x == 5 ? 5 : 3,
+              radius: spot.x == selectedIndex ? 5 : 3,
               color: AppColors.white,
-              strokeWidth: spot.x == 5 ? 2.5 : 1.5,
+              strokeWidth: spot.x == selectedIndex ? 2.5 : 1.5,
               strokeColor: AppColors.brandGreen,
             ),
           ),
@@ -602,7 +720,7 @@ class HourlyStepTrendCard extends StatelessWidget {
 }
 
 /// 每周柱状统计卡，柱图使用项目已有 fl_chart 插件。
-class WeeklyTrendCard extends StatelessWidget {
+class WeeklyTrendCard extends StatefulWidget {
   final List<WeeklyStepData> data;
 
   const WeeklyTrendCard({super.key, required this.data});
@@ -610,6 +728,10 @@ class WeeklyTrendCard extends StatelessWidget {
   static const double _chartMaxY = 10000;
   static const double _leftTitleReservedSize = 34;
   static const double _bottomTitleReservedSize = 25;
+  static const double _barWidth = 18;
+  static const double _tooltipWidth = 118;
+  static const double _tooltipHeight = 32;
+  static const double _tooltipGap = 8;
 
   /// 今天对应的星期标签，与柱图 label 保持一致（MON…SUN）。
   static String get _todayLabel {
@@ -632,12 +754,39 @@ class WeeklyTrendCard extends StatelessWidget {
   }
 
   @override
+  State<WeeklyTrendCard> createState() => _WeeklyTrendCardState();
+}
+
+class _WeeklyTrendCardState extends State<WeeklyTrendCard> {
+  int? _selectedIndex;
+
+  int get _effectiveSelectedIndex {
+    if (widget.data.isEmpty) return -1;
+    final selectedIndex = _selectedIndex;
+    if (selectedIndex != null &&
+        selectedIndex >= 0 &&
+        selectedIndex < widget.data.length) {
+      return selectedIndex;
+    }
+    final todayIndex = widget.data.indexWhere(
+      (item) => item.label == WeeklyTrendCard._todayLabel,
+    );
+    return todayIndex == -1 ? 0 : todayIndex;
+  }
+
+  String get _selectedLabel {
+    final index = _effectiveSelectedIndex;
+    if (index < 0) return WeeklyTrendCard._todayLabel;
+    return widget.data[index].label;
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final todayLabel = _todayLabel;
-    final today = data.where((d) => d.label == todayLabel).toList();
-    final tooltipText = today.isNotEmpty
-        ? '${today.first.label} · ${_formatSteps(today.first.steps)} 步'
-        : null;
+    final selectedIndex = _effectiveSelectedIndex;
+    final selectedItem = selectedIndex < 0 ? null : widget.data[selectedIndex];
+    final tooltipText = selectedItem == null
+        ? null
+        : '${selectedItem.label} · ${WeeklyTrendCard._formatSteps(selectedItem.steps)} 步';
     return GlassCard(
       radius: AppRadius.xl,
       padding: EdgeInsets.fromLTRB(
@@ -653,22 +802,66 @@ class WeeklyTrendCard extends StatelessWidget {
           SizedBox(height: AppSpacing.md),
           SizedBox(
             height: 170,
-            child: Stack(
-              children: [
-                BarChart(_barData(todayLabel), duration: Duration.zero),
-                IgnorePointer(
-                  child: CustomPaint(
-                    size: Size.infinite,
-                    painter: _WeeklyCurveOverlay(data: data),
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                final selectedPoint = selectedIndex < 0
+                    ? null
+                    : _chartPointFor(
+                        constraints.biggest,
+                        selectedIndex,
+                        widget.data[selectedIndex].steps,
+                      );
+                return GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTapDown: (details) {
+                    _selectIndexAt(
+                      details.localPosition.dx,
+                      constraints.maxWidth,
+                    );
+                  },
+                  onHorizontalDragDown: (details) {
+                    _selectIndexAt(
+                      details.localPosition.dx,
+                      constraints.maxWidth,
+                    );
+                  },
+                  onHorizontalDragUpdate: (details) {
+                    _selectIndexAt(
+                      details.localPosition.dx,
+                      constraints.maxWidth,
+                    );
+                  },
+                  child: Stack(
+                    children: [
+                      BarChart(
+                        _barData(_selectedLabel),
+                        duration: Duration.zero,
+                      ),
+                      IgnorePointer(
+                        child: CustomPaint(
+                          size: Size.infinite,
+                          painter: _WeeklyCurveOverlay(data: widget.data),
+                        ),
+                      ),
+                      if (tooltipText != null && selectedPoint != null)
+                        Positioned(
+                          left: _tooltipLeftFor(
+                            selectedPoint.dx,
+                            constraints.maxWidth,
+                          ),
+                          top: _tooltipTopFor(
+                            selectedPoint.dy,
+                            constraints.maxHeight,
+                          ),
+                          child: SizedBox(
+                            width: WeeklyTrendCard._tooltipWidth,
+                            child: _ChartTooltip(text: tooltipText),
+                          ),
+                        ),
+                    ],
                   ),
-                ),
-                if (tooltipText != null)
-                  Positioned(
-                    top: 0,
-                    right: 42,
-                    child: _ChartTooltip(text: tooltipText),
-                  ),
-              ],
+                );
+              },
             ),
           ),
         ],
@@ -676,10 +869,51 @@ class WeeklyTrendCard extends StatelessWidget {
     );
   }
 
-  BarChartData _barData(String todayLabel) {
+  void _selectIndexAt(double dx, double chartWidth) {
+    if (widget.data.isEmpty) return;
+    const left = WeeklyTrendCard._leftTitleReservedSize;
+    const right = 0.0;
+    final width = chartWidth - left - right;
+    if (width <= 0) return;
+    final index = (((dx - left) / width) * widget.data.length).floor().clamp(
+      0,
+      widget.data.length - 1,
+    );
+    if (_selectedIndex == index) return;
+    setState(() => _selectedIndex = index);
+  }
+
+  Offset _chartPointFor(Size size, int index, int steps) {
+    const left = WeeklyTrendCard._leftTitleReservedSize;
+    const right = 0.0;
+    const top = 0.0;
+    const bottom = WeeklyTrendCard._bottomTitleReservedSize;
+    final width = size.width - left - right;
+    final height = size.height - top - bottom;
+    final yRatio =
+        1 -
+        steps.clamp(0, WeeklyTrendCard._chartMaxY) / WeeklyTrendCard._chartMaxY;
+    return Offset(
+      left + width * (index + 0.5) / widget.data.length,
+      top + height * yRatio,
+    );
+  }
+
+  double _tooltipLeftFor(double pointX, double chartWidth) {
+    final preferred =
+        pointX + WeeklyTrendCard._barWidth / 2 + WeeklyTrendCard._tooltipGap;
+    return preferred.clamp(0.0, chartWidth - WeeklyTrendCard._tooltipWidth);
+  }
+
+  double _tooltipTopFor(double pointY, double chartHeight) {
+    final preferred = pointY - WeeklyTrendCard._tooltipHeight / 2;
+    return preferred.clamp(0.0, chartHeight - WeeklyTrendCard._tooltipHeight);
+  }
+
+  BarChartData _barData(String selectedLabel) {
     return BarChartData(
       minY: 0,
-      maxY: _chartMaxY,
+      maxY: WeeklyTrendCard._chartMaxY,
       alignment: BarChartAlignment.spaceAround,
       barTouchData: BarTouchData(enabled: false),
       gridData: FlGridData(
@@ -702,7 +936,7 @@ class WeeklyTrendCard extends StatelessWidget {
           sideTitles: SideTitles(
             showTitles: true,
             interval: 2000,
-            reservedSize: _leftTitleReservedSize,
+            reservedSize: WeeklyTrendCard._leftTitleReservedSize,
             getTitlesWidget: (value, meta) => Text(
               value == 0 ? '0' : '${(value / 1000).round()}K',
               style: TextStyle(color: AppColors.textSecondary, fontSize: 11),
@@ -712,17 +946,17 @@ class WeeklyTrendCard extends StatelessWidget {
         bottomTitles: AxisTitles(
           sideTitles: SideTitles(
             showTitles: true,
-            reservedSize: _bottomTitleReservedSize,
+            reservedSize: WeeklyTrendCard._bottomTitleReservedSize,
             getTitlesWidget: (value, meta) {
               final index = value.toInt();
-              if (index < 0 || index >= data.length) {
+              if (index < 0 || index >= widget.data.length) {
                 return const SizedBox.shrink();
               }
-              final selected = data[index].label == todayLabel;
+              final selected = widget.data[index].label == selectedLabel;
               return Padding(
                 padding: const EdgeInsets.only(top: 6),
                 child: Text(
-                  data[index].label,
+                  widget.data[index].label,
                   style: TextStyle(
                     color: selected
                         ? AppColors.brandGreen
@@ -737,20 +971,20 @@ class WeeklyTrendCard extends StatelessWidget {
         ),
       ),
       barGroups: [
-        for (var i = 0; i < data.length; i++)
+        for (var i = 0; i < widget.data.length; i++)
           BarChartGroupData(
             x: i,
             barRods: [
               BarChartRodData(
-                toY: data[i].steps.toDouble(),
-                width: 18,
+                toY: widget.data[i].steps.toDouble(),
+                width: WeeklyTrendCard._barWidth,
                 borderRadius: const BorderRadius.vertical(
                   top: Radius.circular(6),
                 ),
                 gradient: LinearGradient(
                   begin: Alignment.bottomCenter,
                   end: Alignment.topCenter,
-                  colors: data[i].label == todayLabel
+                  colors: widget.data[i].label == selectedLabel
                       ? [AppColors.brandGreenMid, AppColors.brandGreenLight]
                       : [
                           AppColors.brandGreenShade,
