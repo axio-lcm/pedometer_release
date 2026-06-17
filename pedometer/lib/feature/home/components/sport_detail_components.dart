@@ -224,7 +224,10 @@ class StepProgressHeroCard extends StatelessWidget {
           );
           // 圆环占据场景之上的剩余高度，保证人物始终在“达成百分比”下方、互不遮挡。
           final ringSize = math
-              .min(constraints.maxWidth - 10, constraints.maxHeight - sceneHeight)
+              .min(
+                constraints.maxWidth - 10,
+                constraints.maxHeight - sceneHeight,
+              )
               .clamp(142.0, 178.0);
           return Column(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -604,6 +607,10 @@ class WeeklyTrendCard extends StatelessWidget {
 
   const WeeklyTrendCard({super.key, required this.data});
 
+  static const double _chartMaxY = 10000;
+  static const double _leftTitleReservedSize = 34;
+  static const double _bottomTitleReservedSize = 25;
+
   /// 今天对应的星期标签，与柱图 label 保持一致（MON…SUN）。
   static String get _todayLabel {
     const labels = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'];
@@ -672,7 +679,8 @@ class WeeklyTrendCard extends StatelessWidget {
   BarChartData _barData(String todayLabel) {
     return BarChartData(
       minY: 0,
-      maxY: 10000,
+      maxY: _chartMaxY,
+      alignment: BarChartAlignment.spaceAround,
       barTouchData: BarTouchData(enabled: false),
       gridData: FlGridData(
         show: true,
@@ -694,7 +702,7 @@ class WeeklyTrendCard extends StatelessWidget {
           sideTitles: SideTitles(
             showTitles: true,
             interval: 2000,
-            reservedSize: 34,
+            reservedSize: _leftTitleReservedSize,
             getTitlesWidget: (value, meta) => Text(
               value == 0 ? '0' : '${(value / 1000).round()}K',
               style: TextStyle(color: AppColors.textSecondary, fontSize: 11),
@@ -704,7 +712,7 @@ class WeeklyTrendCard extends StatelessWidget {
         bottomTitles: AxisTitles(
           sideTitles: SideTitles(
             showTitles: true,
-            reservedSize: 25,
+            reservedSize: _bottomTitleReservedSize,
             getTitlesWidget: (value, meta) {
               final index = value.toInt();
               if (index < 0 || index >= data.length) {
@@ -765,17 +773,21 @@ class _WeeklyCurveOverlay extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     if (data.length < 2) return;
-    final left = 36.0;
-    final right = 8.0;
-    final top = 8.0;
-    final bottom = 31.0;
+    const left = WeeklyTrendCard._leftTitleReservedSize;
+    const right = 0.0;
+    const top = 0.0;
+    const bottom = WeeklyTrendCard._bottomTitleReservedSize;
     final width = size.width - left - right;
     final height = size.height - top - bottom;
     final points = <Offset>[
       for (var i = 0; i < data.length; i++)
         Offset(
-          left + width * i / (data.length - 1),
-          top + height * (1 - data[i].steps / 10000),
+          left + width * (i + 0.5) / data.length,
+          top +
+              height *
+                  (1 -
+                      data[i].steps.clamp(0, WeeklyTrendCard._chartMaxY) /
+                          WeeklyTrendCard._chartMaxY),
         ),
     ];
     final path = Path()..moveTo(points.first.dx, points.first.dy);
