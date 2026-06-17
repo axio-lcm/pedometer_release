@@ -604,8 +604,33 @@ class WeeklyTrendCard extends StatelessWidget {
 
   const WeeklyTrendCard({super.key, required this.data});
 
+  /// 今天对应的星期标签，与柱图 label 保持一致（MON…SUN）。
+  static String get _todayLabel {
+    const labels = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'];
+    return labels[DateTime.now().weekday - 1];
+  }
+
+  /// 千分位格式化步数，如 8200 -> 8,200。
+  static String _formatSteps(int steps) {
+    final text = steps.abs().toString();
+    final buffer = StringBuffer(steps < 0 ? '-' : '');
+    for (var i = 0; i < text.length; i++) {
+      final remaining = text.length - i;
+      buffer.write(text[i]);
+      if (remaining > 1 && remaining % 3 == 1) {
+        buffer.write(',');
+      }
+    }
+    return buffer.toString();
+  }
+
   @override
   Widget build(BuildContext context) {
+    final todayLabel = _todayLabel;
+    final today = data.where((d) => d.label == todayLabel).toList();
+    final tooltipText = today.isNotEmpty
+        ? '${today.first.label} · ${_formatSteps(today.first.steps)} 步'
+        : null;
     return GlassCard(
       radius: AppRadius.xl,
       padding: EdgeInsets.fromLTRB(
@@ -623,18 +648,19 @@ class WeeklyTrendCard extends StatelessWidget {
             height: 170,
             child: Stack(
               children: [
-                BarChart(_barData(), duration: Duration.zero),
+                BarChart(_barData(todayLabel), duration: Duration.zero),
                 IgnorePointer(
                   child: CustomPaint(
                     size: Size.infinite,
                     painter: _WeeklyCurveOverlay(data: data),
                   ),
                 ),
-                const Positioned(
-                  top: 0,
-                  right: 42,
-                  child: _ChartTooltip(text: 'SAT · 8,200 步'),
-                ),
+                if (tooltipText != null)
+                  Positioned(
+                    top: 0,
+                    right: 42,
+                    child: _ChartTooltip(text: tooltipText),
+                  ),
               ],
             ),
           ),
@@ -643,7 +669,7 @@ class WeeklyTrendCard extends StatelessWidget {
     );
   }
 
-  BarChartData _barData() {
+  BarChartData _barData(String todayLabel) {
     return BarChartData(
       minY: 0,
       maxY: 10000,
@@ -684,7 +710,7 @@ class WeeklyTrendCard extends StatelessWidget {
               if (index < 0 || index >= data.length) {
                 return const SizedBox.shrink();
               }
-              final selected = data[index].label == 'SAT';
+              final selected = data[index].label == todayLabel;
               return Padding(
                 padding: const EdgeInsets.only(top: 6),
                 child: Text(
@@ -716,7 +742,7 @@ class WeeklyTrendCard extends StatelessWidget {
                 gradient: LinearGradient(
                   begin: Alignment.bottomCenter,
                   end: Alignment.topCenter,
-                  colors: data[i].label == 'SAT'
+                  colors: data[i].label == todayLabel
                       ? const [Color(0xFF00B956), Color(0xFF6CFF3D)]
                       : [
                           const Color(0xFF0A7739),
