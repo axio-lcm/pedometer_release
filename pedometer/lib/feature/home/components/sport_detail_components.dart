@@ -459,12 +459,16 @@ class HourlyStepTrendCard extends StatefulWidget {
   static const double _tooltipHeight = 32;
   static const double _tooltipGap = 8;
 
+  /// 按下到抬起的位移在此范围内才视为「点击」，超过则当作滚动忽略。
+  static const double _tapSlop = 44;
+
   @override
   State<HourlyStepTrendCard> createState() => _HourlyStepTrendCardState();
 }
 
 class _HourlyStepTrendCardState extends State<HourlyStepTrendCard> {
   int? _selectedIndex;
+  Offset? _pointerDownPosition;
 
   int get _effectiveSelectedIndex {
     if (widget.data.isEmpty) return -1;
@@ -509,23 +513,21 @@ class _HourlyStepTrendCardState extends State<HourlyStepTrendCard> {
                         selectedIndex,
                         widget.data[selectedIndex].steps,
                       );
-                return GestureDetector(
+                return Listener(
                   behavior: HitTestBehavior.opaque,
-                  onTapDown: (details) {
-                    _selectIndexAt(
-                      details.localPosition.dx,
-                      constraints.maxWidth,
-                    );
+                  onPointerDown: (event) {
+                    _pointerDownPosition = event.localPosition;
                   },
-                  onHorizontalDragDown: (details) {
+                  onPointerUp: (event) {
+                    final down = _pointerDownPosition;
+                    _pointerDownPosition = null;
+                    if (down == null) return;
+                    if ((event.localPosition - down).distance >
+                        HourlyStepTrendCard._tapSlop) {
+                      return;
+                    }
                     _selectIndexAt(
-                      details.localPosition.dx,
-                      constraints.maxWidth,
-                    );
-                  },
-                  onHorizontalDragUpdate: (details) {
-                    _selectIndexAt(
-                      details.localPosition.dx,
+                      event.localPosition.dx,
                       constraints.maxWidth,
                     );
                   },
@@ -546,9 +548,11 @@ class _HourlyStepTrendCardState extends State<HourlyStepTrendCard> {
                             selectedPoint.dy,
                             constraints.maxHeight,
                           ),
-                          child: SizedBox(
-                            width: HourlyStepTrendCard._tooltipWidth,
-                            child: _ChartTooltip(text: tooltipText),
+                          child: IgnorePointer(
+                            child: SizedBox(
+                              width: HourlyStepTrendCard._tooltipWidth,
+                              child: _ChartTooltip(text: tooltipText),
+                            ),
                           ),
                         ),
                     ],
@@ -566,6 +570,8 @@ class _HourlyStepTrendCardState extends State<HourlyStepTrendCard> {
     if (widget.data.isEmpty) return;
     const left = HourlyStepTrendCard._leftTitleReservedSize;
     const right = 0.0;
+    // 左侧刻度标签区不参与选点，避免点击 Y 轴数字误选最左侧坐标点。
+    if (dx < left) return;
     final width = chartWidth - left - right;
     if (width <= 0) return;
     final index = (((dx - left) / width) * (widget.data.length - 1))
@@ -733,6 +739,9 @@ class WeeklyTrendCard extends StatefulWidget {
   static const double _tooltipHeight = 32;
   static const double _tooltipGap = 8;
 
+  /// 按下到抬起的位移在此范围内才视为「点击」，超过则当作滚动忽略。
+  static const double _tapSlop = 44;
+
   /// 今天对应的星期标签，与柱图 label 保持一致（MON…SUN）。
   static String get _todayLabel {
     const labels = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'];
@@ -759,6 +768,7 @@ class WeeklyTrendCard extends StatefulWidget {
 
 class _WeeklyTrendCardState extends State<WeeklyTrendCard> {
   int? _selectedIndex;
+  Offset? _pointerDownPosition;
 
   int get _effectiveSelectedIndex {
     if (widget.data.isEmpty) return -1;
@@ -811,23 +821,21 @@ class _WeeklyTrendCardState extends State<WeeklyTrendCard> {
                         selectedIndex,
                         widget.data[selectedIndex].steps,
                       );
-                return GestureDetector(
+                return Listener(
                   behavior: HitTestBehavior.opaque,
-                  onTapDown: (details) {
-                    _selectIndexAt(
-                      details.localPosition.dx,
-                      constraints.maxWidth,
-                    );
+                  onPointerDown: (event) {
+                    _pointerDownPosition = event.localPosition;
                   },
-                  onHorizontalDragDown: (details) {
+                  onPointerUp: (event) {
+                    final down = _pointerDownPosition;
+                    _pointerDownPosition = null;
+                    if (down == null) return;
+                    if ((event.localPosition - down).distance >
+                        WeeklyTrendCard._tapSlop) {
+                      return;
+                    }
                     _selectIndexAt(
-                      details.localPosition.dx,
-                      constraints.maxWidth,
-                    );
-                  },
-                  onHorizontalDragUpdate: (details) {
-                    _selectIndexAt(
-                      details.localPosition.dx,
+                      event.localPosition.dx,
                       constraints.maxWidth,
                     );
                   },
@@ -853,9 +861,11 @@ class _WeeklyTrendCardState extends State<WeeklyTrendCard> {
                             selectedPoint.dy,
                             constraints.maxHeight,
                           ),
-                          child: SizedBox(
-                            width: WeeklyTrendCard._tooltipWidth,
-                            child: _ChartTooltip(text: tooltipText),
+                          child: IgnorePointer(
+                            child: SizedBox(
+                              width: WeeklyTrendCard._tooltipWidth,
+                              child: _ChartTooltip(text: tooltipText),
+                            ),
                           ),
                         ),
                     ],
@@ -873,6 +883,8 @@ class _WeeklyTrendCardState extends State<WeeklyTrendCard> {
     if (widget.data.isEmpty) return;
     const left = WeeklyTrendCard._leftTitleReservedSize;
     const right = 0.0;
+    // 左侧刻度标签区不参与选点，避免点击 Y 轴数字误选最左侧坐标点。
+    if (dx < left) return;
     final width = chartWidth - left - right;
     if (width <= 0) return;
     final index = (((dx - left) / width) * widget.data.length).floor().clamp(

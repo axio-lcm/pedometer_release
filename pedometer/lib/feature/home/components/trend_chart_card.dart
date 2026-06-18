@@ -20,12 +20,16 @@ class TrendChartCard extends StatefulWidget {
   static const double _tooltipHeight = 32;
   static const double _tooltipGap = 8;
 
+  /// 按下到抬起的位移在此范围内才视为「点击」，超过则当作滚动忽略。
+  static const double _tapSlop = 44;
+
   @override
   State<TrendChartCard> createState() => _TrendChartCardState();
 }
 
 class _TrendChartCardState extends State<TrendChartCard> {
   int? _selectedIndex;
+  Offset? _pointerDownPosition;
 
   int get _effectiveSelectedIndex {
     if (widget.points.isEmpty) return -1;
@@ -50,24 +54,31 @@ class _TrendChartCardState extends State<TrendChartCard> {
     final tooltipText = selectedPoint == null
         ? null
         : '${selectedPoint.label} · ${NumberFormat.decimalPattern().format(selectedPoint.value.round())} 步';
+    // 卡片只保留纵向内边距；横向内边距单独加在标题与图表「视觉层」上，
+    // 让交互层（Listener）铺满整张卡片宽度——这样左右两侧的卡片留白也成为可点区域，
+    // 点最右侧留白即可定位到最后一个坐标点（与点左侧刻度区定位到第一个点对称）。
     return GlassCard(
       radius: AppRadius.xl,
+      padding: EdgeInsets.symmetric(vertical: AppSpacing.lg),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              Expanded(
-                child: Text(
-                  HomeResource.trend,
-                  style: TextStyle(
-                    color: AppColors.textPrimary,
-                    fontSize: 18,
-                    fontWeight: FontWeight.w700,
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    HomeResource.trend,
+                    style: TextStyle(
+                      color: AppColors.textPrimary,
+                      fontSize: 18,
+                      fontWeight: FontWeight.w700,
+                    ),
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
           SizedBox(height: AppSpacing.md),
           SizedBox(
@@ -81,32 +92,35 @@ class _TrendChartCardState extends State<TrendChartCard> {
                         selectedIndex,
                         widget.points[selectedIndex].value,
                       );
-                return GestureDetector(
+                return Listener(
                   behavior: HitTestBehavior.opaque,
-                  onTapDown: (details) {
-                    _selectIndexAt(
-                      details.localPosition.dx,
-                      constraints.maxWidth,
-                    );
+                  onPointerDown: (event) {
+                    _pointerDownPosition = event.localPosition;
                   },
-                  onHorizontalDragDown: (details) {
+                  onPointerUp: (event) {
+                    final down = _pointerDownPosition;
+                    _pointerDownPosition = null;
+                    if (down == null) return;
+                    if ((event.localPosition - down).distance >
+                        TrendChartCard._tapSlop) {
+                      return;
+                    }
                     _selectIndexAt(
-                      details.localPosition.dx,
-                      constraints.maxWidth,
-                    );
-                  },
-                  onHorizontalDragUpdate: (details) {
-                    _selectIndexAt(
-                      details.localPosition.dx,
+                      event.localPosition.dx,
                       constraints.maxWidth,
                     );
                   },
                   child: Stack(
                     clipBehavior: Clip.none,
                     children: [
-                      LineChart(
-                        _chartData(selectedIndex),
-                        duration: Duration.zero,
+                      Padding(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: AppSpacing.lg,
+                        ),
+                        child: LineChart(
+                          _chartData(selectedIndex),
+                          duration: Duration.zero,
+                        ),
                       ),
                       if (tooltipText != null && chartPoint != null)
                         Positioned(
@@ -118,9 +132,11 @@ class _TrendChartCardState extends State<TrendChartCard> {
                             chartPoint.dy,
                             constraints.maxHeight,
                           ),
-                          child: SizedBox(
-                            width: TrendChartCard._tooltipWidth,
-                            child: _TrendTooltip(text: tooltipText),
+                          child: IgnorePointer(
+                            child: SizedBox(
+                              width: TrendChartCard._tooltipWidth,
+                              child: _TrendTooltip(text: tooltipText),
+                            ),
                           ),
                         ),
                     ],
@@ -136,8 +152,10 @@ class _TrendChartCardState extends State<TrendChartCard> {
 
   void _selectIndexAt(double dx, double chartWidth) {
     if (widget.points.isEmpty) return;
-    const left = TrendChartCard._leftTitleReservedSize;
-    const right = 0.0;
+    // 交互层铺满整张卡片，绘制层比它多出左右各 AppSpacing.lg 的视觉内边距，
+    // 再叠加图表自身的左侧刻度预留宽度，得到首点/末点在交互坐标系中的位置。
+    final left = AppSpacing.lg + TrendChartCard._leftTitleReservedSize;
+    final right = AppSpacing.lg;
     final width = chartWidth - left - right;
     if (width <= 0) return;
     final index = (((dx - left) / width) * (widget.points.length - 1))
@@ -148,8 +166,8 @@ class _TrendChartCardState extends State<TrendChartCard> {
   }
 
   Offset _chartPointFor(Size size, int index, double value) {
-    const left = TrendChartCard._leftTitleReservedSize;
-    const right = 0.0;
+    final left = AppSpacing.lg + TrendChartCard._leftTitleReservedSize;
+    final right = AppSpacing.lg;
     const top = 0.0;
     const bottom = TrendChartCard._bottomTitleReservedSize;
     final width = size.width - left - right;
