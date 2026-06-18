@@ -5,6 +5,7 @@ import 'package:pedometer/common/component/glass_card.dart';
 import 'package:pedometer/common/config/app_colors.dart';
 import 'package:pedometer/common/config/app_dimens.dart';
 import 'package:pedometer/feature/home/components/sync_data_detail_components.dart';
+import 'package:pedometer/feature/home/model/health_sync_models.dart';
 import 'package:pedometer/feature/home/model/sync_data_detail_model.dart';
 import 'package:pedometer/feature/home/resources/home_resource.dart';
 import 'package:pedometer/feature/home/viewmodel/sync_source_detail_view_model.dart';
@@ -41,6 +42,7 @@ class SyncSourceDetailPage extends GetView<SyncSourceDetailViewModel> {
               child: Obx(() {
                 final data = controller.data.value;
                 final message = controller.syncMessage.value;
+                final authStatus = controller.authStatus.value;
                 return Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
@@ -49,11 +51,12 @@ class SyncSourceDetailPage extends GetView<SyncSourceDetailViewModel> {
                       onBack: _back,
                     ),
                     SizedBox(height: AppSpacing.md),
-                    _SourceConnectionCard(data: data),
+                    _SourceConnectionCard(data: data, status: authStatus),
                     SizedBox(height: AppSpacing.lg),
                     _PermissionCard(
                       items: data.permissions,
                       statusText: controller.permissionStatus.value,
+                      authorized: controller.isConnected,
                     ),
                     SizedBox(height: AppSpacing.lg),
                     _SyncModeCard(
@@ -160,11 +163,17 @@ class _SyncSourceDetailBackground extends StatelessWidget {
 
 class _SourceConnectionCard extends StatelessWidget {
   final SyncSourceDetailData data;
+  final HealthAuthStatus status;
 
-  const _SourceConnectionCard({required this.data});
+  const _SourceConnectionCard({required this.data, required this.status});
 
   @override
   Widget build(BuildContext context) {
+    final title = data.source.title;
+    final connected = status == HealthAuthStatus.authorized;
+    final titleText = connected ? '已连接 $title' : '未连接 $title';
+    final (statusIcon, statusColor, statusLabel) = _statusDisplay(title);
+
     return GlassCard(
       radius: AppRadius.xxl,
       glow: true,
@@ -178,7 +187,7 @@ class _SourceConnectionCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  '已连接 ${data.source.title}',
+                  titleText,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
@@ -190,18 +199,18 @@ class _SourceConnectionCard extends StatelessWidget {
                 SizedBox(height: AppSpacing.sm),
                 Row(
                   children: [
-                    Icon(
-                      Icons.check_circle_outline_rounded,
-                      color: AppColors.brandGreen,
-                      size: 19,
-                    ),
+                    Icon(statusIcon, color: statusColor, size: 19),
                     SizedBox(width: AppSpacing.sm),
-                    Text(
-                      '连接成功',
-                      style: TextStyle(
-                        color: AppColors.brandGreen,
-                        fontSize: 15,
-                        fontWeight: FontWeight.w700,
+                    Expanded(
+                      child: Text(
+                        statusLabel,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          color: statusColor,
+                          fontSize: 15,
+                          fontWeight: FontWeight.w700,
+                        ),
                       ),
                     ),
                   ],
@@ -223,13 +232,48 @@ class _SourceConnectionCard extends StatelessWidget {
       ),
     );
   }
+
+  (IconData, Color, String) _statusDisplay(String title) {
+    return switch (status) {
+      HealthAuthStatus.authorized => (
+        Icons.check_circle_outline_rounded,
+        AppColors.brandGreen,
+        '连接成功',
+      ),
+      HealthAuthStatus.denied => (
+        Icons.cancel_outlined,
+        AppColors.accentOrange,
+        '未授权，请在系统「健康」中允许读取',
+      ),
+      HealthAuthStatus.unavailable => (
+        Icons.error_outline_rounded,
+        AppColors.accentOrange,
+        '$title 当前设备不可用',
+      ),
+      HealthAuthStatus.unsupported => (
+        Icons.block_rounded,
+        AppColors.textSecondary,
+        '当前平台不支持',
+      ),
+      HealthAuthStatus.unknown => (
+        Icons.help_outline_rounded,
+        AppColors.textSecondary,
+        '授权状态待确认，请同步以验证',
+      ),
+    };
+  }
 }
 
 class _PermissionCard extends StatelessWidget {
   final List<SyncSourcePermission> items;
   final String? statusText;
+  final bool authorized;
 
-  const _PermissionCard({required this.items, this.statusText});
+  const _PermissionCard({
+    required this.items,
+    this.statusText,
+    this.authorized = false,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -247,7 +291,7 @@ class _PermissionCard extends StatelessWidget {
           const SectionHeader(title: 'Health 同步权限'),
           SizedBox(height: AppSpacing.md),
           for (var i = 0; i < items.length; i++) ...[
-            _PermissionRow(item: items[i]),
+            _PermissionRow(item: items[i], authorized: authorized),
             if (i != items.length - 1)
               Divider(color: AppColors.divider, height: AppSpacing.lg),
           ],
@@ -264,8 +308,9 @@ class _PermissionCard extends StatelessWidget {
 
 class _PermissionRow extends StatelessWidget {
   final SyncSourcePermission item;
+  final bool authorized;
 
-  const _PermissionRow({required this.item});
+  const _PermissionRow({required this.item, required this.authorized});
 
   @override
   Widget build(BuildContext context) {
@@ -287,7 +332,7 @@ class _PermissionRow extends StatelessWidget {
               ),
             ),
           ),
-          const _GreenSwitch(value: true),
+          _GreenSwitch(value: authorized),
         ],
       ),
     );

@@ -11,7 +11,8 @@ import 'package:pedometer/feature/home/viewmodel/sync_data_detail_view_model.dar
 /// Health 同步数据详情页。
 ///
 /// 数据来源按平台过滤：iOS 仅展示 Apple Health，Android 仅展示 Health Connect。
-/// 健康权限的申请已移动到来源详情页（[SyncSourceDetailPage]）进入时进行。
+/// 健康权限的申请在来源详情页（[SyncSourceDetailPage]）点击「保存设置」时进行；
+/// 各来源的连接状态经 HealthSyncRuntime 同步回此页的来源列表展示。
 class SyncDataDetailPage extends GetView<SyncDataDetailViewModel> {
   static const String routeName = HomeRouteTable.pathSyncDataDetail;
 

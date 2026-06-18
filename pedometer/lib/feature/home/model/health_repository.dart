@@ -68,7 +68,12 @@ class HealthRepository {
 
 class HealthSyncRuntime {
   static final ValueNotifier<int> revision = ValueNotifier<int>(0);
+
+  /// 各来源的连接（授权）状态变更通知，供来源列表/详情页同步显示。
+  static final ValueNotifier<int> connectionRevision = ValueNotifier<int>(0);
+
   static HealthDataSource? _realDataSource;
+  static final Map<HealthSyncSource, HealthAuthStatus> _connectionStatus = {};
 
   HealthSyncRuntime._();
 
@@ -81,9 +86,26 @@ class HealthSyncRuntime {
     revision.value++;
   }
 
+  /// 读取某来源最近一次确认的连接状态，默认 [HealthAuthStatus.unknown]。
+  static HealthAuthStatus connectionStatusOf(HealthSyncSource source) {
+    return _connectionStatus[source] ?? HealthAuthStatus.unknown;
+  }
+
+  /// 记录某来源的连接状态并通知监听者。
+  static void setConnectionStatus(
+    HealthSyncSource source,
+    HealthAuthStatus status,
+  ) {
+    if (_connectionStatus[source] == status) return;
+    _connectionStatus[source] = status;
+    connectionRevision.value++;
+  }
+
   static void resetForTest() {
     _realDataSource = null;
+    _connectionStatus.clear();
     revision.value++;
+    connectionRevision.value++;
   }
 }
 
@@ -207,16 +229,31 @@ class HealthPluginSyncService {
       HealthSyncDataType.calories,
       HealthSyncDataType.activeMinutes,
     ],
+    // 调用方若已单独申请过权限，可置为 false 避免重复弹窗。
+    bool ensureAuthorized = true,
+    // iOS 刚授权后首次读取可能因权限未生效返回空，空结果时按此重试。
+    int readRetries = 2,
+    Duration retryDelay = const Duration(milliseconds: 600),
   }) async {
-    if (!await requestAuthorization(source: source, types: types)) {
+    if (ensureAuthorized &&
+        !await requestAuthorization(source: source, types: types)) {
       return const SyncedHealthDataSource(summaries: []);
     }
     final healthTypes = _healthTypesFor(source: source, types: types);
-    final points = await health.getHealthDataFromTypes(
-      types: healthTypes,
-      startTime: startDate,
-      endTime: endDate,
-    );
+
+    var points = <HealthDataPoint>[];
+    for (var attempt = 0; attempt <= readRetries; attempt++) {
+      points = await health.getHealthDataFromTypes(
+        types: healthTypes,
+        startTime: startDate,
+        endTime: endDate,
+      );
+      if (points.isNotEmpty) break;
+      if (attempt < readRetries) {
+        await Future<void>.delayed(retryDelay);
+      }
+    }
+
     return SyncedHealthDataSource(
       summaries: _dailySummariesFromPoints(
         points,
