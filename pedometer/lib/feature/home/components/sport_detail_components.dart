@@ -296,7 +296,7 @@ class _RingCenter extends StatelessWidget {
           ),
           const SizedBox(height: 9),
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
             decoration: BoxDecoration(
               color: AppColors.brandGreen.withValues(alpha: 0.18),
               borderRadius: BorderRadius.circular(AppRadius.full),
@@ -309,14 +309,14 @@ class _RingCenter extends StatelessWidget {
                   Icon(
                     Icons.star_rounded,
                     color: AppColors.brandLime,
-                    size: 12,
+                    size: 9,
                   ),
-                  const SizedBox(width: 3),
+                  const SizedBox(width: 2),
                   Text(
                     '${data.badgePrefix} ${data.percent}%',
                     style: TextStyle(
                       color: AppColors.brandLime,
-                      fontSize: 11,
+                      fontSize: 8,
                       fontWeight: FontWeight.w700,
                     ),
                   ),

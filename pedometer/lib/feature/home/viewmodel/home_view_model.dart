@@ -12,8 +12,6 @@ class HomeViewModel extends GetxController implements IBaseViewModel {
   HomeViewModel({HealthRepository? repository})
     : repository = repository ?? HealthRepository.defaultRepository();
 
-  Rx<StepData> get step => vo.step;
-  RxList<KpiItem> get kpis => vo.kpis;
   RxList<TrendPoint> get trend => vo.trend;
   RxList<AnalysisData> get analyses => vo.analyses;
   Rx<SportPeriodData> get dayOverview => vo.dayOverview;
@@ -42,8 +40,6 @@ class HomeViewModel extends GetxController implements IBaseViewModel {
 
   void _loadHealthData() {
     final snapshot = repository.homeSnapshot();
-    vo.step.value = snapshot.step;
-    vo.kpis.assignAll(snapshot.kpis);
     vo.trend.assignAll(snapshot.trend);
     vo.analyses.assignAll(snapshot.analyses);
     vo.dayOverview.value = repository.sportPeriodData(SportPeriod.day);
@@ -52,8 +48,6 @@ class HomeViewModel extends GetxController implements IBaseViewModel {
 
 /// 首页状态对象
 class HomeVo {
-  final Rx<StepData> step = const StepData(steps: 0, goal: 6000).obs;
-  final RxList<KpiItem> kpis = <KpiItem>[].obs;
   final RxList<TrendPoint> trend = <TrendPoint>[].obs;
   final RxList<AnalysisData> analyses = <AnalysisData>[].obs;
   final Rx<SportPeriodData> dayOverview = SportDetailFixtures.day.obs;
