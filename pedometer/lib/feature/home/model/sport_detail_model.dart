@@ -269,6 +269,26 @@ class SportDetailFixtures {
         steps: '1,360步',
       ),
     ],
+    analyses: [
+      SportAnalysisData(
+        icon: Icons.local_fire_department_rounded,
+        color: AppColors.accentOrange,
+        title: '卡路里分析',
+        value: '293',
+        unit: 'kcal',
+        delta: '较昨日 +12%',
+        samples: const [0.30, 0.45, 0.38, 0.60, 0.55, 0.78, 0.92],
+      ),
+      SportAnalysisData(
+        icon: Icons.timer_rounded,
+        color: AppColors.accentCyan,
+        title: '活动时间分析',
+        value: '28',
+        unit: 'min',
+        delta: '较昨日 +8%',
+        samples: const [0.40, 0.35, 0.55, 0.50, 0.70, 0.66, 0.88],
+      ),
+    ],
     summary: SportSummaryData(
       icon: Icons.flag_rounded,
       color: AppColors.brandGreen,

@@ -445,6 +445,7 @@ class SyncedHealthDataSource implements HealthDataSource {
       ),
       hourly: [HourlyStepData('24:00', latest.steps)],
       segments: const [],
+      analyses: _dayAnalyses(),
       summary: SportSummaryData(
         icon: Icons.verified_rounded,
         color: AppColors.brandGreen,
@@ -617,6 +618,47 @@ class SyncedHealthDataSource implements HealthDataSource {
     ];
   }
 
+  /// 日维度分析：当日卡路里 / 活动时间，并与前一日对比（较昨日）。
+  List<SportAnalysisData> _dayAnalyses() {
+    final sorted = _sorted;
+    final latest = _latest;
+    HealthDailySummary? previous;
+    for (var i = sorted.length - 1; i >= 0; i--) {
+      if (sorted[i].date.isBefore(_dateOnly(latest.date))) {
+        previous = sorted[i];
+        break;
+      }
+    }
+    final recent = sorted.length <= 7
+        ? sorted
+        : sorted.sublist(sorted.length - 7);
+    return [
+      SportAnalysisData(
+        icon: Icons.local_fire_department_rounded,
+        color: AppColors.accentOrange,
+        title: '卡路里分析',
+        value: _formatInt(latest.caloriesKcal.round()),
+        unit: 'kcal',
+        delta: _deltaVsYesterday(latest.caloriesKcal, previous?.caloriesKcal),
+        samples: _normalizedSamples(recent.map((item) => item.caloriesKcal)),
+      ),
+      SportAnalysisData(
+        icon: Icons.timer_rounded,
+        color: AppColors.accentCyan,
+        title: '活动时间分析',
+        value: _formatInt(latest.activeMinutes),
+        unit: 'min',
+        delta: _deltaVsYesterday(
+          latest.activeMinutes.toDouble(),
+          previous?.activeMinutes.toDouble(),
+        ),
+        samples: _normalizedSamples(
+          recent.map((item) => item.activeMinutes.toDouble()),
+        ),
+      ),
+    ];
+  }
+
   List<SportAnalysisData> _periodAnalyses(
     List<HealthDailySummary> items,
     String delta,
@@ -700,6 +742,14 @@ String _formatDecimal(double value) {
   return rounded.endsWith('.0')
       ? rounded.substring(0, rounded.length - 2)
       : rounded;
+}
+
+/// 生成「较昨日 ±X%」文案；昨日无数据时返回「较昨日 --」。
+String _deltaVsYesterday(double today, double? yesterday) {
+  if (yesterday == null || yesterday <= 0) return '较昨日 --';
+  final percent = ((today - yesterday) / yesterday * 100).round();
+  final sign = percent >= 0 ? '+' : '';
+  return '较昨日 $sign$percent%';
 }
 
 String _formatInt(int value) {

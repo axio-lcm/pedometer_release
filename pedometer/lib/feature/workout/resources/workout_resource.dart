@@ -135,8 +135,8 @@ class WorkoutText {
   static const heroTitle = '准备开始今天的训练';
   static const heroSubtitle = '连接 GPS / 开启记录';
   static const startWorkout = '开始运动';
-  static const outdoorRun = '户外跑步';
-  static const indoorRun = '室内跑步';
+  static const outdoorRun = '户外';
+  static const indoorRun = '室内';
   static const fitnessWalk = '健走';
   static const hiking = '徒步';
   static const goalKm = '公里数';

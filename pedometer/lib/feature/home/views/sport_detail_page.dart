@@ -175,7 +175,7 @@ class _DayContent extends StatelessWidget {
       children: [
         HourlyStepTrendCard(data: data.hourly),
         SizedBox(height: AppSpacing.md),
-        SportSegmentListCard(segments: data.segments),
+        _AnalysisRow(analyses: data.analyses),
         SizedBox(height: AppSpacing.md),
         SummaryCard(data: data.summary),
       ],
