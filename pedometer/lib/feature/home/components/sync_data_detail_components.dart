@@ -456,6 +456,7 @@ class SyncHistoryCard extends StatelessWidget {
             SyncHistoryItem(
               data: histories[i],
               showDivider: i != histories.length - 1,
+              showResult: false,
               onTap: onHistoryTap == null
                   ? null
                   : () => onHistoryTap!(histories[i]),
@@ -471,11 +472,15 @@ class SyncHistoryItem extends StatelessWidget {
   final bool showDivider;
   final VoidCallback? onTap;
 
+  /// 是否展示右侧「成功同步 N 项数据」结果文案。
+  final bool showResult;
+
   const SyncHistoryItem({
     super.key,
     required this.data,
     required this.showDivider,
     this.onTap,
+    this.showResult = true,
   });
 
   @override
@@ -520,20 +525,22 @@ class SyncHistoryItem extends StatelessWidget {
                     ],
                   ),
                 ),
-                SizedBox(width: AppSpacing.md),
-                Expanded(
-                  flex: 4,
-                  child: Text(
-                    data.result,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    textAlign: TextAlign.end,
-                    style: TextStyle(
-                      color: AppColors.textSecondary,
-                      fontSize: 15,
+                if (showResult) ...[
+                  SizedBox(width: AppSpacing.md),
+                  Expanded(
+                    flex: 4,
+                    child: Text(
+                      data.result,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      textAlign: TextAlign.end,
+                      style: TextStyle(
+                        color: AppColors.textSecondary,
+                        fontSize: 15,
+                      ),
                     ),
                   ),
-                ),
+                ],
                 Icon(
                   Icons.chevron_right_rounded,
                   color: AppColors.textSecondary,
