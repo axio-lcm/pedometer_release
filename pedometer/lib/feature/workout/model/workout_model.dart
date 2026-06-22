@@ -5,11 +5,13 @@ import 'package:pedometer/feature/workout/resources/workout_resource.dart';
 class WorkoutType {
   final String title;
   final IconData icon;
+  final String? iconAsset;
   final Color color;
 
   const WorkoutType({
     required this.title,
     required this.icon,
+    this.iconAsset,
     required this.color,
   });
 }
@@ -152,21 +154,25 @@ class WorkoutPageData {
       WorkoutType(
         title: WorkoutText.outdoorRun,
         icon: Icons.directions_run_rounded,
+        iconAsset: 'assets/workout_outdoor.svg',
         color: _green,
       ),
       WorkoutType(
         title: WorkoutText.indoorRun,
         icon: Icons.fitness_center_rounded,
+        iconAsset: 'assets/workout_indoor.svg',
         color: _cyan,
       ),
       WorkoutType(
         title: WorkoutText.fitnessWalk,
         icon: Icons.directions_walk_rounded,
+        iconAsset: 'assets/workout_fitness_walk.svg',
         color: _purple,
       ),
       WorkoutType(
         title: WorkoutText.hiking,
         icon: Icons.hiking_rounded,
+        iconAsset: 'assets/workout_hiking.svg',
         color: _orange,
       ),
     ],

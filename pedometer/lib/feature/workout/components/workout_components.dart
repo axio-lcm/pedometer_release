@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pedometer/common/component/asset_metric_icon.dart';
 import 'package:pedometer/common/component/glass_card.dart';
 import 'package:pedometer/common/config/app_colors.dart';
 import 'package:pedometer/common/config/app_resource.dart';
@@ -131,7 +132,7 @@ class WorkoutTypeCard extends StatelessWidget {
             Positioned.fill(
               child: GlassCard(
                 radius: AppRadius.md,
-                glow: selected,
+                glow: false,
                 borderColor: selected ? AppColors.strokeGreen : null,
                 padding: EdgeInsets.all(AppSpacing.sm),
                 child: Column(
@@ -141,7 +142,11 @@ class WorkoutTypeCard extends StatelessWidget {
                     Flexible(
                       child: FittedBox(
                         fit: BoxFit.scaleDown,
-                        child: _IconBadge(icon: type.icon, color: type.color),
+                        child: _IconBadge(
+                          icon: type.icon,
+                          iconAsset: type.iconAsset,
+                          color: type.color,
+                        ),
                       ),
                     ),
                     SizedBox(height: AppSpacing.xs),
@@ -199,12 +204,21 @@ class WorkoutTypeCard extends StatelessWidget {
 /// 圆形玻璃底座图标：功能色低透明填充 + 同色描边。
 class _IconBadge extends StatelessWidget {
   final IconData icon;
+  final String? iconAsset;
   final Color color;
 
-  const _IconBadge({required this.icon, required this.color});
+  const _IconBadge({required this.icon, this.iconAsset, required this.color});
 
   @override
   Widget build(BuildContext context) {
+    if (iconAsset != null) {
+      return SizedBox(
+        width: 50,
+        height: 50,
+        child: AssetMetricIcon(assetName: iconAsset!, size: 50),
+      );
+    }
+
     return Container(
       width: 50,
       height: 50,
@@ -213,7 +227,9 @@ class _IconBadge extends StatelessWidget {
         color: color.withValues(alpha: 0.16),
         border: Border.all(color: color.withValues(alpha: 0.55)),
       ),
-      child: Icon(icon, color: color, size: 26),
+      child: Center(
+        child: Icon(icon, color: color, size: 26),
+      ),
     );
   }
 }
