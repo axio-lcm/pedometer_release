@@ -142,55 +142,19 @@ class CircleIconBadge extends StatelessWidget {
 }
 
 class MetricIconBadge extends StatelessWidget {
-  final AppIconSource icon;
-  final Color color;
+  final String assetName;
   final double size;
-  final double iconSize;
 
-  const MetricIconBadge({
-    super.key,
-    required this.icon,
-    required this.color,
-    this.size = 52,
-    this.iconSize = 27,
-  });
+  const MetricIconBadge({super.key, required this.assetName, this.size = 52});
 
   @override
   Widget build(BuildContext context) {
-    if (icon is AssetAppIcon) {
-      final assetSize = size - 5;
-      return SizedBox(
-        width: size,
-        height: size,
-        child: Center(
-          child: AppIconView(icon: icon, color: color, size: assetSize),
-        ),
-      );
-    }
-
-    return Container(
+    final assetSize = size - 5;
+    return SizedBox(
       width: size,
       height: size,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        gradient: RadialGradient(
-          colors: [
-            color.withValues(alpha: 0.34),
-            color.withValues(alpha: 0.12),
-            AppColors.surfaceIcon.withValues(alpha: 0.72),
-          ],
-        ),
-        border: Border.all(color: color.withValues(alpha: 0.35)),
-        boxShadow: [
-          BoxShadow(
-            color: color.withValues(alpha: 0.18),
-            blurRadius: 20,
-            spreadRadius: -4,
-          ),
-        ],
-      ),
       child: Center(
-        child: AppIconView(icon: icon, color: color, size: iconSize),
+        child: AssetMetricIcon(assetName: assetName, size: assetSize),
       ),
     );
   }
@@ -212,12 +176,7 @@ class MetricCard extends StatelessWidget {
       ),
       child: Row(
         children: [
-          MetricIconBadge(
-            icon: data.icon,
-            color: data.color,
-            size: 45,
-            iconSize: 22,
-          ),
+          MetricIconBadge(assetName: data.iconAsset, size: 45),
           SizedBox(width: AppSpacing.sm),
           Expanded(
             child: FittedBox(
@@ -1610,12 +1569,17 @@ class SummaryCard extends StatelessWidget {
             child: Stack(
               alignment: Alignment.center,
               children: [
-                CircleIconBadge(
-                  icon: data.icon,
-                  color: data.color,
-                  size: 56,
-                  iconSize: 30,
-                ),
+                data.icon is AssetAppIcon
+                    ? MetricIconBadge(
+                        assetName: (data.icon as AssetAppIcon).assetName,
+                        size: 56,
+                      )
+                    : CircleIconBadge(
+                        icon: (data.icon as MaterialAppIcon).icon,
+                        color: data.color,
+                        size: 56,
+                        iconSize: 30,
+                      ),
                 // TODO: replace with data.assetName real 3D asset.
                 TransparentAssetPlaceholder(
                   height: 70,

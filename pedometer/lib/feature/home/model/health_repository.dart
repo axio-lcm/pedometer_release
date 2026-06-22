@@ -484,7 +484,7 @@ class SyncedHealthDataSource implements HealthDataSource {
       segments: const [],
       analyses: _dayAnalyses(),
       summary: SportSummaryData(
-        icon: Icons.verified_rounded,
+        icon: const MaterialAppIcon(Icons.verified_rounded),
         color: AppColors.brandGreen,
         title: '同步总结',
         primary: '数据来源：',
@@ -517,7 +517,7 @@ class SyncedHealthDataSource implements HealthDataSource {
       ),
       metrics: [
         SportMetricData(
-          icon: const MaterialAppIcon(Icons.timer_rounded),
+          iconAsset: AppMetricAssets.dayAverage,
           color: AppColors.accentCyan,
           title: '日均',
           value: _formatInt(
@@ -526,14 +526,14 @@ class SyncedHealthDataSource implements HealthDataSource {
           unit: '步',
         ),
         SportMetricData(
-          icon: const MaterialAppIcon(Icons.local_fire_department_rounded),
+          iconAsset: AppMetricAssets.activeDays,
           color: AppColors.accentOrange,
           title: '活跃天数',
           value: '$activeDays / 7',
           unit: '天',
         ),
         SportMetricData(
-          icon: const MaterialAppIcon(Icons.gps_fixed_rounded),
+          iconAsset: AppMetricAssets.targetMet,
           color: AppColors.accentPurple,
           title: '达标天数',
           value: '$goalDays',
@@ -546,7 +546,7 @@ class SyncedHealthDataSource implements HealthDataSource {
       ],
       analyses: _periodAnalyses(recent, '来自健康同步'),
       summary: SportSummaryData(
-        icon: Icons.emoji_events_rounded,
+        icon: const AssetAppIcon(AppMetricAssets.weekSummary),
         color: AppColors.brandGreen,
         title: '周总结',
         primary: '最高步数：',
@@ -582,7 +582,7 @@ class SyncedHealthDataSource implements HealthDataSource {
       ),
       metrics: [
         SportMetricData(
-          icon: const MaterialAppIcon(Icons.directions_walk_rounded),
+          iconAsset: AppMetricAssets.dayAverage,
           color: AppColors.brandGreen,
           title: '日均',
           value: _formatInt(
@@ -591,14 +591,14 @@ class SyncedHealthDataSource implements HealthDataSource {
           unit: '步',
         ),
         SportMetricData(
-          icon: const MaterialAppIcon(Icons.gps_fixed_rounded),
+          iconAsset: AppMetricAssets.targetMet,
           color: AppColors.accentCyan,
           title: '达标天数',
           value: '$goalDays',
           unit: '天',
         ),
         SportMetricData(
-          icon: const AssetAppIcon(AppMetricAssets.distance),
+          iconAsset: AppMetricAssets.distance,
           color: AppColors.accentPurple,
           title: '总距离',
           value: _formatDecimal(
@@ -613,7 +613,7 @@ class SyncedHealthDataSource implements HealthDataSource {
       ],
       analyses: _periodAnalyses(monthItems, '来自健康同步'),
       summary: SportSummaryData(
-        icon: Icons.calendar_month_rounded,
+        icon: const MaterialAppIcon(Icons.calendar_month_rounded),
         color: AppColors.brandGreen,
         title: '月度总结',
         primary: '最佳单日：',
@@ -632,21 +632,21 @@ class SyncedHealthDataSource implements HealthDataSource {
   }) {
     return [
       SportMetricData(
-        icon: const AssetAppIcon(AppMetricAssets.distance),
+        iconAsset: AppMetricAssets.distance,
         color: AppColors.accentPurple,
         title: '距离',
         value: _formatDecimal(distanceKm),
         unit: 'km',
       ),
       SportMetricData(
-        icon: const AssetAppIcon(AppMetricAssets.calories),
+        iconAsset: AppMetricAssets.calories,
         color: AppColors.accentOrange,
         title: '卡路里',
         value: _formatInt(caloriesKcal.round()),
         unit: 'kcal',
       ),
       SportMetricData(
-        icon: const AssetAppIcon(AppMetricAssets.activeTime),
+        iconAsset: AppMetricAssets.activeTime,
         color: AppColors.accentCyan,
         title: '活动时间',
         value: _formatInt(activeMinutes),
