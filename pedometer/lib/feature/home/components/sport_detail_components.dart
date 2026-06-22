@@ -743,8 +743,12 @@ class WeeklyTrendCard extends StatefulWidget {
 
   const WeeklyTrendCard({super.key, required this.data});
 
-  static const double _chartMaxY = 10000;
-  static const double _leftTitleReservedSize = 34;
+  static const double _defaultMaxY = 10000;
+  static const double _firstExpandedMaxY = 15000;
+  static const double _expandedStepY = 5000;
+  static const double _maxDynamicY = 50000;
+  static const int _yAxisIntervalCount = 5;
+  static const double _leftTitleReservedSize = 38;
   static const double _bottomTitleReservedSize = 25;
   static const double _barWidth = 18;
   static const double _tooltipWidth = 118;
@@ -809,6 +813,7 @@ class _WeeklyTrendCardState extends State<WeeklyTrendCard> {
     final tooltipText = selectedItem == null
         ? null
         : '${selectedItem.label} · ${WeeklyTrendCard._formatSteps(selectedItem.steps)} 步';
+    final yAxisScale = _yAxisScale;
     return GlassCard(
       radius: AppRadius.xl,
       padding: EdgeInsets.fromLTRB(
@@ -832,6 +837,7 @@ class _WeeklyTrendCardState extends State<WeeklyTrendCard> {
                         constraints.biggest,
                         selectedIndex,
                         widget.data[selectedIndex].steps,
+                        yAxisScale,
                       );
                 return Listener(
                   behavior: HitTestBehavior.opaque,
@@ -854,13 +860,16 @@ class _WeeklyTrendCardState extends State<WeeklyTrendCard> {
                   child: Stack(
                     children: [
                       BarChart(
-                        _barData(_selectedLabel),
+                        _barData(_selectedLabel, yAxisScale),
                         duration: Duration.zero,
                       ),
                       IgnorePointer(
                         child: CustomPaint(
                           size: Size.infinite,
-                          painter: _WeeklyCurveOverlay(data: widget.data),
+                          painter: _WeeklyCurveOverlay(
+                            data: widget.data,
+                            yAxisScale: yAxisScale,
+                          ),
                         ),
                       ),
                       if (tooltipText != null && selectedPoint != null)
@@ -907,7 +916,12 @@ class _WeeklyTrendCardState extends State<WeeklyTrendCard> {
     setState(() => _selectedIndex = index);
   }
 
-  Offset _chartPointFor(Size size, int index, int steps) {
+  Offset _chartPointFor(
+    Size size,
+    int index,
+    int steps,
+    _WeeklyYAxisScale yAxisScale,
+  ) {
     const left = WeeklyTrendCard._leftTitleReservedSize;
     const right = 0.0;
     const top = 0.0;
@@ -915,8 +929,7 @@ class _WeeklyTrendCardState extends State<WeeklyTrendCard> {
     final width = size.width - left - right;
     final height = size.height - top - bottom;
     final yRatio =
-        1 -
-        steps.clamp(0, WeeklyTrendCard._chartMaxY) / WeeklyTrendCard._chartMaxY;
+        1 - steps.toDouble().clamp(0.0, yAxisScale.maxY) / yAxisScale.maxY;
     return Offset(
       left + width * (index + 0.5) / widget.data.length,
       top + height * yRatio,
@@ -934,16 +947,16 @@ class _WeeklyTrendCardState extends State<WeeklyTrendCard> {
     return preferred.clamp(0.0, chartHeight - WeeklyTrendCard._tooltipHeight);
   }
 
-  BarChartData _barData(String selectedLabel) {
+  BarChartData _barData(String selectedLabel, _WeeklyYAxisScale yAxisScale) {
     return BarChartData(
       minY: 0,
-      maxY: WeeklyTrendCard._chartMaxY,
+      maxY: yAxisScale.maxY,
       alignment: BarChartAlignment.spaceAround,
       barTouchData: BarTouchData(enabled: false),
       gridData: FlGridData(
         show: true,
         drawVerticalLine: false,
-        horizontalInterval: 2000,
+        horizontalInterval: yAxisScale.interval,
         getDrawingHorizontalLine: (value) => FlLine(
           color: AppColors.gridLine,
           strokeWidth: 1,
@@ -959,10 +972,10 @@ class _WeeklyTrendCardState extends State<WeeklyTrendCard> {
         leftTitles: AxisTitles(
           sideTitles: SideTitles(
             showTitles: true,
-            interval: 2000,
+            interval: yAxisScale.interval,
             reservedSize: WeeklyTrendCard._leftTitleReservedSize,
             getTitlesWidget: (value, meta) => Text(
-              value == 0 ? '0' : '${(value / 1000).round()}K',
+              _yLabel(value),
               style: TextStyle(color: AppColors.textSecondary, fontSize: 11),
             ),
           ),
@@ -1000,7 +1013,10 @@ class _WeeklyTrendCardState extends State<WeeklyTrendCard> {
             x: i,
             barRods: [
               BarChartRodData(
-                toY: widget.data[i].steps.toDouble(),
+                toY: widget.data[i].steps.toDouble().clamp(
+                  0.0,
+                  yAxisScale.maxY,
+                ),
                 width: WeeklyTrendCard._barWidth,
                 borderRadius: const BorderRadius.vertical(
                   top: Radius.circular(6),
@@ -1021,12 +1037,50 @@ class _WeeklyTrendCardState extends State<WeeklyTrendCard> {
       ],
     );
   }
+
+  _WeeklyYAxisScale get _yAxisScale {
+    final maxValue = widget.data.fold<int>(
+      0,
+      (max, item) => item.steps > max ? item.steps : max,
+    );
+    final maxY = _dynamicMaxYFor(maxValue.toDouble());
+    return _WeeklyYAxisScale(
+      maxY: maxY,
+      interval: maxY / WeeklyTrendCard._yAxisIntervalCount,
+    );
+  }
+
+  double _dynamicMaxYFor(double maxValue) {
+    if (maxValue < WeeklyTrendCard._defaultMaxY) {
+      return WeeklyTrendCard._defaultMaxY;
+    }
+    if (maxValue <= WeeklyTrendCard._firstExpandedMaxY) {
+      return WeeklyTrendCard._firstExpandedMaxY;
+    }
+    final steppedMaxY =
+        (maxValue / WeeklyTrendCard._expandedStepY).ceil() *
+        WeeklyTrendCard._expandedStepY;
+    return steppedMaxY.clamp(
+      WeeklyTrendCard._firstExpandedMaxY + WeeklyTrendCard._expandedStepY,
+      WeeklyTrendCard._maxDynamicY,
+    );
+  }
+
+  String _yLabel(double value) {
+    if (value <= 0) return '0';
+    final thousands = value / 1000;
+    if (thousands == thousands.roundToDouble()) {
+      return '${thousands.round()}K';
+    }
+    return '${thousands.toStringAsFixed(1)}K';
+  }
 }
 
 class _WeeklyCurveOverlay extends CustomPainter {
   final List<WeeklyStepData> data;
+  final _WeeklyYAxisScale yAxisScale;
 
-  const _WeeklyCurveOverlay({required this.data});
+  const _WeeklyCurveOverlay({required this.data, required this.yAxisScale});
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -1044,8 +1098,8 @@ class _WeeklyCurveOverlay extends CustomPainter {
           top +
               height *
                   (1 -
-                      data[i].steps.clamp(0, WeeklyTrendCard._chartMaxY) /
-                          WeeklyTrendCard._chartMaxY),
+                      data[i].steps.toDouble().clamp(0.0, yAxisScale.maxY) /
+                          yAxisScale.maxY),
         ),
     ];
     final path = Path()..moveTo(points.first.dx, points.first.dy);
@@ -1081,7 +1135,14 @@ class _WeeklyCurveOverlay extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant _WeeklyCurveOverlay oldDelegate) =>
-      oldDelegate.data != data;
+      oldDelegate.data != data || oldDelegate.yAxisScale != yAxisScale;
+}
+
+class _WeeklyYAxisScale {
+  final double maxY;
+  final double interval;
+
+  const _WeeklyYAxisScale({required this.maxY, required this.interval});
 }
 
 /// 每日活动时段列表。
