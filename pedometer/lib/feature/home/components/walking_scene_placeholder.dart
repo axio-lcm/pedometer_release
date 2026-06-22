@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:pedometer/common/config/app_colors.dart';
 
-/// 步数卡内的步行场景前景层：展示 assets/wboy.png。
+/// 步数卡内的步行场景前景层：展示 assets/home_overview_background.png。
 /// 资源缺失时回退到轻量绘制的夜间森林占位（道路弧线 + 树剪影 + 光点）。
 class WalkingSceneOverlay extends StatelessWidget {
   final double? width;
@@ -27,7 +27,7 @@ class WalkingSceneOverlay extends StatelessWidget {
     this.imageOffsetY = 0.0,
   });
 
-  static const String _imageAsset = 'assets/wboy.png';
+  static const String _imageAsset = 'assets/home_overview_background.png';
 
   @override
   Widget build(BuildContext context) {

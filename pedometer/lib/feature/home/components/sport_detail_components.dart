@@ -230,34 +230,33 @@ class StepProgressHeroCard extends StatelessWidget {
       ),
       child: LayoutBuilder(
         builder: (context, constraints) {
-          // 裁剪后人物图的宽高比（assets/wboy.png：1720 × 649）。
-          const sceneAspect = 1720 / 649;
-          // 场景按“铺满宽度”所需的自然高度展示完整人物（不裁头），
-          // 上限不超过给圆环留下最小尺寸后的剩余高度。
-          final sceneHeight = math.min(
-            constraints.maxWidth / sceneAspect,
-            constraints.maxHeight - 142,
-          );
-          // 圆环占据场景之上的剩余高度，保证人物始终在“达成百分比”下方、互不遮挡。
-          final ringSize = math
-              .min(
-                constraints.maxWidth - 10,
-                constraints.maxHeight - sceneHeight,
-              )
-              .clamp(142.0, 178.0);
-          return Column(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          const sceneAspect = 226 / 100;
+          final sceneBleedX = AppSpacing.xxs;
+          final sceneHeight =
+              (constraints.maxWidth + sceneBleedX * 2) / sceneAspect;
+          final ringSize = (constraints.maxWidth - 10).clamp(142.0, 178.0);
+          return Stack(
+            clipBehavior: Clip.none,
             children: [
-              NeonRingProgress(
-                size: ringSize,
-                strokeWidth: 18,
-                progress: data.progress,
-                center: _RingCenter(data: data),
+              Positioned(
+                left: -sceneBleedX,
+                right: -sceneBleedX,
+                bottom: 0,
+                child: WalkingSceneOverlay(
+                  height: sceneHeight,
+                  borderRadius: BorderRadius.circular(AppRadius.lg),
+                  fit: BoxFit.fitWidth,
+                  alignment: Alignment.bottomCenter,
+                ),
               ),
-              WalkingSceneOverlay(
-                height: sceneHeight,
-                borderRadius: BorderRadius.circular(AppRadius.lg),
-                fit: BoxFit.fitWidth,
+              Align(
+                alignment: Alignment.topCenter,
+                child: NeonRingProgress(
+                  size: ringSize,
+                  strokeWidth: 18,
+                  progress: data.progress,
+                  center: _RingCenter(data: data),
+                ),
               ),
             ],
           );
