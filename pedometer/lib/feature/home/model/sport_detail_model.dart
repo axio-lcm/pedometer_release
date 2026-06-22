@@ -318,7 +318,7 @@ class SportDetailFixtures {
       ),
     ],
     summary: SportSummaryData(
-      icon: const MaterialAppIcon(Icons.flag_rounded),
+      icon: const AssetAppIcon(AppMetricAssets.goalSuggestion),
       color: AppColors.brandGreen,
       title: '目标建议',
       primary: '还差',
@@ -413,21 +413,21 @@ class SportDetailFixtures {
     ),
     metrics: [
       SportMetricData(
-        iconAsset: AppMetricAssets.dayAverage,
+        iconAsset: AppMetricAssets.monthDailyAverage,
         color: AppColors.brandGreen,
         title: '日均',
         value: '5,417',
         unit: '步',
       ),
       SportMetricData(
-        iconAsset: AppMetricAssets.targetMet,
+        iconAsset: AppMetricAssets.monthTargetMet,
         color: AppColors.accentCyan,
         title: '达标天数',
         value: '18',
         unit: '天',
       ),
       SportMetricData(
-        iconAsset: AppMetricAssets.distance,
+        iconAsset: AppMetricAssets.monthTotalDistance,
         color: AppColors.accentPurple,
         title: '总距离',
         value: '48.7',
@@ -487,14 +487,13 @@ class SportDetailFixtures {
       ),
     ],
     summary: SportSummaryData(
-      icon: const MaterialAppIcon(Icons.calendar_month_rounded),
+      icon: const AssetAppIcon(AppMetricAssets.monthSummary),
       color: AppColors.brandGreen,
       title: '月度总结',
       primary: '最佳单日：',
       highlight: '6月12日 · 8,240 步',
       secondary: '本月已完成目标 18 / 30 天',
       assetName: '3D monthly calendar',
-      showChevron: true,
     ),
   );
 }

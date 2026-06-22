@@ -588,7 +588,7 @@ class SyncedHealthDataSource implements HealthDataSource {
       ),
       metrics: [
         SportMetricData(
-          iconAsset: AppMetricAssets.dayAverage,
+          iconAsset: AppMetricAssets.monthDailyAverage,
           color: AppColors.brandGreen,
           title: '日均',
           value: _formatInt(
@@ -597,14 +597,14 @@ class SyncedHealthDataSource implements HealthDataSource {
           unit: '步',
         ),
         SportMetricData(
-          iconAsset: AppMetricAssets.targetMet,
+          iconAsset: AppMetricAssets.monthTargetMet,
           color: AppColors.accentCyan,
           title: '达标天数',
           value: '$goalDays',
           unit: '天',
         ),
         SportMetricData(
-          iconAsset: AppMetricAssets.distance,
+          iconAsset: AppMetricAssets.monthTotalDistance,
           color: AppColors.accentPurple,
           title: '总距离',
           value: _formatDecimal(
@@ -619,14 +619,13 @@ class SyncedHealthDataSource implements HealthDataSource {
       ],
       analyses: _periodAnalyses(monthItems, '来自健康同步'),
       summary: SportSummaryData(
-        icon: const MaterialAppIcon(Icons.calendar_month_rounded),
+        icon: const AssetAppIcon(AppMetricAssets.monthSummary),
         color: AppColors.brandGreen,
         title: '月度总结',
         primary: '最佳单日：',
         highlight: _bestDayText(monthItems),
         secondary: '本月已同步 ${monthItems.length} 天健康数据',
         assetName: 'synced monthly health data',
-        showChevron: true,
       ),
     );
   }
