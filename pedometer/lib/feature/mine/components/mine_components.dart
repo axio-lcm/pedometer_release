@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pedometer/common/component/asset_metric_icon.dart';
 import 'package:pedometer/common/component/glass_card.dart';
 import 'package:pedometer/common/config/app_colors.dart';
 import 'package:pedometer/common/config/app_dimens.dart';
@@ -38,7 +39,7 @@ class BodyStatItem extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        Icon(stat.icon, color: stat.color, size: 34),
+        AssetMetricIcon(assetName: stat.iconAsset, size: 40),
         SizedBox(height: AppSpacing.md),
         Text(
           stat.label,

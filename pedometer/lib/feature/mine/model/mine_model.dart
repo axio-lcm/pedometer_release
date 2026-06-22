@@ -4,7 +4,7 @@ import 'package:pedometer/feature/mine/resources/mine_resource.dart';
 /// 身体指标项：数值与单位分离，便于后续国际化；
 /// [statusText] 非空时以状态胶囊（如 BMI「正常」）替代单位展示。
 class BodyStat {
-  final IconData icon;
+  final String iconAsset;
   final Color color;
   final String label;
   final String value;
@@ -12,7 +12,7 @@ class BodyStat {
   final String? statusText;
 
   const BodyStat({
-    required this.icon,
+    required this.iconAsset,
     required this.color,
     required this.label,
     required this.value,
@@ -53,30 +53,29 @@ class MinePageData {
 
   static const mock = MinePageData(
     bodyStats: [
-      // TODO: 图标为占位，后续可替换为设计稿同款图标资源。
       BodyStat(
-        icon: Icons.height_rounded,
+        iconAsset: 'assets/profile_height.svg',
         color: _cyan,
         label: MineText.height,
         value: '175',
         unit: MineText.heightUnit,
       ),
       BodyStat(
-        icon: Icons.monitor_weight_outlined,
+        iconAsset: 'assets/profile_weight.svg',
         color: _green,
         label: MineText.weight,
         value: '68.0',
         unit: MineText.weightUnit,
       ),
       BodyStat(
-        icon: Icons.data_usage_rounded,
+        iconAsset: 'assets/profile_bmi.svg',
         color: _purple,
         label: MineText.bmi,
         value: '22.2',
         statusText: MineText.bmiNormal,
       ),
       BodyStat(
-        icon: Icons.calendar_month_rounded,
+        iconAsset: 'assets/profile_age.svg',
         color: _orange,
         label: MineText.age,
         value: '28',

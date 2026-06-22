@@ -1,5 +1,8 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:pedometer/common/config/resource_loader.dart';
+import 'package:pedometer/common/service/motion_fitness_permission_service.dart';
 import 'package:pedometer/products/init/app.dart';
 
 /// 应用冷启动初始化（main 入口）。
@@ -11,6 +14,9 @@ class AppStartup {
   static Future<void> run() async {
     await bootstrap();
     runApp(const PedometerApp());
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      unawaited(MotionFitnessPermissionService.requestAuthorization());
+    });
   }
 
   static Future<void> bootstrap() async {
