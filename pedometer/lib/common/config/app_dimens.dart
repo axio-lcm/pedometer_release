@@ -12,7 +12,7 @@ class AppRadius {
   static double get full => 999.r;
 }
 
-/// 间距令牌（规范 §5.1）
+/// 间距
 class AppSpacing {
   AppSpacing._();
   static double get xxs => 4.w;

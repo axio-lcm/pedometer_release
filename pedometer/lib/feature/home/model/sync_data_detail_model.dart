@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:pedometer/common/config/app_icon_source.dart';
+import 'package:pedometer/common/config/app_metric_assets.dart';
 
 /// Health 同步详情页本地展示数据。
 class SyncDataDetailData {
@@ -44,25 +46,25 @@ class SyncDataDetailData {
     ],
     dataTypes: [
       SyncDataType(
-        icon: Icons.directions_walk_rounded,
+        icon: MaterialAppIcon(Icons.directions_walk_rounded),
         iconColor: Color(0xFF24F04E),
         title: '步数',
         value: '12,856 步',
       ),
       SyncDataType(
-        icon: Icons.local_fire_department_rounded,
+        icon: AssetAppIcon(AppMetricAssets.calories),
         iconColor: Color(0xFFFF9F12),
         title: '卡路里',
         value: '1,256 kcal',
       ),
       SyncDataType(
-        icon: Icons.timer_outlined,
+        icon: AssetAppIcon(AppMetricAssets.activeTime),
         iconColor: Color(0xFF0CD9FF),
         title: '活动时间',
         value: '98 min',
       ),
       SyncDataType(
-        icon: Icons.location_on_rounded,
+        icon: AssetAppIcon(AppMetricAssets.distance),
         iconColor: Color(0xFF43F56B),
         title: '距离',
         value: '8.34 km',
@@ -112,7 +114,7 @@ class SyncMetric {
 }
 
 class SyncDataType {
-  final IconData icon;
+  final AppIconSource icon;
   final Color iconColor;
   final String title;
   final String value;
@@ -208,25 +210,25 @@ class SyncHistoryDetailData {
     result: '成功同步 4 项数据',
     syncedItems: [
       SyncDataType(
-        icon: Icons.directions_walk_rounded,
+        icon: MaterialAppIcon(Icons.directions_walk_rounded),
         iconColor: Color(0xFF24F04E),
         title: '步数',
         value: '5,276 步',
       ),
       SyncDataType(
-        icon: Icons.local_fire_department_rounded,
+        icon: AssetAppIcon(AppMetricAssets.calories),
         iconColor: Color(0xFFFF9F12),
         title: '卡路里',
         value: '293 kcal',
       ),
       SyncDataType(
-        icon: Icons.timer_outlined,
+        icon: AssetAppIcon(AppMetricAssets.activeTime),
         iconColor: Color(0xFF0CD9FF),
         title: '活动时间',
         value: '28 min',
       ),
       SyncDataType(
-        icon: Icons.location_on_rounded,
+        icon: AssetAppIcon(AppMetricAssets.distance),
         iconColor: Color(0xFF43F56B),
         title: '距离',
         value: '1.6 km',
@@ -307,22 +309,22 @@ class SyncSourceDetailData {
       source: source,
       permissions: const [
         SyncSourcePermission(
-          icon: Icons.directions_walk_rounded,
+          icon: MaterialAppIcon(Icons.directions_walk_rounded),
           iconColor: Color(0xFF24F04E),
           title: '步数',
         ),
         SyncSourcePermission(
-          icon: Icons.location_on_rounded,
+          icon: AssetAppIcon(AppMetricAssets.distance),
           iconColor: Color(0xFF43F56B),
           title: '距离',
         ),
         SyncSourcePermission(
-          icon: Icons.local_fire_department_rounded,
+          icon: AssetAppIcon(AppMetricAssets.calories),
           iconColor: Color(0xFFFF9F12),
           title: '卡路里',
         ),
         SyncSourcePermission(
-          icon: Icons.timer_outlined,
+          icon: AssetAppIcon(AppMetricAssets.activeTime),
           iconColor: Color(0xFF0CD9FF),
           title: '活动时间',
         ),
@@ -347,7 +349,7 @@ class SyncSourceDetailData {
 }
 
 class SyncSourcePermission {
-  final IconData icon;
+  final AppIconSource icon;
   final Color iconColor;
   final String title;
 

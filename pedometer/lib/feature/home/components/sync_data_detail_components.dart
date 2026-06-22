@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pedometer/common/component/asset_metric_icon.dart';
 import 'package:pedometer/common/component/glass_card.dart';
 import 'package:pedometer/common/config/app_colors.dart';
 import 'package:pedometer/common/config/app_dimens.dart';
@@ -79,11 +80,7 @@ class SyncOverviewCard extends StatelessWidget {
   final List<SyncDataSource> sources;
   final ValueChanged<SyncDataSource>? onSourceView;
 
-  const SyncOverviewCard({
-    super.key,
-    required this.sources,
-    this.onSourceView,
-  });
+  const SyncOverviewCard({super.key, required this.sources, this.onSourceView});
 
   @override
   Widget build(BuildContext context) {
@@ -116,7 +113,9 @@ class _SourceColumn extends StatelessWidget {
         for (var i = 0; i < sources.length; i++) ...[
           DataSourceRow(
             data: sources[i],
-            onView: onSourceView == null ? null : () => onSourceView!(sources[i]),
+            onView: onSourceView == null
+                ? null
+                : () => onSourceView!(sources[i]),
           ),
           if (i != sources.length - 1) SizedBox(height: AppSpacing.md),
         ],
@@ -363,7 +362,11 @@ class DataTypeListItem extends StatelessWidget {
                 width: _iconColumnWidth,
                 child: Align(
                   alignment: AlignmentDirectional.centerStart,
-                  child: Icon(data.icon, color: data.iconColor, size: 28),
+                  child: AppIconView(
+                    icon: data.icon,
+                    color: data.iconColor,
+                    size: 22,
+                  ),
                 ),
               ),
               const SizedBox(width: _titleGap),

@@ -15,14 +15,12 @@ class StepData {
 
 /// KPI 卡数据（距离 / 卡路里 / 活动时间）
 class KpiItem {
-  final IconData icon;
-  final Color color;
+  final String assetIcon;
   final String title;
   final String value;
   final String unit;
   const KpiItem({
-    required this.icon,
-    required this.color,
+    required this.assetIcon,
     required this.title,
     required this.value,
     required this.unit,
@@ -44,6 +42,7 @@ class TrendPoint {
 /// 分析小卡数据
 class AnalysisData {
   final String title;
+  final String assetIcon;
   final String value;
   final String unit;
   final String delta;
@@ -51,6 +50,7 @@ class AnalysisData {
   final List<double> samples;
   const AnalysisData({
     required this.title,
+    required this.assetIcon,
     required this.value,
     required this.unit,
     required this.delta,

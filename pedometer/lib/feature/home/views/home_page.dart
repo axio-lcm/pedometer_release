@@ -100,16 +100,9 @@ class HomePage extends GetView<HomeViewModel> {
       return Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Expanded(
-            child: MiniAnalysisCard(
-              data: list[0],
-              icon: Icons.local_fire_department_rounded,
-            ),
-          ),
+          Expanded(child: MiniAnalysisCard(data: list[0])),
           SizedBox(width: AppSpacing.md),
-          Expanded(
-            child: MiniAnalysisCard(data: list[1], icon: Icons.timer_rounded),
-          ),
+          Expanded(child: MiniAnalysisCard(data: list[1])),
         ],
       );
     });

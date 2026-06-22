@@ -2,10 +2,12 @@ import 'dart:math' as math;
 
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
+import 'package:pedometer/common/component/asset_metric_icon.dart';
 import 'package:intl/intl.dart';
 import 'package:pedometer/common/component/glass_card.dart';
 import 'package:pedometer/common/config/app_colors.dart';
 import 'package:pedometer/common/config/app_dimens.dart';
+import 'package:pedometer/common/config/app_icon_source.dart';
 import 'package:pedometer/feature/home/components/walking_scene_placeholder.dart';
 import 'package:pedometer/feature/home/model/sport_detail_model.dart';
 
@@ -139,6 +141,61 @@ class CircleIconBadge extends StatelessWidget {
   }
 }
 
+class MetricIconBadge extends StatelessWidget {
+  final AppIconSource icon;
+  final Color color;
+  final double size;
+  final double iconSize;
+
+  const MetricIconBadge({
+    super.key,
+    required this.icon,
+    required this.color,
+    this.size = 52,
+    this.iconSize = 27,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    if (icon is AssetAppIcon) {
+      final assetSize = size - 5;
+      return SizedBox(
+        width: size,
+        height: size,
+        child: Center(
+          child: AppIconView(icon: icon, color: color, size: assetSize),
+        ),
+      );
+    }
+
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        gradient: RadialGradient(
+          colors: [
+            color.withValues(alpha: 0.34),
+            color.withValues(alpha: 0.12),
+            AppColors.surfaceIcon.withValues(alpha: 0.72),
+          ],
+        ),
+        border: Border.all(color: color.withValues(alpha: 0.35)),
+        boxShadow: [
+          BoxShadow(
+            color: color.withValues(alpha: 0.18),
+            blurRadius: 20,
+            spreadRadius: -4,
+          ),
+        ],
+      ),
+      child: Center(
+        child: AppIconView(icon: icon, color: color, size: iconSize),
+      ),
+    );
+  }
+}
+
 /// 右侧 KPI 卡。
 class MetricCard extends StatelessWidget {
   final SportMetricData data;
@@ -155,11 +212,11 @@ class MetricCard extends StatelessWidget {
       ),
       child: Row(
         children: [
-          CircleIconBadge(
+          MetricIconBadge(
             icon: data.icon,
             color: data.color,
             size: 45,
-            iconSize: 24,
+            iconSize: 22,
           ),
           SizedBox(width: AppSpacing.sm),
           Expanded(
@@ -306,11 +363,7 @@ class _RingCenter extends StatelessWidget {
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(
-                    Icons.star_rounded,
-                    color: AppColors.brandLime,
-                    size: 9,
-                  ),
+                  Icon(Icons.star_rounded, color: AppColors.brandLime, size: 9),
                   const SizedBox(width: 2),
                   Text(
                     '${data.badgePrefix} ${data.percent}%',
@@ -1191,7 +1244,7 @@ class SportMiniAnalysisCard extends StatelessWidget {
         children: [
           Row(
             children: [
-              Icon(data.icon, color: data.color, size: 22),
+              AssetMetricIcon(assetName: data.assetIcon, size: 22),
               SizedBox(width: AppSpacing.xs),
               Expanded(
                 child: Text(

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:health/health.dart';
 import 'package:pedometer/common/config/app_colors.dart';
+import 'package:pedometer/common/config/app_icon_source.dart';
+import 'package:pedometer/common/config/app_metric_assets.dart';
 import 'package:pedometer/feature/home/model/home_model.dart';
 import 'package:pedometer/feature/home/model/health_sync_models.dart';
 import 'package:pedometer/feature/home/model/sport_detail_model.dart';
@@ -134,22 +136,19 @@ class MockHealthDataSource implements HealthDataSource {
       step: const StepData(steps: 5276, goal: 6000),
       kpis: const [
         KpiItem(
-          icon: Icons.place_rounded,
-          color: Color(0xFF7A3DFF),
+          assetIcon: AppMetricAssets.distance,
           title: '距离',
           value: '1.6',
           unit: 'km',
         ),
         KpiItem(
-          icon: Icons.local_fire_department_rounded,
-          color: Color(0xFFFF9F12),
+          assetIcon: AppMetricAssets.calories,
           title: '卡路里',
           value: '293',
           unit: 'kcal',
         ),
         KpiItem(
-          icon: Icons.timer_rounded,
-          color: Color(0xFF0CD9FF),
+          assetIcon: AppMetricAssets.activeTime,
           title: '活动时间',
           value: '28',
           unit: 'min',
@@ -159,6 +158,7 @@ class MockHealthDataSource implements HealthDataSource {
       analyses: [
         AnalysisData(
           title: '卡路里分析',
+          assetIcon: AppMetricAssets.calories,
           value: '293',
           unit: 'kcal',
           delta: '较昨日 +12%',
@@ -167,6 +167,7 @@ class MockHealthDataSource implements HealthDataSource {
         ),
         AnalysisData(
           title: '活动时间分析',
+          assetIcon: AppMetricAssets.activeTime,
           value: '28',
           unit: 'min',
           delta: '较昨日 +8%',
@@ -409,22 +410,19 @@ class SyncedHealthDataSource implements HealthDataSource {
       step: StepData(steps: latest.steps, goal: 6000),
       kpis: [
         KpiItem(
-          icon: Icons.place_rounded,
-          color: AppColors.accentPurple,
+          assetIcon: AppMetricAssets.distance,
           title: '距离',
           value: _formatDecimal(latest.distanceKm),
           unit: 'km',
         ),
         KpiItem(
-          icon: Icons.local_fire_department_rounded,
-          color: AppColors.accentOrange,
+          assetIcon: AppMetricAssets.calories,
           title: '卡路里',
           value: _formatInt(latest.caloriesKcal.round()),
           unit: 'kcal',
         ),
         KpiItem(
-          icon: Icons.timer_rounded,
-          color: AppColors.accentCyan,
+          assetIcon: AppMetricAssets.activeTime,
           title: '活动时间',
           value: _formatInt(latest.activeMinutes),
           unit: 'min',
@@ -434,6 +432,7 @@ class SyncedHealthDataSource implements HealthDataSource {
       analyses: [
         AnalysisData(
           title: '卡路里分析',
+          assetIcon: AppMetricAssets.calories,
           value: _formatInt(latest.caloriesKcal.round()),
           unit: 'kcal',
           delta: '来自健康同步',
@@ -442,6 +441,7 @@ class SyncedHealthDataSource implements HealthDataSource {
         ),
         AnalysisData(
           title: '活动时间分析',
+          assetIcon: AppMetricAssets.activeTime,
           value: _formatInt(latest.activeMinutes),
           unit: 'min',
           delta: '来自健康同步',
@@ -517,7 +517,7 @@ class SyncedHealthDataSource implements HealthDataSource {
       ),
       metrics: [
         SportMetricData(
-          icon: Icons.timer_rounded,
+          icon: const MaterialAppIcon(Icons.timer_rounded),
           color: AppColors.accentCyan,
           title: '日均',
           value: _formatInt(
@@ -526,14 +526,14 @@ class SyncedHealthDataSource implements HealthDataSource {
           unit: '步',
         ),
         SportMetricData(
-          icon: Icons.local_fire_department_rounded,
+          icon: const MaterialAppIcon(Icons.local_fire_department_rounded),
           color: AppColors.accentOrange,
           title: '活跃天数',
           value: '$activeDays / 7',
           unit: '天',
         ),
         SportMetricData(
-          icon: Icons.gps_fixed_rounded,
+          icon: const MaterialAppIcon(Icons.gps_fixed_rounded),
           color: AppColors.accentPurple,
           title: '达标天数',
           value: '$goalDays',
@@ -582,7 +582,7 @@ class SyncedHealthDataSource implements HealthDataSource {
       ),
       metrics: [
         SportMetricData(
-          icon: Icons.directions_walk_rounded,
+          icon: const MaterialAppIcon(Icons.directions_walk_rounded),
           color: AppColors.brandGreen,
           title: '日均',
           value: _formatInt(
@@ -591,14 +591,14 @@ class SyncedHealthDataSource implements HealthDataSource {
           unit: '步',
         ),
         SportMetricData(
-          icon: Icons.gps_fixed_rounded,
+          icon: const MaterialAppIcon(Icons.gps_fixed_rounded),
           color: AppColors.accentCyan,
           title: '达标天数',
           value: '$goalDays',
           unit: '天',
         ),
         SportMetricData(
-          icon: Icons.place_rounded,
+          icon: const AssetAppIcon(AppMetricAssets.distance),
           color: AppColors.accentPurple,
           title: '总距离',
           value: _formatDecimal(
@@ -632,21 +632,21 @@ class SyncedHealthDataSource implements HealthDataSource {
   }) {
     return [
       SportMetricData(
-        icon: Icons.place_rounded,
+        icon: const AssetAppIcon(AppMetricAssets.distance),
         color: AppColors.accentPurple,
         title: '距离',
         value: _formatDecimal(distanceKm),
         unit: 'km',
       ),
       SportMetricData(
-        icon: Icons.local_fire_department_rounded,
+        icon: const AssetAppIcon(AppMetricAssets.calories),
         color: AppColors.accentOrange,
         title: '卡路里',
         value: _formatInt(caloriesKcal.round()),
         unit: 'kcal',
       ),
       SportMetricData(
-        icon: Icons.timer_rounded,
+        icon: const AssetAppIcon(AppMetricAssets.activeTime),
         color: AppColors.accentCyan,
         title: '活动时间',
         value: _formatInt(activeMinutes),
@@ -671,7 +671,7 @@ class SyncedHealthDataSource implements HealthDataSource {
         : sorted.sublist(sorted.length - 7);
     return [
       SportAnalysisData(
-        icon: Icons.local_fire_department_rounded,
+        assetIcon: AppMetricAssets.calories,
         color: AppColors.accentOrange,
         title: '卡路里分析',
         value: _formatInt(latest.caloriesKcal.round()),
@@ -680,7 +680,7 @@ class SyncedHealthDataSource implements HealthDataSource {
         samples: _normalizedSamples(recent.map((item) => item.caloriesKcal)),
       ),
       SportAnalysisData(
-        icon: Icons.timer_rounded,
+        assetIcon: AppMetricAssets.activeTime,
         color: AppColors.accentCyan,
         title: '活动时间分析',
         value: _formatInt(latest.activeMinutes),
@@ -707,7 +707,7 @@ class SyncedHealthDataSource implements HealthDataSource {
     final minutes = items.fold<int>(0, (sum, item) => sum + item.activeMinutes);
     return [
       SportAnalysisData(
-        icon: Icons.local_fire_department_rounded,
+        assetIcon: AppMetricAssets.calories,
         color: AppColors.accentOrange,
         title: '卡路里分析',
         value: _formatInt(calories.round()),
@@ -716,7 +716,7 @@ class SyncedHealthDataSource implements HealthDataSource {
         samples: _normalizedSamples(items.map((item) => item.caloriesKcal)),
       ),
       SportAnalysisData(
-        icon: Icons.timer_rounded,
+        assetIcon: AppMetricAssets.activeTime,
         color: AppColors.accentCyan,
         title: '活动时间分析',
         value: _formatInt(minutes),

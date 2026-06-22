@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pedometer/common/component/asset_metric_icon.dart';
 import 'package:pedometer/common/component/glass_card.dart';
 import 'package:pedometer/common/config/app_colors.dart';
 import 'package:pedometer/common/config/app_dimens.dart';
@@ -136,7 +137,11 @@ class SyncDataValueRow extends StatelessWidget {
                 width: 30,
                 child: Align(
                   alignment: AlignmentDirectional.centerStart,
-                  child: Icon(data.icon, color: data.iconColor, size: 28),
+                  child: AppIconView(
+                    icon: data.icon,
+                    color: data.iconColor,
+                    size: 22,
+                  ),
                 ),
               ),
               SizedBox(width: AppSpacing.xl),

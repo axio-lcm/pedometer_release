@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:pedometer/common/component/asset_metric_icon.dart';
 import 'package:pedometer/common/component/app_top_navigation_bar.dart';
 import 'package:pedometer/common/component/glass_card.dart';
 import 'package:pedometer/common/config/app_colors.dart';
@@ -82,6 +83,8 @@ class SyncSourceDetailPage extends GetView<SyncSourceDetailViewModel> {
                     _SourceActionBar(
                       syncing: controller.syncing.value,
                       onSave: controller.syncHealthData,
+                      onDisconnect: () =>
+                          _confirmDisconnect(context, data.source.title),
                     ),
                     SizedBox(height: AppSpacing.lg),
                     DataSecurityFooter(text: data.safetyText),
@@ -100,6 +103,86 @@ class SyncSourceDetailPage extends GetView<SyncSourceDetailViewModel> {
     if (Get.key.currentState?.canPop() ?? false) {
       Get.back<void>();
     }
+  }
+
+  /// 「断开连接」引导弹窗：说明需在系统设置中关闭授权，确认后跳转系统设置。
+  Future<void> _confirmDisconnect(BuildContext context, String title) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      barrierColor: Colors.black.withValues(alpha: 0.55),
+      builder: (dialogContext) => _DisconnectGuideDialog(title: title),
+    );
+    if (confirmed == true) {
+      await controller.openHealthPrivacySettings();
+    }
+  }
+}
+
+/// 断开连接引导弹窗：App 无法直接撤销系统健康授权，引导用户去系统设置关闭。
+class _DisconnectGuideDialog extends StatelessWidget {
+  final String title;
+
+  const _DisconnectGuideDialog({required this.title});
+
+  @override
+  Widget build(BuildContext context) {
+    return Dialog(
+      backgroundColor: Colors.transparent,
+      insetPadding: EdgeInsets.symmetric(horizontal: AppSpacing.xl),
+      child: GlassCard(
+        radius: AppRadius.xl,
+        padding: EdgeInsets.all(AppSpacing.lg),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(
+              '断开连接',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: AppColors.textPrimary,
+                fontSize: 18,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+            SizedBox(height: AppSpacing.sm),
+            Text(
+              '出于隐私保护，App 无法直接断开与 $title 的连接。\n请在系统「设置」中关闭对本 App 的健康数据授权。',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: AppColors.textSecondary,
+                fontSize: 14,
+                height: 1.5,
+              ),
+            ),
+            SizedBox(height: AppSpacing.lg),
+            Row(
+              children: [
+                Expanded(
+                  child: _ActionButton(
+                    label: '取消',
+                    foreground: AppColors.brandGreen,
+                    background: AppColors.bgPrimary.withValues(alpha: 0.42),
+                    borderColor: AppColors.strokeCard,
+                    onTap: () => Navigator.of(context).pop(false),
+                  ),
+                ),
+                SizedBox(width: AppSpacing.md),
+                Expanded(
+                  child: _ActionButton(
+                    label: '去设置',
+                    foreground: AppColors.bgPrimary,
+                    background: AppColors.brandGreen,
+                    borderColor: AppColors.brandGreen,
+                    onTap: () => Navigator.of(context).pop(true),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }
 
@@ -318,7 +401,7 @@ class _PermissionRow extends StatelessWidget {
       height: 44,
       child: Row(
         children: [
-          Icon(item.icon, color: item.iconColor, size: 24),
+          AppIconView(icon: item.icon, color: item.iconColor, size: 22),
           SizedBox(width: AppSpacing.md),
           Expanded(
             child: Text(
@@ -648,8 +731,13 @@ class _SyncResultBanner extends StatelessWidget {
 class _SourceActionBar extends StatelessWidget {
   final bool syncing;
   final VoidCallback onSave;
+  final VoidCallback onDisconnect;
 
-  const _SourceActionBar({required this.syncing, required this.onSave});
+  const _SourceActionBar({
+    required this.syncing,
+    required this.onSave,
+    required this.onDisconnect,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -661,6 +749,7 @@ class _SourceActionBar extends StatelessWidget {
             foreground: AppColors.brandGreen,
             background: AppColors.bgPrimary.withValues(alpha: 0.42),
             borderColor: AppColors.strokeCard,
+            onTap: syncing ? null : onDisconnect,
           ),
         ),
         SizedBox(width: AppSpacing.md),

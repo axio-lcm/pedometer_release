@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:pedometer/common/config/app_colors.dart';
+import 'package:pedometer/common/config/app_icon_source.dart';
+import 'package:pedometer/common/config/app_metric_assets.dart';
 
 /// 运动详情周期。
 enum SportPeriod { day, week, month }
@@ -26,7 +28,7 @@ class SportProgressData {
 
 /// KPI 数据。
 class SportMetricData {
-  final IconData icon;
+  final AppIconSource icon;
   final Color color;
   final String title;
   final String value;
@@ -84,7 +86,7 @@ class SportSegmentData {
 
 /// 分析小卡数据。
 class SportAnalysisData {
-  final IconData icon;
+  final String assetIcon;
   final Color color;
   final String title;
   final String value;
@@ -93,7 +95,7 @@ class SportAnalysisData {
   final List<double> samples;
 
   const SportAnalysisData({
-    required this.icon,
+    required this.assetIcon,
     required this.color,
     required this.title,
     required this.value,
@@ -212,21 +214,21 @@ class SportDetailFixtures {
     ),
     metrics: [
       SportMetricData(
-        icon: Icons.place_rounded,
+        icon: const AssetAppIcon(AppMetricAssets.distance),
         color: AppColors.accentPurple,
         title: '距离',
         value: '1.6',
         unit: 'km',
       ),
       SportMetricData(
-        icon: Icons.local_fire_department_rounded,
+        icon: const AssetAppIcon(AppMetricAssets.calories),
         color: AppColors.accentOrange,
         title: '卡路里',
         value: '293',
         unit: 'kcal',
       ),
       SportMetricData(
-        icon: Icons.timer_rounded,
+        icon: const AssetAppIcon(AppMetricAssets.activeTime),
         color: AppColors.accentCyan,
         title: '活动时间',
         value: '28',
@@ -271,7 +273,7 @@ class SportDetailFixtures {
     ],
     analyses: [
       SportAnalysisData(
-        icon: Icons.local_fire_department_rounded,
+        assetIcon: AppMetricAssets.calories,
         color: AppColors.accentOrange,
         title: '卡路里分析',
         value: '293',
@@ -280,7 +282,7 @@ class SportDetailFixtures {
         samples: const [0.30, 0.45, 0.38, 0.60, 0.55, 0.78, 0.92],
       ),
       SportAnalysisData(
-        icon: Icons.timer_rounded,
+        assetIcon: AppMetricAssets.activeTime,
         color: AppColors.accentCyan,
         title: '活动时间分析',
         value: '28',
@@ -313,21 +315,21 @@ class SportDetailFixtures {
     ),
     metrics: [
       SportMetricData(
-        icon: Icons.timer_rounded,
+        icon: const MaterialAppIcon(Icons.timer_rounded),
         color: AppColors.accentCyan,
         title: '日均',
         value: '6,054',
         unit: '步',
       ),
       SportMetricData(
-        icon: Icons.local_fire_department_rounded,
+        icon: const MaterialAppIcon(Icons.local_fire_department_rounded),
         color: AppColors.accentOrange,
         title: '活跃天数',
         value: '6 / 7',
         unit: '天',
       ),
       SportMetricData(
-        icon: Icons.gps_fixed_rounded,
+        icon: const MaterialAppIcon(Icons.gps_fixed_rounded),
         color: AppColors.accentPurple,
         title: '达标天数',
         value: '5',
@@ -345,7 +347,7 @@ class SportDetailFixtures {
     ],
     analyses: [
       SportAnalysisData(
-        icon: Icons.local_fire_department_rounded,
+        assetIcon: AppMetricAssets.calories,
         color: AppColors.accentOrange,
         title: '卡路里分析',
         value: '2,340',
@@ -354,7 +356,7 @@ class SportDetailFixtures {
         samples: const [0.25, 0.42, 0.34, 0.55, 0.45, 0.64, 0.82],
       ),
       SportAnalysisData(
-        icon: Icons.timer_rounded,
+        assetIcon: AppMetricAssets.activeTime,
         color: AppColors.accentCyan,
         title: '活动时间分析',
         value: '3h 48',
@@ -386,21 +388,21 @@ class SportDetailFixtures {
     ),
     metrics: [
       SportMetricData(
-        icon: Icons.directions_walk_rounded,
+        icon: const MaterialAppIcon(Icons.directions_walk_rounded),
         color: AppColors.brandGreen,
         title: '日均',
         value: '5,417',
         unit: '步',
       ),
       SportMetricData(
-        icon: Icons.gps_fixed_rounded,
+        icon: const MaterialAppIcon(Icons.gps_fixed_rounded),
         color: AppColors.accentCyan,
         title: '达标天数',
         value: '18',
         unit: '天',
       ),
       SportMetricData(
-        icon: Icons.place_rounded,
+        icon: const AssetAppIcon(AppMetricAssets.distance),
         color: AppColors.accentPurple,
         title: '总距离',
         value: '48.7',
@@ -441,7 +443,7 @@ class SportDetailFixtures {
     ],
     analyses: [
       SportAnalysisData(
-        icon: Icons.local_fire_department_rounded,
+        assetIcon: AppMetricAssets.calories,
         color: AppColors.accentOrange,
         title: '卡路里分析',
         value: '9,360',
@@ -450,7 +452,7 @@ class SportDetailFixtures {
         samples: const [0.30, 0.42, 0.36, 0.58, 0.47, 0.68, 0.84],
       ),
       SportAnalysisData(
-        icon: Icons.timer_rounded,
+        assetIcon: AppMetricAssets.activeTime,
         color: AppColors.accentCyan,
         title: '活动时间分析',
         value: '17h 24',

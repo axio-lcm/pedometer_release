@@ -204,6 +204,7 @@
 				3B06AD1E1E4923F5004D2608 /* Thin Binary */,
 				0A4AF85469CA9BB46C8E541D /* [CP] Embed Pods Frameworks */,
 				A6FDC80EEE4EA5636732379D /* [CP] Copy Pods Resources */,
+				B4FBAE302DCC4D4A98C45A1E /* Sign Flutter Native Assets */,
 			);
 			buildRules = (
 			);
@@ -383,6 +384,21 @@
 			shellPath = /bin/sh;
 			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-Runner/Pods-Runner-resources.sh\"\n";
 			showEnvVarsInLog = 0;
+		};
+		B4FBAE302DCC4D4A98C45A1E /* Sign Flutter Native Assets */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			name = "Sign Flutter Native Assets";
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "set -e\n\nif [ \"${CODE_SIGNING_ALLOWED}\" != \"YES\" ]; then\n  echo \"Skipping Flutter native asset signing because code signing is not allowed.\"\n  exit 0\nfi\n\nSIGN_IDENTITY=\"${EXPANDED_CODE_SIGN_IDENTITY}\"\nif [ -z \"${SIGN_IDENTITY}\" ]; then\n  SIGN_IDENTITY=\"${CODE_SIGN_IDENTITY}\"\nfi\n\nif [ -z \"${SIGN_IDENTITY}\" ]; then\n  echo \"Skipping Flutter native asset signing because no signing identity is available.\"\n  exit 0\nfi\n\nNATIVE_ASSET_FRAMEWORK=\"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/objective_c.framework\"\nif [ -d \"${NATIVE_ASSET_FRAMEWORK}\" ]; then\n  echo \"Signing ${NATIVE_ASSET_FRAMEWORK} with ${SIGN_IDENTITY}\"\n  /usr/bin/codesign --force --sign \"${SIGN_IDENTITY}\" --preserve-metadata=identifier,entitlements,flags \"${NATIVE_ASSET_FRAMEWORK}\"\nelse\n  echo \"No Flutter objective_c native asset framework found at ${NATIVE_ASSET_FRAMEWORK}.\"\nfi\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 

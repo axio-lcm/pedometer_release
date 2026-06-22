@@ -1,3 +1,4 @@
+import 'package:app_settings/app_settings.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
@@ -121,6 +122,12 @@ class SyncSourceDetailViewModel extends GetxController
       HealthAuthStatus.unsupported => '当前平台不支持 $title',
       HealthAuthStatus.unknown => '$title 授权状态待确认，同步后可验证是否读取到数据',
     };
+  }
+
+  /// 点击「断开连接」时触发：App 无法直接撤销系统健康授权，
+  /// 这里引导用户去系统设置中关闭对本 App 的健康数据授权。
+  Future<void> openHealthPrivacySettings() async {
+    await AppSettings.openAppSettings();
   }
 
   void selectSyncMode(int index) {

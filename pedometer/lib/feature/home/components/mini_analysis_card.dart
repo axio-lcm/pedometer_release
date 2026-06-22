@@ -1,5 +1,6 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
+import 'package:pedometer/common/component/asset_metric_icon.dart';
 import 'package:pedometer/common/component/glass_card.dart';
 import 'package:pedometer/common/config/app_colors.dart';
 import 'package:pedometer/common/config/app_dimens.dart';
@@ -8,8 +9,7 @@ import 'package:pedometer/feature/home/model/home_model.dart';
 /// 底部分析小卡：标题 + 大数字 + 变化 + fl_chart 平滑曲线（末端发光节点）。
 class MiniAnalysisCard extends StatelessWidget {
   final AnalysisData data;
-  final IconData icon;
-  const MiniAnalysisCard({super.key, required this.data, required this.icon});
+  const MiniAnalysisCard({super.key, required this.data});
 
   static const double _curveSmoothness = 0.56;
 
@@ -24,7 +24,7 @@ class MiniAnalysisCard extends StatelessWidget {
         children: [
           Row(
             children: [
-              Icon(icon, color: data.color, size: 18),
+              AssetMetricIcon(assetName: data.assetIcon, size: 22),
               const SizedBox(width: 6),
               Expanded(
                 child: Text(
@@ -59,7 +59,13 @@ class MiniAnalysisCard extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(width: 4),
-                Text(data.unit, style: TextStyle(color: AppColors.textSecondary, fontSize: 13)),
+                Text(
+                  data.unit,
+                  style: TextStyle(
+                    color: AppColors.textSecondary,
+                    fontSize: 13,
+                  ),
+                ),
               ],
             ),
           ),

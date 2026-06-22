@@ -32,6 +32,12 @@
 	<string>用于同步步数、距离、卡路里和活动时间，并展示在首页及日周月统计中。</string>
 	<key>NSHealthUpdateUsageDescription</key>
 	<string>用于在获得授权后同步健康数据。</string>
+	<key>NSBonjourServices</key>
+	<array>
+		<string>_dartobservatory._tcp</string>
+	</array>
+	<key>NSLocalNetworkUsageDescription</key>
+	<string>用于在调试模式下连接 Dart VM Service。</string>
 	<key>NSLocationTemporaryUsageDescriptionDictionary</key>
 	<dict>
 		<key>WorkoutPreciseLocation</key>
