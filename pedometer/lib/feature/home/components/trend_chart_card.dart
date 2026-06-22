@@ -12,9 +12,13 @@ class TrendChartCard extends StatefulWidget {
   final List<TrendPoint> points;
   const TrendChartCard({super.key, required this.points});
 
-  static const double _maxY = 8000;
+  static const double _defaultMaxY = 8000;
+  static const double _firstExpandedMaxY = 12000;
+  static const double _expandedStepY = 4000;
+  static const double _maxDynamicY = 50000;
+  static const int _yAxisIntervalCount = 4;
   static const double _curveSmoothness = 0.56;
-  static const double _leftTitleReservedSize = 30;
+  static const double _leftTitleReservedSize = 38;
   static const double _bottomTitleReservedSize = 22;
   static const double _tooltipWidth = 116;
   static const double _tooltipHeight = 32;
@@ -166,6 +170,7 @@ class _TrendChartCardState extends State<TrendChartCard> {
   }
 
   Offset _chartPointFor(Size size, int index, double value) {
+    final yAxisScale = _yAxisScale;
     final left = AppSpacing.lg + TrendChartCard._leftTitleReservedSize;
     final right = AppSpacing.lg;
     const top = 0.0;
@@ -173,8 +178,7 @@ class _TrendChartCardState extends State<TrendChartCard> {
     final width = size.width - left - right;
     final height = size.height - top - bottom;
     final divisor = (widget.points.length - 1).clamp(1, widget.points.length);
-    final yRatio =
-        1 - value.clamp(0.0, TrendChartCard._maxY) / TrendChartCard._maxY;
+    final yRatio = 1 - value.clamp(0.0, yAxisScale.maxY) / yAxisScale.maxY;
     return Offset(left + width * index / divisor, top + height * yRatio);
   }
 
@@ -189,6 +193,7 @@ class _TrendChartCardState extends State<TrendChartCard> {
   }
 
   LineChartData _chartData(int selectedIndex) {
+    final yAxisScale = _yAxisScale;
     final spots = <FlSpot>[
       for (var i = 0; i < widget.points.length; i++)
         FlSpot(i.toDouble(), widget.points[i].value),
@@ -199,12 +204,12 @@ class _TrendChartCardState extends State<TrendChartCard> {
           .clamp(0, widget.points.length)
           .toDouble(),
       minY: 0,
-      maxY: TrendChartCard._maxY,
+      maxY: yAxisScale.maxY,
       lineTouchData: const LineTouchData(enabled: false),
       gridData: FlGridData(
         show: true,
         drawVerticalLine: false,
-        horizontalInterval: 2000,
+        horizontalInterval: yAxisScale.interval,
         getDrawingHorizontalLine: (value) => FlLine(
           color: AppColors.gridLine,
           strokeWidth: 1,
@@ -220,7 +225,7 @@ class _TrendChartCardState extends State<TrendChartCard> {
         leftTitles: AxisTitles(
           sideTitles: SideTitles(
             showTitles: true,
-            interval: 2000,
+            interval: yAxisScale.interval,
             reservedSize: TrendChartCard._leftTitleReservedSize,
             getTitlesWidget: (value, meta) => Text(
               _yLabel(value),
@@ -294,10 +299,49 @@ class _TrendChartCardState extends State<TrendChartCard> {
     );
   }
 
+  _TrendYAxisScale get _yAxisScale {
+    final maxValue = widget.points.fold<double>(
+      0,
+      (max, point) => point.value > max ? point.value : max,
+    );
+    final maxY = _dynamicMaxYFor(maxValue);
+    return _TrendYAxisScale(
+      maxY: maxY,
+      interval: maxY / TrendChartCard._yAxisIntervalCount,
+    );
+  }
+
+  double _dynamicMaxYFor(double maxValue) {
+    if (maxValue < TrendChartCard._defaultMaxY) {
+      return TrendChartCard._defaultMaxY;
+    }
+    if (maxValue <= TrendChartCard._firstExpandedMaxY) {
+      return TrendChartCard._firstExpandedMaxY;
+    }
+    final steppedMaxY =
+        (maxValue / TrendChartCard._expandedStepY).ceil() *
+        TrendChartCard._expandedStepY;
+    return steppedMaxY.clamp(
+      TrendChartCard._firstExpandedMaxY + TrendChartCard._expandedStepY,
+      TrendChartCard._maxDynamicY,
+    );
+  }
+
   String _yLabel(double value) {
     if (value <= 0) return '0';
-    return '${(value / 1000).round()}K';
+    final thousands = value / 1000;
+    if (thousands == thousands.roundToDouble()) {
+      return '${thousands.round()}K';
+    }
+    return '${thousands.toStringAsFixed(1)}K';
   }
+}
+
+class _TrendYAxisScale {
+  final double maxY;
+  final double interval;
+
+  const _TrendYAxisScale({required this.maxY, required this.interval});
 }
 
 class _TrendTooltip extends StatelessWidget {

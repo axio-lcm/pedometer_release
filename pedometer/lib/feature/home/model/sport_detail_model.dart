@@ -298,7 +298,6 @@ class SportDetailFixtures {
       primary: '还差',
       highlight: '724',
       secondary: '步达成今日目标\n预计再步行 8 分钟可完成',
-      actionLabel: '继续加油',
       assetName: '3D target recommendation',
     ),
   );
