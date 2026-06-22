@@ -155,6 +155,32 @@ class SportPeriodData {
     this.analyses = const [],
     required this.summary,
   });
+
+  SportPeriodData copyWith({
+    SportPeriod? period,
+    String? dateTitle,
+    SportProgressData? progress,
+    List<SportMetricData>? metrics,
+    List<HourlyStepData>? hourly,
+    List<WeeklyStepData>? weekly,
+    List<MonthlyDayData>? monthly,
+    List<SportSegmentData>? segments,
+    List<SportAnalysisData>? analyses,
+    SportSummaryData? summary,
+  }) {
+    return SportPeriodData(
+      period: period ?? this.period,
+      dateTitle: dateTitle ?? this.dateTitle,
+      progress: progress ?? this.progress,
+      metrics: metrics ?? this.metrics,
+      hourly: hourly ?? this.hourly,
+      weekly: weekly ?? this.weekly,
+      monthly: monthly ?? this.monthly,
+      segments: segments ?? this.segments,
+      analyses: analyses ?? this.analyses,
+      summary: summary ?? this.summary,
+    );
+  }
 }
 
 /// 设计稿演示数据，后续可替换为真实运动/Health 数据源。

@@ -180,7 +180,11 @@ class MockHealthDataSource implements HealthDataSource {
 
   @override
   SportPeriodData sportPeriodData(SportPeriod period) {
-    return SportDetailFixtures.byPeriod(period);
+    final data = SportDetailFixtures.byPeriod(period);
+    if (period != SportPeriod.week) return data;
+    return data.copyWith(
+      weekly: _weeklyTrendForCurrentWeek(_mockDailySummariesEndingToday()),
+    );
   }
 }
 
@@ -496,18 +500,23 @@ class SyncedHealthDataSource implements HealthDataSource {
   }
 
   SportPeriodData _weekData() {
-    final recent = _sorted.length <= 7
-        ? _sorted
-        : _sorted.sublist(_sorted.length - 7);
-    final steps = _sumInt(recent.map((item) => item.steps));
-    final activeDays = recent.where((item) => item.steps > 0).length;
-    final goalDays = recent.where((item) => item.steps >= 6000).length;
+    final sorted = _sorted;
+    final today = _dateOnly(DateTime.now());
+    final weekStart = _weekMonday(today);
+    final weekEnd = weekStart.add(const Duration(days: 6));
+    final elapsedDays = today.difference(weekStart).inDays + 1;
+    final currentWeekItems = sorted.where((item) {
+      final date = _dateOnly(item.date);
+      return !date.isBefore(weekStart) && !date.isAfter(today);
+    }).toList();
+    final weeklyTrend = _weeklyTrendForCurrentWeek(sorted, today: today);
+    final steps = _sumInt(weeklyTrend.map((item) => item.steps));
+    final activeDays = weeklyTrend.where((item) => item.steps > 0).length;
+    final goalDays = weeklyTrend.where((item) => item.steps >= 6000).length;
 
     return SportPeriodData(
       period: SportPeriod.week,
-      dateTitle: recent.isEmpty
-          ? '本周'
-          : '${_shortDate(recent.first.date)} - ${_shortDate(recent.last.date)}',
+      dateTitle: '${_shortDate(weekStart)} - ${_shortDate(weekEnd)}',
       progress: SportProgressData(
         title: '本周步数',
         value: steps,
@@ -521,7 +530,7 @@ class SyncedHealthDataSource implements HealthDataSource {
           color: AppColors.accentCyan,
           title: '日均',
           value: _formatInt(
-            recent.isEmpty ? 0 : (steps / recent.length).round(),
+            elapsedDays <= 0 ? 0 : (steps / elapsedDays).round(),
           ),
           unit: '步',
         ),
@@ -540,17 +549,14 @@ class SyncedHealthDataSource implements HealthDataSource {
           unit: '天',
         ),
       ],
-      weekly: [
-        for (final item in recent)
-          WeeklyStepData(_weekdayLabel(item.date), item.steps),
-      ],
-      analyses: _periodAnalyses(recent, '来自健康同步'),
+      weekly: weeklyTrend,
+      analyses: _periodAnalyses(currentWeekItems, '来自健康同步'),
       summary: SportSummaryData(
         icon: const AssetAppIcon(AppMetricAssets.weekSummary),
         color: AppColors.brandGreen,
         title: '周总结',
         primary: '最高步数：',
-        highlight: _bestDayText(recent),
+        highlight: _bestDayText(currentWeekItems),
         secondary: '本周同步 $activeDays 天健康数据',
         assetName: 'synced weekly health data',
       ),
@@ -742,16 +748,21 @@ String _sourceTitle(HealthSyncSource source) {
 }
 
 List<TrendPoint> _mockHomeTrend() {
-  const values = [4500.0, 6600.0, 4200.0, 8000.0, 6500.0, 4100.0, 7200.0];
+  return _homeTrendEndingToday(_mockDailySummariesEndingToday());
+}
+
+List<HealthDailySummary> _mockDailySummariesEndingToday() {
+  const values = [4500, 6600, 4200, 8000, 6500, 4100, 7200];
   final today = _dateOnly(DateTime.now());
   return [
     for (var i = 0; i < values.length; i++)
-      TrendPoint(
-        label: _weekdayLabel(
-          today.subtract(Duration(days: values.length - 1 - i)),
-        ),
-        value: values[i],
-        highlight: i == values.length - 1,
+      HealthDailySummary(
+        date: today.subtract(Duration(days: values.length - 1 - i)),
+        steps: values[i],
+        distanceKm: 0,
+        caloriesKcal: 0,
+        activeMinutes: 0,
+        source: HealthSyncSource.appleHealth,
       ),
   ];
 }
@@ -769,6 +780,34 @@ List<TrendPoint> _homeTrendEndingToday(List<HealthDailySummary> summaries) {
           label: _weekdayLabel(date),
           value: (byDate[date] ?? 0).toDouble(),
           highlight: i == 6,
+        );
+      }(),
+  ];
+}
+
+List<WeeklyStepData> _weeklyTrendForCurrentWeek(
+  List<HealthDailySummary> summaries, {
+  DateTime? today,
+}) {
+  final currentDay = _dateOnly(today ?? DateTime.now());
+  final weekStart = _weekMonday(currentDay);
+  final stepsByDate = <DateTime, int>{};
+  for (final summary in summaries) {
+    final date = _dateOnly(summary.date);
+    if (date.isBefore(weekStart) || date.isAfter(currentDay)) continue;
+    stepsByDate.update(
+      date,
+      (steps) => steps + summary.steps,
+      ifAbsent: () => summary.steps,
+    );
+  }
+  return [
+    for (var i = 0; i < 7; i++)
+      () {
+        final date = weekStart.add(Duration(days: i));
+        return WeeklyStepData(
+          _weekdayLabel(date),
+          date.isAfter(currentDay) ? 0 : stepsByDate[date] ?? 0,
         );
       }(),
   ];
@@ -815,6 +854,9 @@ String _dateTitle(DateTime date) {
 String _shortDate(DateTime date) => '${date.month}月${date.day}日';
 
 DateTime _dateOnly(DateTime date) => DateTime(date.year, date.month, date.day);
+
+DateTime _weekMonday(DateTime date) =>
+    _dateOnly(date).subtract(Duration(days: date.weekday - 1));
 
 double _numericHealthValue(HealthDataPoint point) {
   final value = point.value;
