@@ -49,6 +49,13 @@ class Achievement {
 /// 运动记录状态。
 enum WorkoutStatus { ready, running, paused, ended }
 
+class WorkoutMusicTrackData {
+  final String name;
+  final bool current;
+
+  const WorkoutMusicTrackData({required this.name, required this.current});
+}
+
 /// 开始运动后的实时记录展示数据。
 class WorkoutTrackingData {
   final String workoutTitle;
@@ -61,6 +68,8 @@ class WorkoutTrackingData {
   final String endHint;
   final String musicTitle;
   final String musicStatus;
+  final bool hasMusic;
+  final bool musicPlaying;
 
   const WorkoutTrackingData({
     required this.workoutTitle,
@@ -73,6 +82,8 @@ class WorkoutTrackingData {
     required this.endHint,
     required this.musicTitle,
     required this.musicStatus,
+    this.hasMusic = false,
+    this.musicPlaying = false,
   });
 
   static const mock = WorkoutTrackingData(
@@ -85,7 +96,7 @@ class WorkoutTrackingData {
     pace: "07'54''",
     endHint: WorkoutText.trackingEndHint,
     musicTitle: WorkoutText.trackingMusicTitle,
-    musicStatus: WorkoutText.trackingMusicStatus,
+    musicStatus: WorkoutText.trackingMusicIdle,
   );
 
   WorkoutTrackingData copyWith({
@@ -96,6 +107,10 @@ class WorkoutTrackingData {
     String? duration,
     String? calories,
     String? pace,
+    String? musicTitle,
+    String? musicStatus,
+    bool? hasMusic,
+    bool? musicPlaying,
   }) {
     return WorkoutTrackingData(
       workoutTitle: workoutTitle ?? this.workoutTitle,
@@ -106,8 +121,10 @@ class WorkoutTrackingData {
       calories: calories ?? this.calories,
       pace: pace ?? this.pace,
       endHint: endHint,
-      musicTitle: musicTitle,
-      musicStatus: musicStatus,
+      musicTitle: musicTitle ?? this.musicTitle,
+      musicStatus: musicStatus ?? this.musicStatus,
+      hasMusic: hasMusic ?? this.hasMusic,
+      musicPlaying: musicPlaying ?? this.musicPlaying,
     );
   }
 }

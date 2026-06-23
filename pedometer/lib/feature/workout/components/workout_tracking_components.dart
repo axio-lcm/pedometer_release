@@ -1339,75 +1339,94 @@ class _HoldRingPainter extends CustomPainter {
 
 class WorkoutMusicCard extends StatelessWidget {
   final WorkoutTrackingData data;
+  final VoidCallback? onPlayPause;
+  final VoidCallback? onNext;
+  final VoidCallback? onOpenList;
 
-  const WorkoutMusicCard({super.key, required this.data});
+  const WorkoutMusicCard({
+    super.key,
+    required this.data,
+    this.onPlayPause,
+    this.onNext,
+    this.onOpenList,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return GlassCard(
-      radius: AppRadius.lg,
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-      child: Row(
-        children: [
-          Container(
-            width: 44,
-            height: 44,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(AppRadius.md),
-              color: AppColors.brandGreen.withValues(alpha: 0.18),
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: onOpenList,
+      child: GlassCard(
+        radius: AppRadius.lg,
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        child: Row(
+          children: [
+            Container(
+              width: 44,
+              height: 44,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(AppRadius.md),
+                color: AppColors.brandGreen.withValues(alpha: 0.18),
+              ),
+              child: Icon(
+                Icons.music_note_rounded,
+                color: AppColors.brandLime,
+                size: 28,
+              ),
             ),
-            child: Icon(
-              Icons.music_note_rounded,
-              color: AppColors.brandLime,
-              size: 28,
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  data.musicTitle,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    color: AppColors.textPrimary,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w700,
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    data.musicTitle,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      color: AppColors.textPrimary,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w700,
+                    ),
                   ),
-                ),
-                const SizedBox(height: 3),
-                Text(
-                  data.musicStatus,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    color: AppColors.textSecondary,
-                    fontSize: 13,
+                  const SizedBox(height: 3),
+                  Text(
+                    data.musicStatus,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      color: AppColors.textSecondary,
+                      fontSize: 13,
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-          IconButton(
-            onPressed: () {},
-            icon: Icon(
-              Icons.play_arrow_rounded,
-              color: AppColors.brandGreen,
-              size: 34,
+            IconButton(
+              onPressed: onPlayPause,
+              icon: Icon(
+                data.musicPlaying
+                    ? Icons.pause_rounded
+                    : Icons.play_arrow_rounded,
+                color: data.hasMusic
+                    ? AppColors.brandGreen
+                    : AppColors.textSecondary,
+                size: 34,
+              ),
             ),
-          ),
-          IconButton(
-            onPressed: () {},
-            icon: Icon(
-              Icons.skip_next_rounded,
-              color: AppColors.brandGreen,
-              size: 32,
+            IconButton(
+              onPressed: data.hasMusic ? onNext : null,
+              icon: Icon(
+                Icons.skip_next_rounded,
+                color: data.hasMusic
+                    ? AppColors.brandGreen
+                    : AppColors.textSecondary.withValues(alpha: 0.45),
+                size: 32,
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

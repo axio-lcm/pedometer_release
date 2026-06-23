@@ -19,6 +19,8 @@
   "tracking_end_hint": "长按结束",
   "tracking_music_title": "运动音乐",
   "tracking_music_status": "播放中",
+  "tracking_music_paused": "已暂停",
+  "tracking_music_idle": "未导入音乐",
   "tracking_distance_label": "累计距离（公里）",
   "tracking_target_template": "目标 {{value}} 公里",
   "tracking_start_hint": "开始",
@@ -48,5 +50,7 @@
   "suggestion_duration": "时长：建议 30-60 分钟，有助于提升心肺能力",
   "suggestion_calorie": "消耗：建议 300-600 kcal，保持健康体重",
   "tracking_import_music": "导入音乐",
-  "tracking_route": "运动轨迹"
+  "tracking_route": "运动轨迹",
+  "music_list_title": "音乐列表",
+  "music_list_empty": "暂无音乐，请先导入音乐文件"
 }

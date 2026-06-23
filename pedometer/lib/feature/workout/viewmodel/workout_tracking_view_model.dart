@@ -1,10 +1,12 @@
 import 'dart:async';
 
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:just_audio/just_audio.dart';
 import 'package:pedometer/common/config/app_colors.dart';
 import 'package:pedometer/common/mvvm/ibase_view_model.dart';
 import 'package:pedometer/common/service/motion_fitness_permission_service.dart';
@@ -31,6 +33,7 @@ class WorkoutTrackingViewModel extends GetxController
 
   final WorkoutCaloriePolicy _caloriePolicy;
   final WorkoutPacePolicy _pacePolicy;
+  AudioPlayer? _musicPlayer;
 
   /// 页面静态模板（标题 / 目标 / GPS / 音乐等），实时值由状态合并。
   /// 目标里程在 [init] 中与运动栏的目标设置同步。
@@ -60,6 +63,12 @@ class WorkoutTrackingViewModel extends GetxController
   final bearing = 0.0.obs;
   final pace = Rxn<Duration>();
   late final RxString workoutTitle = template.workoutTitle.obs;
+  final musicTitle = WorkoutText.trackingMusicTitle.obs;
+  final musicStatus = WorkoutText.trackingMusicIdle.obs;
+  final hasMusic = false.obs;
+  final musicPlaying = false.obs;
+  final currentMusicIndex = (-1).obs;
+  final musicTrackNames = <String>[].obs;
 
   /// 是否为室内运动：室内无 GPS 地图，运动区域显示纯色背景且累积里程固定居中。
   final isIndoor = false.obs;
@@ -71,10 +80,21 @@ class WorkoutTrackingViewModel extends GetxController
   double _lastSpeedKmh = 0; // 当前 tick 卡路里用的速度
   DateTime? _lastSpeedUpdatedAt;
   StreamSubscription<Duration>? _motionPaceSubscription;
+  StreamSubscription<bool>? _musicPlayingSubscription;
+  StreamSubscription<int?>? _musicIndexSubscription;
   DateTime? _lastMotionPaceAt;
+  List<_WorkoutMusicTrack> _musicTracks = const [];
 
   static const _motionPaceFreshness = Duration(seconds: 10);
   static const _calorieSpeedFreshness = Duration(seconds: 5);
+  static const _musicExtensions = <String>[
+    'mp3',
+    'm4a',
+    'aac',
+    'wav',
+    'flac',
+    'ogg',
+  ];
 
   // ---- 状态机 ----
 
@@ -151,6 +171,143 @@ class WorkoutTrackingViewModel extends GetxController
       case WorkoutStatus.ended:
         break;
     }
+  }
+
+  // ---- 运动音乐 ----
+
+  Future<void> importMusic() async {
+    final result = await FilePicker.pickFiles(
+      allowMultiple: true,
+      type: FileType.custom,
+      allowedExtensions: _musicExtensions,
+      withData: false,
+    );
+    if (result == null) return;
+
+    final tracks = result.files
+        .map(_trackFromPickedFile)
+        .whereType<_WorkoutMusicTrack>()
+        .toList(growable: false);
+    if (tracks.isEmpty) return;
+
+    final player = _ensureMusicPlayer();
+    try {
+      await player.stop();
+      await player.setAudioSources(
+        [
+          for (final track in tracks)
+            AudioSource.uri(Uri.file(track.path), tag: track.name),
+        ],
+        initialIndex: 0,
+        initialPosition: Duration.zero,
+      );
+      await player.setLoopMode(LoopMode.all);
+      _musicTracks = tracks;
+      musicTrackNames.assignAll([for (final track in tracks) track.name]);
+      currentMusicIndex.value = 0;
+      hasMusic.value = true;
+      musicTitle.value = tracks.first.name;
+      musicStatus.value = WorkoutResource.trackingMusicStatus;
+      await player.play();
+    } catch (_) {
+      _musicTracks = const [];
+      musicTrackNames.clear();
+      currentMusicIndex.value = -1;
+      hasMusic.value = false;
+      musicPlaying.value = false;
+      musicTitle.value = WorkoutResource.trackingMusicTitle;
+      musicStatus.value = WorkoutResource.trackingMusicIdle;
+    }
+  }
+
+  Future<void> toggleMusic() async {
+    if (!hasMusic.value) {
+      await importMusic();
+      return;
+    }
+    final player = _ensureMusicPlayer();
+    if (player.playing) {
+      await player.pause();
+    } else {
+      await player.play();
+    }
+  }
+
+  Future<void> nextMusic() async {
+    if (!hasMusic.value || _musicTracks.isEmpty) return;
+    final player = _ensureMusicPlayer();
+    if (_musicTracks.length == 1) {
+      await player.seek(Duration.zero);
+      if (!player.playing) await player.play();
+      return;
+    }
+    await player.seekToNext();
+    if (!player.playing) await player.play();
+  }
+
+  Future<void> playMusicAt(int index) async {
+    if (!hasMusic.value || index < 0 || index >= _musicTracks.length) return;
+    final player = _ensureMusicPlayer();
+    await player.seek(Duration.zero, index: index);
+    await player.play();
+  }
+
+  List<WorkoutMusicTrackData> get musicTracks {
+    final current = currentMusicIndex.value;
+    return [
+      for (var i = 0; i < musicTrackNames.length; i++)
+        WorkoutMusicTrackData(name: musicTrackNames[i], current: i == current),
+    ];
+  }
+
+  _WorkoutMusicTrack? _trackFromPickedFile(PlatformFile file) {
+    final path = file.path;
+    if (path == null || path.trim().isEmpty) return null;
+
+    final extension = _fileExtension(file.name).toLowerCase();
+    if (!_musicExtensions.contains(extension)) return null;
+
+    return _WorkoutMusicTrack(path: path, name: _displayMusicName(file.name));
+  }
+
+  String _fileExtension(String fileName) {
+    final index = fileName.lastIndexOf('.');
+    if (index < 0 || index == fileName.length - 1) return '';
+    return fileName.substring(index + 1);
+  }
+
+  String _displayMusicName(String fileName) {
+    final index = fileName.lastIndexOf('.');
+    if (index <= 0) return fileName;
+    return fileName.substring(0, index);
+  }
+
+  AudioPlayer _ensureMusicPlayer() {
+    final existing = _musicPlayer;
+    if (existing != null) return existing;
+
+    final player = AudioPlayer();
+    _musicPlayer = player;
+    _bindMusicPlayer(player);
+    return player;
+  }
+
+  void _bindMusicPlayer(AudioPlayer player) {
+    _musicPlayingSubscription = player.playingStream.listen((playing) {
+      musicPlaying.value = playing;
+      if (!hasMusic.value) {
+        musicStatus.value = WorkoutResource.trackingMusicIdle;
+      } else {
+        musicStatus.value = playing
+            ? WorkoutResource.trackingMusicStatus
+            : WorkoutResource.trackingMusicPaused;
+      }
+    });
+    _musicIndexSubscription = player.currentIndexStream.listen((index) {
+      if (index == null || index < 0 || index >= _musicTracks.length) return;
+      currentMusicIndex.value = index;
+      musicTitle.value = _musicTracks[index].name;
+    });
   }
 
   // ---- 定位输入 ----
@@ -358,6 +515,13 @@ class WorkoutTrackingViewModel extends GetxController
     _stopTicker();
     _motionPaceSubscription?.cancel();
     _motionPaceSubscription = null;
+    _musicPlayingSubscription?.cancel();
+    _musicPlayingSubscription = null;
+    _musicIndexSubscription?.cancel();
+    _musicIndexSubscription = null;
+    final player = _musicPlayer;
+    _musicPlayer = null;
+    if (player != null) unawaited(player.dispose());
   }
 
   @override
@@ -396,6 +560,10 @@ class WorkoutTrackingViewModel extends GetxController
     duration: durationText,
     calories: caloriesText,
     pace: paceText,
+    musicTitle: musicTitle.value,
+    musicStatus: musicStatus.value,
+    hasMusic: hasMusic.value,
+    musicPlaying: musicPlaying.value,
   );
 
   String get paceText {
@@ -449,4 +617,11 @@ class WorkoutTrackingViewModel extends GetxController
       ],
     );
   }
+}
+
+class _WorkoutMusicTrack {
+  final String path;
+  final String name;
+
+  const _WorkoutMusicTrack({required this.path, required this.name});
 }

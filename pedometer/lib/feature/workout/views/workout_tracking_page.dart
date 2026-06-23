@@ -60,7 +60,7 @@ class _WorkoutTrackingPageState extends State<WorkoutTrackingPage> {
                             controller: controller,
                             showMoreMenu: _showMoreMenu,
                             onDismissMoreMenu: _dismissMoreMenu,
-                            onImportMusic: _handleMoreAction,
+                            onImportMusic: _importMusic,
                             onWorkoutRoute: _handleMoreAction,
                           ),
                           const SizedBox(height: 4),
@@ -82,7 +82,12 @@ class _WorkoutTrackingPageState extends State<WorkoutTrackingPage> {
                                   const SizedBox(
                                     height: AppBottomTabBarMetrics.bottomOffset,
                                   ),
-                                  WorkoutMusicCard(data: data),
+                                  WorkoutMusicCard(
+                                    data: data,
+                                    onPlayPause: controller.toggleMusic,
+                                    onNext: controller.nextMusic,
+                                    onOpenList: _openMusicList,
+                                  ),
                                 ],
                               );
                             }),
@@ -111,6 +116,16 @@ class _WorkoutTrackingPageState extends State<WorkoutTrackingPage> {
 
   void _handleMoreAction() {
     _dismissMoreMenu();
+  }
+
+  Future<void> _importMusic() async {
+    _dismissMoreMenu();
+    await controller.importMusic();
+  }
+
+  void _openMusicList() {
+    _dismissMoreMenu();
+    Get.toNamed(WorkoutRouteTable.pathMusicList);
   }
 
   // 返回：运动进行中时先弹确认框，确认后才退出；未开始则直接返回。

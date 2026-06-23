@@ -49,6 +49,10 @@ class WorkoutResource {
       _string('tracking_music_title', WorkoutText.trackingMusicTitle);
   static String get trackingMusicStatus =>
       _string('tracking_music_status', WorkoutText.trackingMusicStatus);
+  static String get trackingMusicPaused =>
+      _string('tracking_music_paused', WorkoutText.trackingMusicPaused);
+  static String get trackingMusicIdle =>
+      _string('tracking_music_idle', WorkoutText.trackingMusicIdle);
   static String get trackingDistanceLabel =>
       _string('tracking_distance_label', WorkoutText.trackingDistanceLabel);
   static String get trackingStartHint =>
@@ -130,6 +134,10 @@ class WorkoutResource {
       _string('tracking_import_music', WorkoutText.trackingImportMusic);
   static String get trackingRoute =>
       _string('tracking_route', WorkoutText.trackingRoute);
+  static String get musicListTitle =>
+      _string('music_list_title', WorkoutText.musicListTitle);
+  static String get musicListEmpty =>
+      _string('music_list_empty', WorkoutText.musicListEmpty);
 
   static String trackingTarget(String value) {
     return _string(
@@ -168,6 +176,8 @@ class WorkoutText {
   static const trackingEndHint = '长按结束';
   static const trackingMusicTitle = '运动音乐';
   static const trackingMusicStatus = '播放中';
+  static const trackingMusicPaused = '已暂停';
+  static const trackingMusicIdle = '未导入音乐';
   static const trackingDistanceLabel = '累计距离（公里）';
   static const trackingTargetTemplate = '目标 {{value}} 公里';
   static const trackingStartHint = '开始';
@@ -210,6 +220,8 @@ class WorkoutText {
   static const exitConfirmContinue = '继续运动';
   static const trackingImportMusic = '导入音乐';
   static const trackingRoute = '运动轨迹';
+  static const musicListTitle = '音乐列表';
+  static const musicListEmpty = '暂无音乐，请先导入音乐文件';
 }
 
 /// 运动页模块路由定义（对齐 HomeRouteTable 写法）。
@@ -219,4 +231,5 @@ class WorkoutRouteTable {
   static const String pathEditGoal = '/workout/edit-goal';
   static const String pathTracking = '/workout/tracking';
   static const String pathResult = '/workout/result';
+  static const String pathMusicList = '/workout/music-list';
 }
