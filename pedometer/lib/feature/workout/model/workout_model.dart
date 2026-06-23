@@ -36,12 +36,12 @@ class GoalMetric {
 /// 成就徽章。
 class Achievement {
   final String title;
-  final IconData icon;
+  final String imageAsset;
   final Color color;
 
   const Achievement({
     required this.title,
-    required this.icon,
+    required this.imageAsset,
     required this.color,
   });
 }
@@ -208,17 +208,17 @@ class WorkoutPageData {
     achievements: [
       Achievement(
         title: WorkoutText.beginnerRunner,
-        icon: Icons.directions_run_rounded,
+        imageAsset: 'assets/1.png',
         color: _green,
       ),
       Achievement(
         title: WorkoutText.persistent,
-        icon: Icons.flag_rounded,
+        imageAsset: 'assets/2.png',
         color: _cyan,
       ),
       Achievement(
         title: WorkoutText.hundredKm,
-        icon: Icons.military_tech_rounded,
+        imageAsset: 'assets/3.png',
         color: _purple,
       ),
     ],

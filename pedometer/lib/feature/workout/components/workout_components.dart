@@ -641,7 +641,7 @@ class GoalMetricCard extends StatelessWidget {
   }
 }
 
-/// 成就徽章占位：霓虹发光玻璃底座 + 图标 + 标题，后续可替换为图片资源。
+/// 成就徽章：图片徽章 + 标题，无发光。
 class AchievementBadge extends StatelessWidget {
   final Achievement data;
 
@@ -651,29 +651,11 @@ class AchievementBadge extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        Container(
-          width: 64,
-          height: 70,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(AppRadius.md),
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                data.color.withValues(alpha: 0.30),
-                data.color.withValues(alpha: 0.12),
-              ],
-            ),
-            border: Border.all(color: data.color.withValues(alpha: 0.6)),
-            boxShadow: [
-              BoxShadow(
-                color: data.color.withValues(alpha: 0.40),
-                blurRadius: 24,
-                spreadRadius: -4,
-              ),
-            ],
-          ),
-          child: Icon(data.icon, color: data.color, size: 32),
+        Image.asset(
+          data.imageAsset,
+          width: 110,
+          height: 110,
+          fit: BoxFit.contain,
         ),
         SizedBox(height: AppSpacing.sm),
         Text(
@@ -681,8 +663,8 @@ class AchievementBadge extends StatelessWidget {
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
           style: TextStyle(
-            color: data.color,
-            fontSize: 13,
+            color: AppColors.textSecondary,
+            fontSize: 14,
             fontWeight: FontWeight.w600,
           ),
         ),
