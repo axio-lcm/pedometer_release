@@ -4,7 +4,6 @@ import 'package:pedometer/common/component/app_top_navigation_bar.dart';
 import 'package:pedometer/common/config/app_colors.dart';
 import 'package:pedometer/common/config/app_dimens.dart';
 import 'package:pedometer/feature/home/components/sync_data_detail_components.dart';
-import 'package:pedometer/feature/home/model/sync_data_detail_model.dart';
 import 'package:pedometer/feature/home/resources/home_resource.dart';
 import 'package:pedometer/feature/home/viewmodel/sync_history_list_view_model.dart';
 
@@ -12,14 +11,10 @@ import 'package:pedometer/feature/home/viewmodel/sync_history_list_view_model.da
 class SyncHistoryListPage extends GetView<SyncHistoryListViewModel> {
   static const String routeName = HomeRouteTable.pathSyncHistoryList;
 
-  final SyncHistoryListData data;
-
-  const SyncHistoryListPage({super.key, this.data = SyncHistoryListData.mock});
+  const SyncHistoryListPage({super.key});
 
   @override
   Widget build(BuildContext context) {
-    controller.useData(data);
-
     return Scaffold(
       backgroundColor: HomeResource.background,
       body: Stack(

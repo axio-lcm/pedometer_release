@@ -85,7 +85,24 @@ class HealthSyncRuntime {
     return _realDataSource ?? _motionSensorDataSource ?? fallback;
   }
 
+  static HealthDataSource? get activeDataSource =>
+      _realDataSource ?? _motionSensorDataSource;
+
+  static bool get hasActiveDataSource => activeDataSource != null;
+
   static bool get hasRealDataSource => _realDataSource != null;
+
+  static HealthDailySummary? get latestSummary {
+    final source = activeDataSource;
+    if (source is SyncedHealthDataSource) return source.latestSummary;
+    return null;
+  }
+
+  static List<HealthDailySummary> get activeSummaries {
+    final source = activeDataSource;
+    if (source is SyncedHealthDataSource) return source.sortedSummaries;
+    return const [];
+  }
 
   static void replaceRealDataSource(HealthDataSource dataSource) {
     _realDataSource = dataSource;
@@ -420,6 +437,10 @@ class SyncedHealthDataSource implements HealthDataSource {
     }
     return sorted.last;
   }
+
+  HealthDailySummary get latestSummary => _latest;
+
+  List<HealthDailySummary> get sortedSummaries => _sorted;
 
   @override
   HealthHomeSnapshot homeSnapshot() {

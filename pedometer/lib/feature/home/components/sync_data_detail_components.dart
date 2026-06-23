@@ -455,15 +455,24 @@ class SyncHistoryCard extends StatelessWidget {
             ),
           ),
           SizedBox(height: AppSpacing.lg),
-          for (var i = 0; i < histories.length; i++)
-            SyncHistoryItem(
-              data: histories[i],
-              showDivider: i != histories.length - 1,
-              showResult: false,
-              onTap: onHistoryTap == null
-                  ? null
-                  : () => onHistoryTap!(histories[i]),
-            ),
+          if (histories.isEmpty)
+            Align(
+              alignment: AlignmentDirectional.centerStart,
+              child: Text(
+                '暂无同步记录',
+                style: TextStyle(color: AppColors.textSecondary, fontSize: 15),
+              ),
+            )
+          else
+            for (var i = 0; i < histories.length; i++)
+              SyncHistoryItem(
+                data: histories[i],
+                showDivider: i != histories.length - 1,
+                showResult: false,
+                onTap: onHistoryTap == null
+                    ? null
+                    : () => onHistoryTap!(histories[i]),
+              ),
         ],
       ),
     );
@@ -584,14 +593,28 @@ class SyncHistoryListCard extends StatelessWidget {
       ),
       child: Column(
         children: [
-          for (var i = 0; i < records.length; i++)
-            SyncHistoryItem(
-              data: records[i],
-              showDivider: i != records.length - 1,
-              onTap: onRecordTap == null
-                  ? null
-                  : () => onRecordTap!(records[i]),
-            ),
+          if (records.isEmpty)
+            Padding(
+              padding: EdgeInsets.symmetric(vertical: AppSpacing.xl),
+              child: Text(
+                '暂无同步记录',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: AppColors.textSecondary,
+                  fontSize: 15,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            )
+          else
+            for (var i = 0; i < records.length; i++)
+              SyncHistoryItem(
+                data: records[i],
+                showDivider: i != records.length - 1,
+                onTap: onRecordTap == null
+                    ? null
+                    : () => onRecordTap!(records[i]),
+              ),
         ],
       ),
     );
