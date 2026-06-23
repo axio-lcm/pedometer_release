@@ -44,13 +44,20 @@ class _WorkoutMapSectionState extends State<WorkoutMapSection> {
 
   @override
   Widget build(BuildContext context) {
+    // 室内运动无 GPS 轨迹：用纯色背景替代地图，且不展示定位按钮。
+    final indoor = widget.controller.isIndoor.value;
     return SizedBox(
       height: 386,
       child: Stack(
         clipBehavior: Clip.none,
         children: [
           Positioned.fill(
-            child: WorkoutMapView(key: _mapKey, controller: widget.controller),
+            child: indoor
+                ? const ColoredBox(color: WorkoutResource.indoorBackground)
+                : WorkoutMapView(
+                    key: _mapKey,
+                    controller: widget.controller,
+                  ),
           ),
           Obx(() {
             final data = _liveData();
@@ -62,15 +69,19 @@ class _WorkoutMapSectionState extends State<WorkoutMapSection> {
                 child: WorkoutEndedMapSummary(data: data),
               );
             }
-            return _AnimatedDistanceOverlayAnchor(data: data);
+            // 室内：累积里程固定居中显示，点击开始不变换位置。
+            return indoor
+                ? _FixedDistanceOverlayAnchor(data: data)
+                : _AnimatedDistanceOverlayAnchor(data: data);
           }),
-          Positioned(
-            left: 14,
-            bottom: 24,
-            child: MapControlButtons(
-              onLocate: () => _mapKey.currentState?.centerOnCurrentLocation(),
+          if (!indoor)
+            Positioned(
+              left: 14,
+              bottom: 24,
+              child: MapControlButtons(
+                onLocate: () => _mapKey.currentState?.centerOnCurrentLocation(),
+              ),
             ),
-          ),
         ],
       ),
     );
@@ -616,6 +627,23 @@ class _AnimatedDistanceOverlayAnchor extends StatelessWidget {
           child: WorkoutDistanceOverlay(data: data, compact: compact),
         ),
       ),
+    );
+  }
+}
+
+/// 室内运动的累积里程展示：固定居中，开始 / 暂停均不改变位置或大小。
+class _FixedDistanceOverlayAnchor extends StatelessWidget {
+  final WorkoutTrackingData data;
+
+  const _FixedDistanceOverlayAnchor({required this.data});
+
+  @override
+  Widget build(BuildContext context) {
+    return Positioned(
+      top: 96,
+      left: 0,
+      right: 0,
+      child: Center(child: WorkoutDistanceOverlay(data: data)),
     );
   }
 }

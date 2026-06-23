@@ -51,6 +51,9 @@ class WorkoutTrackingViewModel extends GetxController
   final pace = Rxn<Duration>();
   late final RxString workoutTitle = template.workoutTitle.obs;
 
+  /// 是否为室内运动：室内无 GPS 地图，运动区域显示纯色背景且累积里程固定居中。
+  final isIndoor = false.obs;
+
   Timer? _ticker;
   Position? _lastRaw; // 上一个被接受的原始定位（算距离 / 方位）
   Position? _currentRaw; // 最近一次定位，开始运动时用作第一段距离基准
@@ -236,8 +239,10 @@ class WorkoutTrackingViewModel extends GetxController
     final args = Get.arguments;
     if (args is WorkoutType) {
       workoutTitle.value = args.title;
+      isIndoor.value = args.title == WorkoutText.indoorRun;
     } else if (args is String && args.trim().isNotEmpty) {
       workoutTitle.value = args;
+      isIndoor.value = args == WorkoutText.indoorRun;
     }
     _syncGoalFromWorkout();
   }

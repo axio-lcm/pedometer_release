@@ -13,6 +13,9 @@ class WorkoutResource {
     fallback: AppColors.bgPrimary,
   );
 
+  /// 室内运动无地图，运动区域使用的纯色背景。
+  static const indoorBackground = Color(0xFF202935);
+
   static String get heroTitle => _string('hero_title', WorkoutText.heroTitle);
   static String get heroSubtitle =>
       _string('hero_subtitle', WorkoutText.heroSubtitle);
