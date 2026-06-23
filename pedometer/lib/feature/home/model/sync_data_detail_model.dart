@@ -128,11 +128,14 @@ class SyncDataType {
 }
 
 class SyncHistoryRecord {
+  /// 对应 [SyncHistoryEntry.id]，供详情页回查本条记录的数据快照；mock 数据可为空。
+  final String? id;
   final String time;
   final String mode;
   final String result;
 
   const SyncHistoryRecord({
+    this.id,
     required this.time,
     required this.mode,
     required this.result,

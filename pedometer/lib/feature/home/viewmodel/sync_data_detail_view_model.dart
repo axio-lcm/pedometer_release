@@ -56,6 +56,7 @@ class SyncDataDetailViewModel extends GetxController implements IBaseViewModel {
     super.onInit();
     HealthSyncRuntime.revision.addListener(_onRuntimeDataChanged);
     HealthSyncRuntime.connectionRevision.addListener(_onConnectionChanged);
+    HealthSyncHistory.revision.addListener(_onRuntimeDataChanged);
     init();
   }
 
@@ -77,6 +78,7 @@ class SyncDataDetailViewModel extends GetxController implements IBaseViewModel {
   void unInit() {
     HealthSyncRuntime.revision.removeListener(_onRuntimeDataChanged);
     HealthSyncRuntime.connectionRevision.removeListener(_onConnectionChanged);
+    HealthSyncHistory.revision.removeListener(_onRuntimeDataChanged);
   }
 
   @override
@@ -107,15 +109,6 @@ class SyncDataDetailViewModel extends GetxController implements IBaseViewModel {
       fallbackSource: summary.source,
     );
     final dataTypes = _dataTypesFor(recent7Summary);
-    final histories = summary.source == HealthSyncSource.motionSensor
-        ? const <SyncHistoryRecord>[]
-        : [
-            SyncHistoryRecord(
-              time: _timeText(updatedAt),
-              mode: _sourceTitle(summary.source),
-              result: '同步 ${dataTypes.length} 项数据',
-            ),
-          ];
     return SyncDataDetailData(
       statusTitle: summary.source == HealthSyncSource.motionSensor
           ? '运动数据已更新'
@@ -134,7 +127,7 @@ class SyncDataDetailViewModel extends GetxController implements IBaseViewModel {
         ),
       ],
       dataTypes: dataTypes,
-      histories: histories,
+      histories: _historyRecords(limit: 3),
       safetyText: '您的健康与运动数据仅在授权后读取，并用于本机运动统计展示。',
     );
   }
@@ -159,7 +152,7 @@ class SyncDataDetailViewModel extends GetxController implements IBaseViewModel {
           source: HealthSyncSource.appleHealth,
         ),
       ),
-      histories: const [],
+      histories: _historyRecords(limit: 3),
       safetyText: '授权后会在这里展示你的健康与运动数据。',
     );
   }
@@ -246,12 +239,19 @@ class SyncDataDetailViewModel extends GetxController implements IBaseViewModel {
     ];
   }
 
-  static String _sourceTitle(HealthSyncSource source) {
-    return switch (source) {
-      HealthSyncSource.appleHealth => 'Apple Health',
-      HealthSyncSource.healthConnect => 'Health Connect',
-      HealthSyncSource.motionSensor => '运动与健身',
-    };
+  /// 从同步历史存储取记录并转为展示模型；[limit] 限制条数（null 为全部）。
+  static List<SyncHistoryRecord> _historyRecords({int? limit}) {
+    final entries = HealthSyncHistory.entries;
+    final list = limit == null ? entries : entries.take(limit).toList();
+    return [
+      for (final entry in list)
+        SyncHistoryRecord(
+          id: entry.id,
+          time: _timeText(entry.time),
+          mode: entry.mode,
+          result: '同步 ${entry.itemCount} 项数据',
+        ),
+    ];
   }
 
   static String _timeText(DateTime date) {

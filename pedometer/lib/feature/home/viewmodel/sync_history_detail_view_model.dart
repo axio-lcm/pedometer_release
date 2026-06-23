@@ -40,34 +40,34 @@ class SyncHistoryDetailViewModel extends GetxController
   void _load() {
     final argument = Get.arguments;
     final record = argument is SyncHistoryRecord ? argument : null;
-    final summary = HealthSyncRuntime.latestSummary;
-    if (summary == null || summary.source == HealthSyncSource.motionSensor) {
+    final entry = record?.id == null
+        ? null
+        : HealthSyncHistory.entryById(record!.id!);
+    if (entry == null) {
       data.value = _emptyData();
       return;
     }
 
+    // 用本条记录自己的数据快照渲染，而非永远展示最新一天的数据。
+    final summary = entry.snapshot;
     final syncedItems = _dataTypesFor(summary);
-    final sourceTitle = _sourceTitle(summary.source);
-    final timeText = record?.time ?? _timeText(DateTime.now());
-    final modeText = record?.mode ?? sourceTitle;
-    final resultText = record?.result ?? '同步 ${syncedItems.length} 项数据';
     data.value = SyncHistoryDetailData(
       statusTitle: '同步成功',
-      time: timeText,
-      mode: modeText,
-      result: resultText,
+      time: _timeText(entry.time),
+      mode: entry.mode,
+      result: '同步 ${entry.itemCount} 项数据',
       syncedItems: syncedItems,
-      sources: [_sourceFor(summary.source)],
+      sources: [_sourceFor(entry.source)],
       methodItems: [
-        SyncInfoItem(title: '同步方式', value: modeText),
-        SyncInfoItem(title: '数据项', value: '${syncedItems.length} 项'),
-        const SyncInfoItem(title: '耗时', value: '--'),
+        SyncInfoItem(title: '同步方式', value: entry.mode),
+        SyncInfoItem(title: '数据项', value: '${entry.itemCount} 项'),
+        SyncInfoItem(title: '耗时', value: _elapsedText(entry.elapsed)),
       ],
       infoItems: [
         SyncInfoItem(
           icon: Icons.sell_outlined,
           title: '同步编号',
-          value: _syncId(summary.date),
+          value: _syncId(entry.time),
         ),
         const SyncInfoItem(
           icon: Icons.phone_iphone_rounded,
@@ -151,12 +151,9 @@ class SyncHistoryDetailViewModel extends GetxController
     ];
   }
 
-  static String _sourceTitle(HealthSyncSource source) {
-    return switch (source) {
-      HealthSyncSource.appleHealth => 'Apple Health',
-      HealthSyncSource.healthConnect => 'Health Connect',
-      HealthSyncSource.motionSensor => '运动与健身',
-    };
+  static String _elapsedText(Duration elapsed) {
+    final seconds = elapsed.inMilliseconds / 1000;
+    return '${seconds.toStringAsFixed(1)} s';
   }
 
   static String _timeText(DateTime date) {
@@ -174,7 +171,9 @@ class SyncHistoryDetailViewModel extends GetxController
     final y = date.year.toString().padLeft(4, '0');
     final m = date.month.toString().padLeft(2, '0');
     final d = date.day.toString().padLeft(2, '0');
-    return 'SYNC-$y$m$d';
+    final hh = date.hour.toString().padLeft(2, '0');
+    final mm = date.minute.toString().padLeft(2, '0');
+    return 'SYNC-$y$m$d-$hh$mm';
   }
 
   static String _formatDistance(double value) {

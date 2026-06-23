@@ -1,7 +1,6 @@
 import 'package:get/get.dart';
 import 'package:pedometer/common/mvvm/ibase_view_model.dart';
 import 'package:pedometer/feature/home/model/health_repository.dart';
-import 'package:pedometer/feature/home/model/health_sync_models.dart';
 import 'package:pedometer/feature/home/model/sync_data_detail_model.dart';
 import 'package:pedometer/feature/home/views/sync_history_detail_page.dart';
 
@@ -16,7 +15,7 @@ class SyncHistoryListViewModel extends GetxController
   @override
   void onInit() {
     super.onInit();
-    HealthSyncRuntime.revision.addListener(_load);
+    HealthSyncHistory.revision.addListener(_load);
     init();
   }
 
@@ -27,7 +26,7 @@ class SyncHistoryListViewModel extends GetxController
 
   @override
   void unInit() {
-    HealthSyncRuntime.revision.removeListener(_load);
+    HealthSyncHistory.revision.removeListener(_load);
   }
 
   @override
@@ -41,38 +40,17 @@ class SyncHistoryListViewModel extends GetxController
   }
 
   void _load() {
-    final summary = HealthSyncRuntime.latestSummary;
-    if (summary == null || summary.source == HealthSyncSource.motionSensor) {
-      data.value = const SyncHistoryListData(records: []);
-      return;
-    }
-
     data.value = SyncHistoryListData(
       records: [
-        SyncHistoryRecord(
-          time: _timeText(DateTime.now()),
-          mode: _sourceTitle(summary.source),
-          result: '同步 ${_dataTypeCount(summary)} 项数据',
-        ),
+        for (final entry in HealthSyncHistory.entries)
+          SyncHistoryRecord(
+            id: entry.id,
+            time: _timeText(entry.time),
+            mode: entry.mode,
+            result: '同步 ${entry.itemCount} 项数据',
+          ),
       ],
     );
-  }
-
-  int _dataTypeCount(HealthDailySummary summary) {
-    return [
-      summary.steps,
-      summary.distanceKm,
-      summary.caloriesKcal,
-      summary.activeMinutes,
-    ].length;
-  }
-
-  String _sourceTitle(HealthSyncSource source) {
-    return switch (source) {
-      HealthSyncSource.appleHealth => 'Apple Health',
-      HealthSyncSource.healthConnect => 'Health Connect',
-      HealthSyncSource.motionSensor => '运动与健身',
-    };
   }
 
   String _timeText(DateTime date) {

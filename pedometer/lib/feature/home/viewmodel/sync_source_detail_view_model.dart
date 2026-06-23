@@ -1,5 +1,8 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
+import 'package:health/health.dart';
 import 'package:get/get.dart';
 import 'package:pedometer/common/mvvm/ibase_view_model.dart';
 import 'package:pedometer/feature/home/model/health_repository.dart';
@@ -30,6 +33,10 @@ class SyncSourceDetailViewModel extends GetxController
   /// 同步历史的起始时间下界。HealthKit / Health Connect 不会返回此日期之前的数据，
   /// 取一个早于 iPhone / Apple Watch 健康数据普及的日期，等价于「读取全部历史」。
   static final DateTime _historyStartDate = DateTime(2014, 1, 1);
+
+  /// 同步代次：每次发起同步自增，后台精修完成时若代次已变化则丢弃过期结果，
+  /// 避免旧的后台精修覆盖更新一次同步的数据。
+  static int _syncToken = 0;
 
   final HealthPluginSyncService service;
   final TargetPlatform platform;
@@ -181,31 +188,118 @@ class SyncSourceDetailViewModel extends GetxController
       // 步骤二：权限就绪后再同步数据（不重复申请；读取带重试以规避 iOS 授权延迟）。
       syncMessage.value = '$title 同步中…';
       final now = DateTime.now();
-      final syncedSource = await service.sync(
-        source: source,
-        // 「有多久同步多久」：从健康数据可能存在的最早时间开始读取，
-        // 覆盖手机内的全部历史健康数据，而非仅最近 30 天。
-        startDate: _historyStartDate,
-        endDate: now,
-        types: types,
-        ensureAuthorized: false,
-      );
-      if (!syncedSource.hasData) {
+      final token = ++_syncToken;
+      final stopwatch = Stopwatch()..start();
+      // 第一阶段：快速读取并聚合（步数为多源求和，可能偏大），界面秒级返回。
+      final result = await service
+          .sync(
+            source: source,
+            // 「有多久同步多久」：从健康数据可能存在的最早时间开始读取，
+            // 覆盖手机内的全部历史健康数据，而非仅最近 30 天。
+            startDate: _historyStartDate,
+            endDate: now,
+            types: types,
+            ensureAuthorized: false,
+          )
+          // 兜底：即便底层意外挂起，也不让界面永远停在「同步中」。
+          .timeout(const Duration(minutes: 2));
+      if (!result.source.hasData) {
         // 同步不到数据：默认视为未授权 / 未连接。
         _applyAuthStatus(source, HealthAuthStatus.denied, title);
         _setSyncResult('$title 未读取到健康数据，请在系统「健康」中允许读取后重试', false);
         return;
       }
 
-      // 同步到数据：默认视为已授权 / 已连接。
+      // 同步到数据：默认视为已授权 / 已连接，立即展示快速结果。
       _applyAuthStatus(source, HealthAuthStatus.authorized, title);
-      HealthSyncRuntime.replaceRealDataSource(syncedSource);
+      HealthSyncRuntime.replaceRealDataSource(result.source);
+      stopwatch.stop();
+      // 记录一条同步历史，供同步详情/历史列表/历史详情展示本次保存的数据。
+      _recordHistory(
+        source: source,
+        types: types,
+        elapsed: stopwatch.elapsed,
+      );
       _setSyncResult('$title 同步成功', true);
+
+      // 第二阶段：后台逐天去重步数（仅 Apple Health 步数需要多源去重），
+      // 完成后静默替换数据源刷新展示，不阻塞界面、不影响「同步中」状态。
+      if (source == HealthSyncSource.appleHealth &&
+          types.contains(HealthSyncDataType.steps)) {
+        _refineStepsInBackground(
+          points: result.points,
+          source: source,
+          startDate: _historyStartDate,
+          endDate: now,
+          token: token,
+        );
+      }
+    } on TimeoutException {
+      _setSyncResult('$title 同步超时，请稍后重试', false);
     } catch (error) {
       _setSyncResult('$title 同步失败：${_syncErrorText(error)}', false);
     } finally {
       syncing.value = false;
     }
+  }
+
+  /// 追加一条同步历史记录，快照取本次同步后的当日数据。
+  void _recordHistory({
+    required HealthSyncSource source,
+    required List<HealthSyncDataType> types,
+    required Duration elapsed,
+  }) {
+    final now = DateTime.now();
+    final snapshot =
+        HealthSyncRuntime.latestSummary ??
+        HealthDailySummary(
+          date: now,
+          steps: 0,
+          distanceKm: 0,
+          caloriesKcal: 0,
+          activeMinutes: 0,
+          source: source,
+        );
+    HealthSyncHistory.record(
+      SyncHistoryEntry(
+        id: '${source.name}-${now.microsecondsSinceEpoch}',
+        time: now,
+        source: source,
+        mode: isManualSyncSelected ? '手动同步' : '自动同步',
+        itemCount: types.length,
+        snapshot: snapshot,
+        elapsed: elapsed,
+      ),
+    );
+  }
+
+  /// 后台逐天去重步数，完成后静默替换数据源刷新展示。不阻塞界面、不改 [syncing]。
+  ///
+  /// 这是「即发即忘」的后台任务：即便用户已离开本页，更新的是全局运行时数据源，
+  /// 仍能安全完成；期间若又发起新同步（[_syncToken] 变化）则丢弃这次过期结果。
+  void _refineStepsInBackground({
+    required List<HealthDataPoint> points,
+    required HealthSyncSource source,
+    required DateTime startDate,
+    required DateTime endDate,
+    required int token,
+  }) {
+    unawaited(() async {
+      try {
+        final refined = await service.refineSteps(
+          points: points,
+          source: source,
+          startDate: startDate,
+          endDate: endDate,
+        );
+        if (token != _syncToken) return;
+        if (refined.hasData) {
+          HealthSyncRuntime.replaceRealDataSource(refined);
+        }
+      } catch (_) {
+        // 后台精修失败不影响已展示的快速数据。
+      }
+    }());
   }
 
   /// 更新本页授权状态与提示文案，并把连接状态同步到全局运行时（供来源列表显示）。

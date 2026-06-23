@@ -163,6 +163,61 @@ class HealthSyncRuntime {
   }
 }
 
+/// 单次同步事件的快照：列表与详情页都基于它渲染，确保每条历史展示自己的数据。
+class SyncHistoryEntry {
+  final String id;
+  final DateTime time;
+  final HealthSyncSource source;
+  final String mode; // '手动同步' / '自动同步'
+  final int itemCount; // 本次实际同步的数据项数量
+  final HealthDailySummary snapshot; // 本次同步的当日数据快照
+  final Duration elapsed; // 本次同步耗时
+
+  const SyncHistoryEntry({
+    required this.id,
+    required this.time,
+    required this.source,
+    required this.mode,
+    required this.itemCount,
+    required this.snapshot,
+    required this.elapsed,
+  });
+}
+
+/// 同步历史存储：每次成功同步追加一条记录，供同步详情/历史列表/历史详情读取。
+///
+/// 进程内内存存储（重启后清空）；变更通过 [revision] 通知监听的 view model 刷新。
+class HealthSyncHistory {
+  HealthSyncHistory._();
+
+  static final ValueNotifier<int> revision = ValueNotifier<int>(0);
+  static final List<SyncHistoryEntry> _entries = <SyncHistoryEntry>[];
+
+  /// 全部记录，按时间倒序（最新在前）。
+  static List<SyncHistoryEntry> get entries =>
+      List<SyncHistoryEntry>.unmodifiable(_entries.reversed);
+
+  static bool get isEmpty => _entries.isEmpty;
+
+  /// 按 id 回查某条记录；找不到返回 null。
+  static SyncHistoryEntry? entryById(String id) {
+    for (final entry in _entries) {
+      if (entry.id == id) return entry;
+    }
+    return null;
+  }
+
+  static void record(SyncHistoryEntry entry) {
+    _entries.add(entry);
+    revision.value++;
+  }
+
+  static void resetForTest() {
+    _entries.clear();
+    revision.value++;
+  }
+}
+
 class RuntimeHealthDataSource implements HealthDataSource {
   final HealthDataSource fallback;
 
@@ -288,7 +343,12 @@ class HealthPluginSyncService {
     );
   }
 
-  Future<SyncedHealthDataSource> sync({
+  /// 快速同步（第一阶段）：读取原始样本并按天聚合后立即返回，供界面秒级展示。
+  ///
+  /// 此处步数为多源样本「求和」，可能偏大；精确去重交给后台的 [refineSteps]，
+  /// 避免逐天去重的耗时把界面长时间卡在「同步中」。返回值同时带回原始样本，
+  /// 供后台精修复用，免去二次读取。
+  Future<({SyncedHealthDataSource source, List<HealthDataPoint> points})> sync({
     required HealthSyncSource source,
     required DateTime startDate,
     required DateTime endDate,
@@ -306,37 +366,64 @@ class HealthPluginSyncService {
   }) async {
     if (ensureAuthorized &&
         !await requestAuthorization(source: source, types: types)) {
-      return const SyncedHealthDataSource(summaries: []);
+      return (
+        source: const SyncedHealthDataSource(summaries: []),
+        points: const <HealthDataPoint>[],
+      );
     }
     final healthTypes = _healthTypesFor(source: source, types: types);
 
     var points = <HealthDataPoint>[];
     for (var attempt = 0; attempt <= readRetries; attempt++) {
-      points = await health.getHealthDataFromTypes(
-        types: healthTypes,
-        startTime: startDate,
-        endTime: endDate,
-      );
+      points = await health
+          .getHealthDataFromTypes(
+            types: healthTypes,
+            startTime: startDate,
+            endTime: endDate,
+          )
+          // 读取挂起时不再无限等待：超时按空结果处理，触发重试后再决定成败。
+          .timeout(
+            const Duration(seconds: 60),
+            onTimeout: () => <HealthDataPoint>[],
+          );
       if (points.isNotEmpty) break;
       if (attempt < readRetries) {
         await Future<void>.delayed(retryDelay);
       }
     }
 
-    // iOS 的原始步数样本会因 iPhone / Apple Watch / 第三方 App 多来源记录而重叠，
-    // 直接求和会重复计数（「健康」App 显示 2750，求和却得 5449）。对每个有步数
-    // 的自然日改用 getTotalStepsInInterval（原生 HKStatisticsQuery 累计求和，
-    // 与「健康」App 同一套去重逻辑），得到去重后的真实步数。
-    final stepsOverride =
-        source == HealthSyncSource.appleHealth &&
-            types.contains(HealthSyncDataType.steps)
-        ? await _accurateDailySteps(
-            points,
-            startDate: startDate,
-            endDate: endDate,
-          )
-        : null;
+    return (
+      source: SyncedHealthDataSource(
+        summaries: _dailySummariesFromPoints(
+          points,
+          source: source,
+          startDate: startDate,
+          endDate: endDate,
+        ),
+      ),
+      points: points,
+    );
+  }
 
+  /// 后台精修（第二阶段）：对 [points] 逐天去重步数，返回步数校正后的数据源。
+  ///
+  /// iOS 的原始步数样本会因 iPhone / Apple Watch / 第三方 App 多来源记录而重叠，
+  /// 直接求和会重复计数（「健康」App 显示 2750，求和却得 5449）。这里对每个有步数
+  /// 的自然日改用 getTotalStepsInInterval（原生 HKStatisticsQuery 累计求和，
+  /// 与「健康」App 同一套去重逻辑）得到真实步数。耗时较长，应在后台调用。
+  Future<SyncedHealthDataSource> refineSteps({
+    required List<HealthDataPoint> points,
+    required HealthSyncSource source,
+    required DateTime startDate,
+    required DateTime endDate,
+    Duration budget = const Duration(minutes: 5),
+  }) async {
+    final stepsOverride = await _accurateDailySteps(
+      points,
+      startDate: startDate,
+      endDate: endDate,
+      budget: budget,
+    );
     return SyncedHealthDataSource(
       summaries: _dailySummariesFromPoints(
         points,
@@ -357,6 +444,7 @@ class HealthPluginSyncService {
     List<HealthDataPoint> points, {
     required DateTime startDate,
     required DateTime endDate,
+    Duration budget = const Duration(seconds: 45),
   }) async {
     final lower = _dateOnly(startDate);
     final upper = _dateOnly(endDate);
@@ -370,8 +458,14 @@ class HealthPluginSyncService {
 
     final result = <DateTime, int>{};
     const batchSize = 12;
-    final dayList = days.toList();
+    // 最近的日期最常被查看，优先去重；超出时间预算后剩余日期回退到求和值。
+    final dayList = days.toList()..sort((a, b) => b.compareTo(a));
+    // 全量历史可能有成百上千个活跃日，逐天原生查询既慢又可能因 method channel
+    // 高并发丢应答而永远挂起。给整体一个时间预算 + 给每次调用一个超时，
+    // 确保本方法一定在有限时间内返回，杜绝同步永远卡在「同步中」。
+    final deadline = DateTime.now().add(budget);
     for (var i = 0; i < dayList.length; i += batchSize) {
+      if (DateTime.now().isAfter(deadline)) break;
       final batch = dayList.sublist(
         i,
         math.min(i + batchSize, dayList.length),
@@ -380,13 +474,15 @@ class HealthPluginSyncService {
         for (final day in batch)
           () async {
             try {
-              final total = await health.getTotalStepsInInterval(
-                day,
-                day.add(const Duration(days: 1)),
-              );
+              final total = await health
+                  .getTotalStepsInInterval(
+                    day,
+                    day.add(const Duration(days: 1)),
+                  )
+                  .timeout(const Duration(seconds: 6));
               if (total != null) result[day] = total;
             } catch (_) {
-              // 单日失败则跳过，回退到原始求和值。
+              // 单日失败 / 超时则跳过，回退到原始求和值。
             }
           }(),
       ]);
@@ -539,9 +635,18 @@ class SyncedHealthDataSource implements HealthDataSource {
   @override
   HealthHomeSnapshot homeSnapshot() {
     final latest = _latest;
-    final recent = _sorted.length <= 7
-        ? _sorted
-        : _sorted.sublist(_sorted.length - 7);
+    final sorted = _sorted;
+    final recent = sorted.length <= 7
+        ? sorted
+        : sorted.sublist(sorted.length - 7);
+    // 最近一天之前、有数据的上一天，用于「较昨日」对比。
+    HealthDailySummary? previous;
+    for (var i = sorted.length - 1; i >= 0; i--) {
+      if (sorted[i].date.isBefore(_dateOnly(latest.date))) {
+        previous = sorted[i];
+        break;
+      }
+    }
 
     return HealthHomeSnapshot(
       step: StepData(steps: latest.steps, goal: 6000),
@@ -572,7 +677,7 @@ class SyncedHealthDataSource implements HealthDataSource {
           assetIcon: AppMetricAssets.calories,
           value: _formatInt(latest.caloriesKcal.round()),
           unit: 'kcal',
-          delta: '来自健康同步',
+          delta: _deltaVsYesterday(latest.caloriesKcal, previous?.caloriesKcal),
           color: AppColors.accentOrange,
           samples: _normalizedSamples(recent.map((item) => item.caloriesKcal)),
         ),
@@ -581,7 +686,10 @@ class SyncedHealthDataSource implements HealthDataSource {
           assetIcon: AppMetricAssets.activeTime,
           value: _formatInt(latest.activeMinutes),
           unit: 'min',
-          delta: '来自健康同步',
+          delta: _deltaVsYesterday(
+            latest.activeMinutes.toDouble(),
+            previous?.activeMinutes.toDouble(),
+          ),
           color: AppColors.accentCyan,
           samples: _normalizedSamples(
             recent.map((item) => item.activeMinutes.toDouble()),
@@ -648,6 +756,13 @@ class SyncedHealthDataSource implements HealthDataSource {
       final date = _dateOnly(item.date);
       return !date.isBefore(weekStart) && !date.isAfter(referenceDay);
     }).toList();
+    // 上一周同区间（相同已过天数），用于「较上周」对比。
+    final prevWeekStart = weekStart.subtract(const Duration(days: 7));
+    final prevWeekEnd = referenceDay.subtract(const Duration(days: 7));
+    final previousWeekItems = sorted.where((item) {
+      final date = _dateOnly(item.date);
+      return !date.isBefore(prevWeekStart) && !date.isAfter(prevWeekEnd);
+    }).toList();
     final weeklyTrend = _weeklyTrendForCurrentWeek(sorted, today: referenceDay);
     final steps = _sumInt(weeklyTrend.map((item) => item.steps));
     final activeDays = weeklyTrend.where((item) => item.steps > 0).length;
@@ -689,7 +804,7 @@ class SyncedHealthDataSource implements HealthDataSource {
         ),
       ],
       weekly: weeklyTrend,
-      analyses: _periodAnalyses(currentWeekItems, '来自健康同步'),
+      analyses: _periodAnalyses(currentWeekItems, previousWeekItems, '较上周'),
       summary: SportSummaryData(
         icon: const AssetAppIcon(AppMetricAssets.weekSummary),
         color: AppColors.brandGreen,
@@ -715,6 +830,18 @@ class SyncedHealthDataSource implements HealthDataSource {
         .toList();
     final steps = _sumInt(monthItems.map((item) => item.steps));
     final goalDays = monthItems.where((item) => item.steps >= 6000).length;
+    // 上一月同区间（本月只到今天，过去月为整月），用于「较上月」对比。
+    final isCurrentMonth = anchor.year == now.year && anchor.month == now.month;
+    final dayBound = isCurrentMonth ? now.day : 31;
+    final prevAnchor = DateTime(anchor.year, anchor.month - 1, 1);
+    final previousMonthItems = sorted
+        .where(
+          (item) =>
+              item.date.year == prevAnchor.year &&
+              item.date.month == prevAnchor.month &&
+              item.date.day <= dayBound,
+        )
+        .toList();
 
     return SportPeriodData(
       period: SportPeriod.month,
@@ -757,7 +884,7 @@ class SyncedHealthDataSource implements HealthDataSource {
         for (final item in monthItems)
           MonthlyDayData(item.date.day, item.steps),
       ],
-      analyses: _periodAnalyses(monthItems, '来自健康同步'),
+      analyses: _periodAnalyses(monthItems, previousMonthItems, '较上月'),
       summary: SportSummaryData(
         icon: const AssetAppIcon(AppMetricAssets.monthSummary),
         color: AppColors.brandGreen,
@@ -841,15 +968,26 @@ class SyncedHealthDataSource implements HealthDataSource {
     ];
   }
 
+  /// 周 / 月维度分析：卡路里与活动时间合计，并与上一周期同区间对比。
+  /// [compareLabel] 取「较上周」或「较上月」。
   List<SportAnalysisData> _periodAnalyses(
     List<HealthDailySummary> items,
-    String delta,
+    List<HealthDailySummary> previousItems,
+    String compareLabel,
   ) {
     final calories = items.fold<double>(
       0,
       (sum, item) => sum + item.caloriesKcal,
     );
     final minutes = items.fold<int>(0, (sum, item) => sum + item.activeMinutes);
+    final prevCalories = previousItems.fold<double>(
+      0,
+      (sum, item) => sum + item.caloriesKcal,
+    );
+    final prevMinutes = previousItems.fold<int>(
+      0,
+      (sum, item) => sum + item.activeMinutes,
+    );
     return [
       SportAnalysisData(
         assetIcon: AppMetricAssets.calories,
@@ -857,7 +995,7 @@ class SyncedHealthDataSource implements HealthDataSource {
         title: '卡路里分析',
         value: _formatInt(calories.round()),
         unit: 'kcal',
-        delta: delta,
+        delta: _deltaVsPrevious(compareLabel, calories, prevCalories),
         samples: _normalizedSamples(items.map((item) => item.caloriesKcal)),
       ),
       SportAnalysisData(
@@ -866,7 +1004,11 @@ class SyncedHealthDataSource implements HealthDataSource {
         title: '活动时间分析',
         value: _formatInt(minutes),
         unit: 'min',
-        delta: delta,
+        delta: _deltaVsPrevious(
+          compareLabel,
+          minutes.toDouble(),
+          prevMinutes.toDouble(),
+        ),
         samples: _normalizedSamples(
           items.map((item) => item.activeMinutes.toDouble()),
         ),
@@ -966,6 +1108,14 @@ String _deltaVsYesterday(double today, double? yesterday) {
   final percent = ((today - yesterday) / yesterday * 100).round();
   final sign = percent >= 0 ? '+' : '';
   return '较昨日 $sign$percent%';
+}
+
+/// 生成「较上周/较上月 ±X%」文案；上一周期无数据时返回「$label --」。
+String _deltaVsPrevious(String label, double current, double? previous) {
+  if (previous == null || previous <= 0) return '$label --';
+  final percent = ((current - previous) / previous * 100).round();
+  final sign = percent >= 0 ? '+' : '';
+  return '$label $sign$percent%';
 }
 
 String _formatInt(int value) {
