@@ -213,25 +213,25 @@ class SyncDataDetailViewModel extends GetxController implements IBaseViewModel {
   static List<SyncDataType> _dataTypesFor(HealthDailySummary summary) {
     return [
       SyncDataType(
-        icon: const MaterialAppIcon(Icons.directions_walk_rounded),
+        icon: const AssetAppIcon(AppMetricAssets.syncSteps),
         iconColor: const Color(0xFF24F04E),
         title: '步数',
         value: '${_formatInt(summary.steps)} 步',
       ),
       SyncDataType(
-        icon: const AssetAppIcon(AppMetricAssets.calories),
+        icon: const AssetAppIcon(AppMetricAssets.syncCalories),
         iconColor: const Color(0xFFFF9F12),
         title: '卡路里',
         value: '${_formatInt(summary.caloriesKcal.round())} kcal',
       ),
       SyncDataType(
-        icon: const AssetAppIcon(AppMetricAssets.activeTime),
+        icon: const AssetAppIcon(AppMetricAssets.syncActiveTime),
         iconColor: const Color(0xFF0CD9FF),
         title: '活动时间',
         value: '${_formatInt(summary.activeMinutes)} min',
       ),
       SyncDataType(
-        icon: const AssetAppIcon(AppMetricAssets.distance),
+        icon: const AssetAppIcon(AppMetricAssets.syncDistance),
         iconColor: const Color(0xFF43F56B),
         title: '距离',
         value: '${_formatDistance(summary.distanceKm)} km',

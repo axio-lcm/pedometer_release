@@ -24,4 +24,10 @@ class AppMetricAssets {
   static const String syncId = 'assets/sync_id.svg';
   static const String syncDevice = 'assets/sync_device.svg';
   static const String syncStatus = 'assets/sync_status.svg';
+
+  // 同步数据详情页「数据类型」图标（圆形徽章样式）
+  static const String syncSteps = 'assets/sync_steps.svg';
+  static const String syncCalories = 'assets/sync_calories.svg';
+  static const String syncActiveTime = 'assets/sync_active_time.svg';
+  static const String syncDistance = 'assets/sync_distance.svg';
 }

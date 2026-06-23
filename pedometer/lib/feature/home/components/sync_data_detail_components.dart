@@ -339,7 +339,7 @@ class DataTypeListItem extends StatelessWidget {
   final SyncDataType data;
   final bool showDivider;
 
-  static const double _iconColumnWidth = 28;
+  static const double _iconColumnWidth = 36;
   static const double _titleGap = 16;
   static const double _titleValueGap = 18;
   static const double _valueColumnWidth = 76;
@@ -367,7 +367,7 @@ class DataTypeListItem extends StatelessWidget {
                   child: AppIconView(
                     icon: data.icon,
                     color: data.iconColor,
-                    size: 22,
+                    size: 36,
                   ),
                 ),
               ),
