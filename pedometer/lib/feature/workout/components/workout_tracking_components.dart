@@ -28,11 +28,19 @@ import 'package:pedometer/feature/workout/viewmodel/workout_tracking_view_model.
 class WorkoutMapSection extends StatefulWidget {
   final WorkoutTrackingData data;
   final WorkoutTrackingViewModel controller;
+  final bool showMoreMenu;
+  final VoidCallback? onDismissMoreMenu;
+  final VoidCallback? onImportMusic;
+  final VoidCallback? onWorkoutRoute;
 
   const WorkoutMapSection({
     super.key,
     required this.data,
     required this.controller,
+    this.showMoreMenu = false,
+    this.onDismissMoreMenu,
+    this.onImportMusic,
+    this.onWorkoutRoute,
   });
 
   @override
@@ -54,10 +62,7 @@ class _WorkoutMapSectionState extends State<WorkoutMapSection> {
           Positioned.fill(
             child: indoor
                 ? const ColoredBox(color: WorkoutResource.indoorBackground)
-                : WorkoutMapView(
-                    key: _mapKey,
-                    controller: widget.controller,
-                  ),
+                : WorkoutMapView(key: _mapKey, controller: widget.controller),
           ),
           Obx(() {
             final data = _liveData();
@@ -82,6 +87,23 @@ class _WorkoutMapSectionState extends State<WorkoutMapSection> {
                 onLocate: () => _mapKey.currentState?.centerOnCurrentLocation(),
               ),
             ),
+          if (widget.showMoreMenu) ...[
+            Positioned.fill(
+              child: GestureDetector(
+                behavior: HitTestBehavior.translucent,
+                onTap: widget.onDismissMoreMenu,
+                child: const SizedBox.expand(),
+              ),
+            ),
+            Positioned(
+              top: AppSpacing.md,
+              right: AppSpacing.lg,
+              child: WorkoutMapMoreMenu(
+                onImportMusic: widget.onImportMusic,
+                onWorkoutRoute: widget.onWorkoutRoute,
+              ),
+            ),
+          ],
         ],
       ),
     );
@@ -94,6 +116,103 @@ class _WorkoutMapSectionState extends State<WorkoutMapSection> {
       duration: widget.controller.durationText,
       calories: widget.controller.caloriesText,
       pace: widget.controller.paceText,
+    );
+  }
+}
+
+/// 地图区域右上角的更多菜单：垂直展示导入音乐 / 运动轨迹。
+class WorkoutMapMoreMenu extends StatelessWidget {
+  final VoidCallback? onImportMusic;
+  final VoidCallback? onWorkoutRoute;
+
+  const WorkoutMapMoreMenu({
+    super.key,
+    this.onImportMusic,
+    this.onWorkoutRoute,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 132,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(AppRadius.md),
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            Color.alphaBlend(AppColors.surfaceCardTop, AppColors.bgPrimary),
+            Color.alphaBlend(AppColors.surfaceCardBottom, AppColors.bgPrimary),
+          ],
+        ),
+        border: Border.all(color: AppColors.strokeCard, width: 1),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.38),
+            blurRadius: 20,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          _WorkoutMapMoreMenuItem(
+            icon: Icons.library_music_rounded,
+            label: WorkoutResource.trackingImportMusic,
+            onTap: onImportMusic,
+          ),
+          Divider(height: 1, color: AppColors.divider),
+          _WorkoutMapMoreMenuItem(
+            icon: Icons.route_rounded,
+            label: WorkoutResource.trackingRoute,
+            onTap: onWorkoutRoute,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _WorkoutMapMoreMenuItem extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final VoidCallback? onTap;
+
+  const _WorkoutMapMoreMenuItem({
+    required this.icon,
+    required this.label,
+    this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: onTap,
+      child: SizedBox(
+        height: 48,
+        child: Row(
+          children: [
+            SizedBox(width: AppSpacing.md),
+            Icon(icon, color: AppColors.brandGreen, size: 20),
+            SizedBox(width: AppSpacing.sm),
+            Expanded(
+              child: Text(
+                label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  color: AppColors.textPrimary,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+            SizedBox(width: AppSpacing.sm),
+          ],
+        ),
+      ),
     );
   }
 }

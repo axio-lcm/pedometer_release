@@ -126,6 +126,10 @@ class WorkoutResource {
       _string('exit_confirm_back', WorkoutText.exitConfirmBack);
   static String get exitConfirmContinue =>
       _string('exit_confirm_continue', WorkoutText.exitConfirmContinue);
+  static String get trackingImportMusic =>
+      _string('tracking_import_music', WorkoutText.trackingImportMusic);
+  static String get trackingRoute =>
+      _string('tracking_route', WorkoutText.trackingRoute);
 
   static String trackingTarget(String value) {
     return _string(
@@ -204,6 +208,8 @@ class WorkoutText {
   static const exitConfirmMessage = '运动尚未结束，返回将不会保存本次运动记录。';
   static const exitConfirmBack = '确认返回';
   static const exitConfirmContinue = '继续运动';
+  static const trackingImportMusic = '导入音乐';
+  static const trackingRoute = '运动轨迹';
 }
 
 /// 运动页模块路由定义（对齐 HomeRouteTable 写法）。

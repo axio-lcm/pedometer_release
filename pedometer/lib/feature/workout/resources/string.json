@@ -46,5 +46,7 @@
   "goal_suggestion_title": "目标建议",
   "suggestion_distance": "距离：初学者建议 3-5 公里，进阶者 5-10 公里",
   "suggestion_duration": "时长：建议 30-60 分钟，有助于提升心肺能力",
-  "suggestion_calorie": "消耗：建议 300-600 kcal，保持健康体重"
+  "suggestion_calorie": "消耗：建议 300-600 kcal，保持健康体重",
+  "tracking_import_music": "导入音乐",
+  "tracking_route": "运动轨迹"
 }

@@ -11,10 +11,20 @@ import 'package:pedometer/feature/workout/viewmodel/workout_tracking_view_model.
 import 'package:pedometer/feature/workout/views/exercise_result_page.dart';
 
 /// 点击「开始运动」后的运动记录中页面。
-class WorkoutTrackingPage extends GetView<WorkoutTrackingViewModel> {
+class WorkoutTrackingPage extends StatefulWidget {
   static const String routeName = WorkoutRouteTable.pathTracking;
 
   const WorkoutTrackingPage({super.key});
+
+  @override
+  State<WorkoutTrackingPage> createState() => _WorkoutTrackingPageState();
+}
+
+class _WorkoutTrackingPageState extends State<WorkoutTrackingPage> {
+  WorkoutTrackingViewModel get controller =>
+      Get.find<WorkoutTrackingViewModel>();
+
+  bool _showMoreMenu = false;
 
   @override
   Widget build(BuildContext context) {
@@ -35,6 +45,8 @@ class WorkoutTrackingPage extends GetView<WorkoutTrackingViewModel> {
                       () => AppTopNavigationBar(
                         title: controller.workoutTitle.value,
                         onBack: _back,
+                        rightIcon: Icons.more_horiz_rounded,
+                        onRightTap: _toggleMoreMenu,
                       ),
                     ),
                   ),
@@ -46,6 +58,10 @@ class WorkoutTrackingPage extends GetView<WorkoutTrackingViewModel> {
                           WorkoutMapSection(
                             data: controller.template,
                             controller: controller,
+                            showMoreMenu: _showMoreMenu,
+                            onDismissMoreMenu: _dismissMoreMenu,
+                            onImportMusic: _handleMoreAction,
+                            onWorkoutRoute: _handleMoreAction,
                           ),
                           const SizedBox(height: 4),
                           Padding(
@@ -82,6 +98,19 @@ class WorkoutTrackingPage extends GetView<WorkoutTrackingViewModel> {
         ),
       ),
     );
+  }
+
+  void _toggleMoreMenu() {
+    setState(() => _showMoreMenu = !_showMoreMenu);
+  }
+
+  void _dismissMoreMenu() {
+    if (!_showMoreMenu) return;
+    setState(() => _showMoreMenu = false);
+  }
+
+  void _handleMoreAction() {
+    _dismissMoreMenu();
   }
 
   // 返回：运动进行中时先弹确认框，确认后才退出；未开始则直接返回。
@@ -133,7 +162,10 @@ class _ExitConfirmDialog extends StatelessWidget {
             end: Alignment.bottomRight,
             colors: [
               Color.alphaBlend(AppColors.surfaceCardTop, AppColors.bgPrimary),
-              Color.alphaBlend(AppColors.surfaceCardBottom, AppColors.bgPrimary),
+              Color.alphaBlend(
+                AppColors.surfaceCardBottom,
+                AppColors.bgPrimary,
+              ),
             ],
           ),
           border: Border.all(color: AppColors.strokeCard, width: 1),
