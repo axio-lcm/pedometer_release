@@ -67,18 +67,32 @@ class SportDetailViewModel extends GetxController implements IBaseViewModel {
   }
 
   /// 上一周。
-  void prevWeek() => vo.weekOffset.value -= 1;
+  void prevWeek() {
+    vo.weekOffset.value -= 1;
+    _load();
+  }
 
   /// 下一周（不能超过本周）。
   void nextWeek() {
-    if (vo.weekOffset.value < 0) vo.weekOffset.value += 1;
+    if (vo.weekOffset.value < 0) {
+      vo.weekOffset.value += 1;
+      _load();
+    }
   }
 
   /// 月视图切月。
-  void changeMonth(int offset) => vo.monthOffset.value = offset;
+  void changeMonth(int offset) {
+    if (vo.monthOffset.value == offset) return;
+    vo.monthOffset.value = offset;
+    _load();
+  }
 
   void _load() {
-    vo.data.value = repository.sportPeriodData(vo.period.value);
+    vo.data.value = repository.sportPeriodData(
+      vo.period.value,
+      weekOffset: vo.weekOffset.value,
+      monthOffset: vo.monthOffset.value,
+    );
   }
 }
 

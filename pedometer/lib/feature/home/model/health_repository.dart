@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:health/health.dart';
 import 'package:pedometer/common/config/app_colors.dart';
@@ -34,7 +36,14 @@ class FixedMembershipService implements MembershipService {
 
 abstract class HealthDataSource {
   HealthHomeSnapshot homeSnapshot();
-  SportPeriodData sportPeriodData(SportPeriod period);
+
+  /// [weekOffset]：0 = 本周，-1 = 上周，依此类推（周视图用）。
+  /// [monthOffset]：0 = 本月，-1 = 上月，依此类推（月视图用）。
+  SportPeriodData sportPeriodData(
+    SportPeriod period, {
+    int weekOffset = 0,
+    int monthOffset = 0,
+  });
 }
 
 class HealthRepository {
@@ -63,8 +72,16 @@ class HealthRepository {
 
   HealthHomeSnapshot homeSnapshot() => _activeDataSource.homeSnapshot();
 
-  SportPeriodData sportPeriodData(SportPeriod period) {
-    return _activeDataSource.sportPeriodData(period);
+  SportPeriodData sportPeriodData(
+    SportPeriod period, {
+    int weekOffset = 0,
+    int monthOffset = 0,
+  }) {
+    return _activeDataSource.sportPeriodData(
+      period,
+      weekOffset: weekOffset,
+      monthOffset: monthOffset,
+    );
   }
 }
 
@@ -157,8 +174,16 @@ class RuntimeHealthDataSource implements HealthDataSource {
   HealthHomeSnapshot homeSnapshot() => _current.homeSnapshot();
 
   @override
-  SportPeriodData sportPeriodData(SportPeriod period) {
-    return _current.sportPeriodData(period);
+  SportPeriodData sportPeriodData(
+    SportPeriod period, {
+    int weekOffset = 0,
+    int monthOffset = 0,
+  }) {
+    return _current.sportPeriodData(
+      period,
+      weekOffset: weekOffset,
+      monthOffset: monthOffset,
+    );
   }
 }
 
@@ -214,7 +239,11 @@ class MockHealthDataSource implements HealthDataSource {
   }
 
   @override
-  SportPeriodData sportPeriodData(SportPeriod period) {
+  SportPeriodData sportPeriodData(
+    SportPeriod period, {
+    int weekOffset = 0,
+    int monthOffset = 0,
+  }) {
     final data = SportDetailFixtures.byPeriod(period);
     if (period != SportPeriod.week) return data;
     return data.copyWith(
@@ -294,14 +323,75 @@ class HealthPluginSyncService {
       }
     }
 
+    // iOS 的原始步数样本会因 iPhone / Apple Watch / 第三方 App 多来源记录而重叠，
+    // 直接求和会重复计数（「健康」App 显示 2750，求和却得 5449）。对每个有步数
+    // 的自然日改用 getTotalStepsInInterval（原生 HKStatisticsQuery 累计求和，
+    // 与「健康」App 同一套去重逻辑），得到去重后的真实步数。
+    final stepsOverride =
+        source == HealthSyncSource.appleHealth &&
+            types.contains(HealthSyncDataType.steps)
+        ? await _accurateDailySteps(
+            points,
+            startDate: startDate,
+            endDate: endDate,
+          )
+        : null;
+
     return SyncedHealthDataSource(
       summaries: _dailySummariesFromPoints(
         points,
         source: source,
         startDate: startDate,
         endDate: endDate,
+        stepsOverride: stepsOverride,
       ),
     );
+  }
+
+  /// 对 [points] 中出现过步数样本的每个自然日，调用原生去重步数统计，
+  /// 返回「自然日 → 去重后步数」。失败的日期不写入（回退到求和值）。
+  ///
+  /// 仅遍历真正有步数的日期，避免对无数据的空日做无谓的原生调用；
+  /// 为缩短全量历史的同步时长，按小批量并发查询。
+  Future<Map<DateTime, int>> _accurateDailySteps(
+    List<HealthDataPoint> points, {
+    required DateTime startDate,
+    required DateTime endDate,
+  }) async {
+    final lower = _dateOnly(startDate);
+    final upper = _dateOnly(endDate);
+    final days = <DateTime>{};
+    for (final point in points) {
+      if (point.type != HealthDataType.STEPS) continue;
+      final day = _dateOnly(point.dateFrom.toLocal());
+      if (day.isBefore(lower) || day.isAfter(upper)) continue;
+      days.add(day);
+    }
+
+    final result = <DateTime, int>{};
+    const batchSize = 12;
+    final dayList = days.toList();
+    for (var i = 0; i < dayList.length; i += batchSize) {
+      final batch = dayList.sublist(
+        i,
+        math.min(i + batchSize, dayList.length),
+      );
+      await Future.wait([
+        for (final day in batch)
+          () async {
+            try {
+              final total = await health.getTotalStepsInInterval(
+                day,
+                day.add(const Duration(days: 1)),
+              );
+              if (total != null) result[day] = total;
+            } catch (_) {
+              // 单日失败则跳过，回退到原始求和值。
+            }
+          }(),
+      ]);
+    }
+    return result;
   }
 
   bool _sourceMatchesPlatform(HealthSyncSource source) {
@@ -352,6 +442,8 @@ class HealthPluginSyncService {
     required HealthSyncSource source,
     required DateTime startDate,
     required DateTime endDate,
+    // 「自然日 → 去重后步数」。非空时步数用此覆盖，不再累加原始样本。
+    Map<DateTime, int>? stepsOverride,
   }) {
     final byDay = <DateTime, _DailyHealthAccumulator>{};
     for (final point in points) {
@@ -364,6 +456,8 @@ class HealthPluginSyncService {
       final value = _numericHealthValue(point);
       switch (point.type) {
         case HealthDataType.STEPS:
+          // 仍累加原始样本作为兜底；若 stepsOverride 有当天去重值则优先用之，
+          // 仅当个别日期去重查询失败时才回退到这个（可能偏大的）求和值。
           summary.steps += value.round();
         case HealthDataType.DISTANCE_WALKING_RUNNING:
         case HealthDataType.DISTANCE_DELTA:
@@ -383,7 +477,7 @@ class HealthPluginSyncService {
       for (final entry in byDay.entries)
         HealthDailySummary(
           date: entry.key,
-          steps: entry.value.steps,
+          steps: stepsOverride?[entry.key] ?? entry.value.steps,
           distanceKm: entry.value.distanceKm,
           caloriesKcal: entry.value.caloriesKcal,
           activeMinutes: entry.value.activeMinutes,
@@ -498,11 +592,15 @@ class SyncedHealthDataSource implements HealthDataSource {
   }
 
   @override
-  SportPeriodData sportPeriodData(SportPeriod period) {
+  SportPeriodData sportPeriodData(
+    SportPeriod period, {
+    int weekOffset = 0,
+    int monthOffset = 0,
+  }) {
     return switch (period) {
       SportPeriod.day => _dayData(),
-      SportPeriod.week => _weekData(),
-      SportPeriod.month => _monthData(),
+      SportPeriod.week => _weekData(weekOffset),
+      SportPeriod.month => _monthData(monthOffset),
     };
   }
 
@@ -538,17 +636,19 @@ class SyncedHealthDataSource implements HealthDataSource {
     );
   }
 
-  SportPeriodData _weekData() {
+  SportPeriodData _weekData(int weekOffset) {
     final sorted = _sorted;
     final today = _dateOnly(DateTime.now());
-    final weekStart = _weekMonday(today);
+    final weekStart = _weekMonday(today).add(Duration(days: weekOffset * 7));
     final weekEnd = weekStart.add(const Duration(days: 6));
-    final elapsedDays = today.difference(weekStart).inDays + 1;
+    // 本周只统计到今天；过去的周整周都已结束，统计到周日。
+    final referenceDay = weekOffset >= 0 ? today : weekEnd;
+    final elapsedDays = referenceDay.difference(weekStart).inDays + 1;
     final currentWeekItems = sorted.where((item) {
       final date = _dateOnly(item.date);
-      return !date.isBefore(weekStart) && !date.isAfter(today);
+      return !date.isBefore(weekStart) && !date.isAfter(referenceDay);
     }).toList();
-    final weeklyTrend = _weeklyTrendForCurrentWeek(sorted, today: today);
+    final weeklyTrend = _weeklyTrendForCurrentWeek(sorted, today: referenceDay);
     final steps = _sumInt(weeklyTrend.map((item) => item.steps));
     final activeDays = weeklyTrend.where((item) => item.steps > 0).length;
     final goalDays = weeklyTrend.where((item) => item.steps >= 6000).length;
@@ -602,14 +702,15 @@ class SyncedHealthDataSource implements HealthDataSource {
     );
   }
 
-  SportPeriodData _monthData() {
+  SportPeriodData _monthData(int monthOffset) {
     final sorted = _sorted;
-    final latest = _latest;
+    final now = DateTime.now();
+    final anchor = DateTime(now.year, now.month + monthOffset, 1);
     final monthItems = sorted
         .where(
           (item) =>
-              item.date.year == latest.date.year &&
-              item.date.month == latest.date.month,
+              item.date.year == anchor.year &&
+              item.date.month == anchor.month,
         )
         .toList();
     final steps = _sumInt(monthItems.map((item) => item.steps));
@@ -617,7 +718,7 @@ class SyncedHealthDataSource implements HealthDataSource {
 
     return SportPeriodData(
       period: SportPeriod.month,
-      dateTitle: '${latest.date.year}年${latest.date.month}月',
+      dateTitle: '${anchor.year}年${anchor.month}月',
       progress: SportProgressData(
         title: '本月步数',
         value: steps,

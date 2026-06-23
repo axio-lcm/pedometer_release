@@ -27,6 +27,10 @@ class SyncSourceDetailViewModel extends GetxController
     HealthSyncDataType.activeMinutes,
   ];
 
+  /// 同步历史的起始时间下界。HealthKit / Health Connect 不会返回此日期之前的数据，
+  /// 取一个早于 iPhone / Apple Watch 健康数据普及的日期，等价于「读取全部历史」。
+  static final DateTime _historyStartDate = DateTime(2014, 1, 1);
+
   final HealthPluginSyncService service;
   final TargetPlatform platform;
   final Rx<SyncSourceDetailData> data;
@@ -179,7 +183,9 @@ class SyncSourceDetailViewModel extends GetxController
       final now = DateTime.now();
       final syncedSource = await service.sync(
         source: source,
-        startDate: now.subtract(const Duration(days: 30)),
+        // 「有多久同步多久」：从健康数据可能存在的最早时间开始读取，
+        // 覆盖手机内的全部历史健康数据，而非仅最近 30 天。
+        startDate: _historyStartDate,
         endDate: now,
         types: types,
         ensureAuthorized: false,

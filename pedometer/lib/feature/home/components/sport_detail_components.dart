@@ -1438,6 +1438,10 @@ class _MonthlyHeatCalendarCardState extends State<MonthlyHeatCalendarCard> {
     initialPage: _basePage,
   );
 
+  // 当前展示的月份偏移（0 = 本月）与被点选的日期（null = 未选）。
+  int _currentOffset = 0;
+  int? _selectedDay;
+
   @override
   void dispose() {
     _controller.dispose();
@@ -1449,16 +1453,53 @@ class _MonthlyHeatCalendarCardState extends State<MonthlyHeatCalendarCard> {
     return DateTime(now.year, now.month + offset, 1);
   }
 
+  /// 千分位格式化步数，如 8240 -> 8,240。
+  String _formatSteps(int steps) {
+    final text = steps.toString();
+    final buffer = StringBuffer();
+    for (var i = 0; i < text.length; i++) {
+      final remaining = text.length - i;
+      buffer.write(text[i]);
+      if (remaining > 1 && remaining % 3 == 1) buffer.write(',');
+    }
+    return buffer.toString();
+  }
+
   @override
   Widget build(BuildContext context) {
     final byDay = {for (final day in widget.days) day.day: day};
+    final selectedDay = _selectedDay;
+    final selectedMonth = _monthForOffset(_currentOffset);
+    final selectedSteps = selectedDay == null
+        ? 0
+        : byDay[selectedDay]?.steps ?? 0;
     return GlassCard(
       radius: AppRadius.xl,
       padding: EdgeInsets.all(AppSpacing.lg),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _CardTitle('月度热力'),
+          Row(
+            children: [
+              Expanded(child: _CardTitle('月度热力')),
+              if (selectedDay != null)
+                Flexible(
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    alignment: Alignment.centerRight,
+                    child: Text(
+                      '${selectedMonth.month}月$selectedDay日 · '
+                      '${_formatSteps(selectedSteps)} 步',
+                      style: TextStyle(
+                        color: AppColors.brandGreen,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ),
+            ],
+          ),
           SizedBox(height: AppSpacing.md),
           Row(
             children: [
@@ -1500,16 +1541,34 @@ class _MonthlyHeatCalendarCardState extends State<MonthlyHeatCalendarCard> {
                   controller: _controller,
                   // 上限 = 本月（_basePage），不能滑向未来。
                   itemCount: _basePage + 1,
-                  onPageChanged: (page) =>
-                      widget.onMonthChanged?.call(page - _basePage),
+                  onPageChanged: (page) {
+                    setState(() {
+                      _currentOffset = page - _basePage;
+                      // 切月后清除上个月的选中态。
+                      _selectedDay = null;
+                    });
+                    widget.onMonthChanged?.call(page - _basePage);
+                  },
                   itemBuilder: (context, page) {
-                    final monthDate = _monthForOffset(page - _basePage);
+                    final offset = page - _basePage;
+                    final monthDate = _monthForOffset(offset);
                     return _MonthGrid(
                       year: monthDate.year,
                       month: monthDate.month,
-                      byDay: byDay,
+                      // 仅当前展示月份的格子使用真实数据并可点选。
+                      byDay: offset == _currentOffset
+                          ? byDay
+                          : const <int, MonthlyDayData>{},
                       cellExtent: cell,
                       spacing: spacing,
+                      selectedDay: offset == _currentOffset ? _selectedDay : null,
+                      onDayTap: offset == _currentOffset
+                          ? (day) => setState(
+                              () => _selectedDay = _selectedDay == day
+                                  ? null
+                                  : day,
+                            )
+                          : null,
                     );
                   },
                 ),
@@ -1566,6 +1625,8 @@ class _MonthGrid extends StatelessWidget {
   final Map<int, MonthlyDayData> byDay;
   final double cellExtent;
   final double spacing;
+  final int? selectedDay;
+  final void Function(int day)? onDayTap;
 
   const _MonthGrid({
     required this.year,
@@ -1573,6 +1634,8 @@ class _MonthGrid extends StatelessWidget {
     required this.byDay,
     required this.cellExtent,
     required this.spacing,
+    this.selectedDay,
+    this.onDayTap,
   });
 
   @override
@@ -1597,7 +1660,12 @@ class _MonthGrid extends StatelessWidget {
           return const SizedBox.shrink();
         }
         final step = byDay[day]?.steps ?? 0;
-        return _HeatDayCircle(day: day, steps: step);
+        return _HeatDayCircle(
+          day: day,
+          steps: step,
+          selected: selectedDay == day,
+          onTap: onDayTap == null ? null : () => onDayTap!(day),
+        );
       },
     );
   }
@@ -1606,46 +1674,63 @@ class _MonthGrid extends StatelessWidget {
 class _HeatDayCircle extends StatelessWidget {
   final int day;
   final int steps;
+  final bool selected;
+  final VoidCallback? onTap;
 
-  const _HeatDayCircle({required this.day, required this.steps});
+  const _HeatDayCircle({
+    required this.day,
+    required this.steps,
+    this.selected = false,
+    this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
     final hot = steps >= 7000;
-    return Center(
-      child: Container(
-        width: 34,
-        height: 34,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          color: _heatColor(steps),
-          border: hot
-              ? Border.all(
-                  color: AppColors.brandGreenLight.withValues(alpha: 0.65),
-                )
-              : null,
-          boxShadow: hot
-              ? [
-                  BoxShadow(
-                    color: AppColors.brandGreen.withValues(alpha: 0.30),
-                    blurRadius: 16,
-                    spreadRadius: -2,
+    final circle = Container(
+      width: 34,
+      height: 34,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: _heatColor(steps),
+        border: selected
+            ? Border.all(color: AppColors.brandGreenLight, width: 2)
+            : hot
+            ? Border.all(
+                color: AppColors.brandGreenLight.withValues(alpha: 0.65),
+              )
+            : null,
+        boxShadow: (hot || selected)
+            ? [
+                BoxShadow(
+                  color: AppColors.brandGreen.withValues(
+                    alpha: selected ? 0.45 : 0.30,
                   ),
-                ]
-              : null,
-        ),
-        child: Center(
-          child: Text(
-            '$day',
-            style: TextStyle(
-              color: AppColors.textPrimary.withValues(
-                alpha: steps <= 1500 ? 0.72 : 1,
-              ),
-              fontSize: 15,
-              fontWeight: FontWeight.w500,
+                  blurRadius: 16,
+                  spreadRadius: -2,
+                ),
+              ]
+            : null,
+      ),
+      child: Center(
+        child: Text(
+          '$day',
+          style: TextStyle(
+            color: AppColors.textPrimary.withValues(
+              alpha: steps <= 1500 ? 0.72 : 1,
             ),
+            fontSize: 15,
+            fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
           ),
         ),
+      ),
+    );
+    if (onTap == null) return Center(child: circle);
+    return Center(
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: onTap,
+        child: circle,
       ),
     );
   }
