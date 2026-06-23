@@ -1,11 +1,13 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:pedometer/common/config/app_colors.dart';
 import 'package:pedometer/common/mvvm/ibase_view_model.dart';
+import 'package:pedometer/common/service/motion_fitness_permission_service.dart';
 import 'package:pedometer/feature/workout/model/workout_calorie_policy.dart';
 import 'package:pedometer/feature/workout/model/workout_model.dart';
 import 'package:pedometer/feature/workout/model/workout_pace_policy.dart';
@@ -22,6 +24,8 @@ class WorkoutTrackingViewModel extends GetxController
     this.template = WorkoutTrackingData.mock,
     this.minMoveMeters = 2.5,
     this.minRoutePointMeters = 1.5,
+    this.maxMetricAccuracyMeters = 35,
+    this.maxMetricSpeedKmh = 30,
   }) : _caloriePolicy = caloriePolicy ?? const WorkoutCaloriePolicy(),
        _pacePolicy = pacePolicy ?? WorkoutPacePolicy();
 
@@ -39,6 +43,12 @@ class WorkoutTrackingViewModel extends GetxController
   /// 地图可视轨迹的最低位移。它小于 [minMoveMeters]，用于让真机小范围
   /// 移动先出现路线，但不参与距离 / 配速 / 卡路里计算。
   final double minRoutePointMeters;
+
+  /// 只有精度足够的 GPS 点才参与距离 / 配速 / 卡路里计算，避免弱信号漂移放大运动量。
+  final double maxMetricAccuracyMeters;
+
+  /// 跑步 / 健走 / 徒步场景的异常速度上限；超过时认为该 GPS 段不可信。
+  final double maxMetricSpeedKmh;
 
   final status = WorkoutStatus.ready.obs;
   final startPoint = Rxn<LatLng>();
@@ -59,6 +69,12 @@ class WorkoutTrackingViewModel extends GetxController
   Position? _currentRaw; // 最近一次定位，开始运动时用作第一段距离基准
   Position? _lastRouteRaw; // 上一个被画到地图轨迹上的原始定位
   double _lastSpeedKmh = 0; // 当前 tick 卡路里用的速度
+  DateTime? _lastSpeedUpdatedAt;
+  StreamSubscription<Duration>? _motionPaceSubscription;
+  DateTime? _lastMotionPaceAt;
+
+  static const _motionPaceFreshness = Duration(seconds: 10);
+  static const _calorieSpeedFreshness = Duration(seconds: 5);
 
   // ---- 状态机 ----
 
@@ -76,9 +92,11 @@ class WorkoutTrackingViewModel extends GetxController
     pace.value = null;
     pathPoints.clear();
     _pacePolicy.reset();
-    _lastRaw = _currentRaw;
+    _lastRaw = _usableMetricRawOrNull(_currentRaw);
     _lastRouteRaw = _currentRaw;
     _lastSpeedKmh = 0;
+    _lastSpeedUpdatedAt = null;
+    _lastMotionPaceAt = null;
 
     final pos = currentPosition.value;
     startPoint.value = pos;
@@ -143,6 +161,11 @@ class WorkoutTrackingViewModel extends GetxController
     _currentRaw = raw;
     currentPosition.value = display;
 
+    if (!_isMetricFixUsable(raw)) {
+      _appendVisibleRoutePointIfNeeded(raw, display);
+      return;
+    }
+
     final last = _lastRaw;
     if (last == null) {
       _lastRaw = raw;
@@ -160,6 +183,16 @@ class WorkoutTrackingViewModel extends GetxController
       raw.latitude,
       raw.longitude,
     );
+    final segmentSpeedKmh = _speedFromDelta(
+      delta,
+      last.timestamp,
+      raw.timestamp,
+    );
+    if (segmentSpeedKmh <= 0 || segmentSpeedKmh > maxMetricSpeedKmh) {
+      _appendVisibleRoutePointIfNeeded(raw, display);
+      return;
+    }
+
     if (delta < minMoveMeters) {
       _appendVisibleRoutePointIfNeeded(raw, display);
       return; // 抖动，保持上次 bearing / 距离
@@ -179,10 +212,10 @@ class WorkoutTrackingViewModel extends GetxController
         cumulativeMeters: distanceMeters.value,
         at: DateTime.now(),
       );
-      pace.value = _pacePolicy.pacePerKm;
-      _lastSpeedKmh = (raw.speed.isFinite && raw.speed > 0)
-          ? raw.speed * 3.6
-          : _speedFromDelta(delta, last.timestamp, raw.timestamp);
+      final gpsPace = _pacePolicy.pacePerKm;
+      if (!_hasRecentMotionPace) pace.value = gpsPace;
+      _lastSpeedKmh = _usablePositionSpeedKmh(raw) ?? segmentSpeedKmh;
+      _lastSpeedUpdatedAt = DateTime.now();
     }
 
     _lastRaw = raw;
@@ -223,6 +256,56 @@ class WorkoutTrackingViewModel extends GetxController
     return (meters / secs) * 3.6;
   }
 
+  bool _isMetricFixUsable(Position raw) {
+    final accuracy = raw.accuracy;
+    return accuracy.isFinite &&
+        accuracy > 0 &&
+        accuracy <= maxMetricAccuracyMeters;
+  }
+
+  Position? _usableMetricRawOrNull(Position? raw) {
+    if (raw == null || !_isMetricFixUsable(raw)) return null;
+    return raw;
+  }
+
+  double? _usablePositionSpeedKmh(Position raw) {
+    final speedKmh = raw.speed * 3.6;
+    if (!speedKmh.isFinite || speedKmh <= 0 || speedKmh > maxMetricSpeedKmh) {
+      return null;
+    }
+    return speedKmh;
+  }
+
+  bool get _hasRecentMotionPace {
+    final at = _lastMotionPaceAt;
+    return at != null && DateTime.now().difference(at) < _motionPaceFreshness;
+  }
+
+  void _startMotionPaceIfNeeded() {
+    if (defaultTargetPlatform != TargetPlatform.iOS) return;
+    _motionPaceSubscription ??=
+        MotionFitnessPermissionService.currentPaceStream().listen(
+          _onMotionPace,
+          onError: (_) {},
+        );
+  }
+
+  void _onMotionPace(Duration pacePerKm) {
+    if (status.value != WorkoutStatus.running) return;
+    final millisPerKm = pacePerKm.inMilliseconds;
+    if (millisPerKm <= 0) return;
+
+    final speedKmh = 3600000 / millisPerKm;
+    if (!speedKmh.isFinite || speedKmh <= 0 || speedKmh > maxMetricSpeedKmh) {
+      return;
+    }
+
+    _lastMotionPaceAt = DateTime.now();
+    pace.value = pacePerKm;
+    _lastSpeedKmh = speedKmh;
+    _lastSpeedUpdatedAt = _lastMotionPaceAt;
+  }
+
   // ---- 计时器 ----
 
   void _startTicker() {
@@ -230,7 +313,7 @@ class WorkoutTrackingViewModel extends GetxController
     _ticker = Timer.periodic(const Duration(seconds: 1), (_) {
       elapsed.value += const Duration(seconds: 1);
       calories.value += _caloriePolicy.kcalForTick(
-        speedKmh: _lastSpeedKmh,
+        speedKmh: _freshCalorieSpeedKmh,
         seconds: 1,
       );
     });
@@ -249,6 +332,7 @@ class WorkoutTrackingViewModel extends GetxController
 
   @override
   void init() {
+    _startMotionPaceIfNeeded();
     final args = Get.arguments;
     if (args is WorkoutType) {
       workoutTitle.value = args.title;
@@ -272,6 +356,8 @@ class WorkoutTrackingViewModel extends GetxController
   @override
   void unInit() {
     _stopTicker();
+    _motionPaceSubscription?.cancel();
+    _motionPaceSubscription = null;
   }
 
   @override
@@ -294,6 +380,14 @@ class WorkoutTrackingViewModel extends GetxController
 
   String get caloriesText => calories.value.round().toString();
 
+  double get _freshCalorieSpeedKmh {
+    final at = _lastSpeedUpdatedAt;
+    if (at == null || DateTime.now().difference(at) > _calorieSpeedFreshness) {
+      return 0;
+    }
+    return _lastSpeedKmh;
+  }
+
   /// 模板叠加实时值后的展示数据。
   WorkoutTrackingData get liveData => template.copyWith(
     workoutTitle: workoutTitle.value,
@@ -305,9 +399,22 @@ class WorkoutTrackingViewModel extends GetxController
   );
 
   String get paceText {
-    final p = pace.value;
-    if (p == null) return "--'--''";
-    final total = p.inSeconds;
+    return _formatPace(pace.value);
+  }
+
+  Duration? get averagePace {
+    final meters = distanceMeters.value;
+    final millis = elapsed.value.inMilliseconds;
+    if (meters <= 0 || millis <= 0) return null;
+    final millisPerKm = millis / (meters / 1000);
+    return Duration(milliseconds: millisPerKm.round());
+  }
+
+  String get averagePaceText => _formatPace(averagePace);
+
+  String _formatPace(Duration? value) {
+    if (value == null) return "--'--''";
+    final total = value.inSeconds;
     final m = (total ~/ 60).toString().padLeft(2, '0');
     final s = (total % 60).toString().padLeft(2, '0');
     return "$m'$s''";
@@ -337,7 +444,7 @@ class WorkoutTrackingViewModel extends GetxController
           icon: Icons.speed_rounded,
           color: AppColors.accentCyan,
           label: WorkoutText.metricPaceMinKm,
-          value: paceText,
+          value: averagePaceText,
         ),
       ],
     );

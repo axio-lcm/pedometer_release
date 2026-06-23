@@ -17,8 +17,13 @@ public final class MotionFitnessPlugin: NSObject, FlutterPlugin, FlutterStreamHa
       name: "pedometer/motion_fitness_steps",
       binaryMessenger: registrar.messenger()
     )
+    let paceEventChannel = FlutterEventChannel(
+      name: "pedometer/motion_fitness_pace",
+      binaryMessenger: registrar.messenger()
+    )
     registrar.addMethodCallDelegate(instance, channel: methodChannel)
     eventChannel.setStreamHandler(instance)
+    paceEventChannel.setStreamHandler(MotionFitnessPaceStreamHandler())
   }
 
   public func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
@@ -29,6 +34,8 @@ public final class MotionFitnessPlugin: NSObject, FlutterPlugin, FlutterStreamHa
       result(authorizationStatusString())
     case "isStepCountingAvailable":
       result(CMPedometer.isStepCountingAvailable())
+    case "isPaceAvailable":
+      result(CMPedometer.isPaceAvailable())
     case "todaySteps":
       queryTodaySteps(result: result)
     default:
@@ -163,5 +170,61 @@ public final class MotionFitnessPlugin: NSObject, FlutterPlugin, FlutterStreamHa
       }
     }
     return "unknown"
+  }
+}
+
+private final class MotionFitnessPaceStreamHandler: NSObject, FlutterStreamHandler {
+  private let pedometer = CMPedometer()
+  private var eventSink: FlutterEventSink?
+
+  func onListen(
+    withArguments arguments: Any?,
+    eventSink events: @escaping FlutterEventSink
+  ) -> FlutterError? {
+    guard CMPedometer.isPaceAvailable() else {
+      events(
+        FlutterError(
+          code: "unsupported",
+          message: "Pace is not available on this device.",
+          details: nil
+        )
+      )
+      return nil
+    }
+
+    eventSink = events
+    pedometer.startUpdates(from: Date()) { [weak self] data, error in
+      guard let self else { return }
+      DispatchQueue.main.async {
+        if let error = error as NSError? {
+          self.eventSink?(
+            FlutterError(
+              code: "motion_error",
+              message: error.localizedDescription,
+              details: nil
+            )
+          )
+          return
+        }
+
+        guard let secondsPerMeter = data?.currentPace?.doubleValue,
+              secondsPerMeter.isFinite,
+              secondsPerMeter > 0 else {
+          return
+        }
+
+        self.eventSink?([
+          "secondsPerMeter": secondsPerMeter,
+          "timestampMillis": Int(Date().timeIntervalSince1970 * 1000),
+        ])
+      }
+    }
+    return nil
+  }
+
+  func onCancel(withArguments arguments: Any?) -> FlutterError? {
+    pedometer.stopUpdates()
+    eventSink = nil
+    return nil
   }
 }

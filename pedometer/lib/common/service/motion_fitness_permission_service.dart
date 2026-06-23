@@ -23,12 +23,20 @@ class MotionFitnessPermissionService {
     return plugin.MotionFitness.isStepCountingAvailable();
   }
 
+  static Future<bool> isPaceAvailable() async {
+    return plugin.MotionFitness.isPaceAvailable();
+  }
+
   static Future<int?> todaySteps() async {
     return plugin.MotionFitness.todaySteps();
   }
 
   static Stream<int> todayStepStream() {
     return plugin.MotionFitness.todayStepStream();
+  }
+
+  static Stream<Duration> currentPaceStream() {
+    return plugin.MotionFitness.currentPaceStream();
   }
 
   static MotionFitnessAuthorizationStatus _fromPlugin(

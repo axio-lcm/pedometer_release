@@ -18,6 +18,9 @@ class MotionFitness {
   static const EventChannel _stepChannel = EventChannel(
     'pedometer/motion_fitness_steps',
   );
+  static const EventChannel _paceChannel = EventChannel(
+    'pedometer/motion_fitness_pace',
+  );
 
   static Future<MotionFitnessAuthorizationStatus> requestAuthorization() async {
     if (kIsWeb) return MotionFitnessAuthorizationStatus.unsupported;
@@ -53,6 +56,18 @@ class MotionFitness {
     try {
       return await _channel.invokeMethod<bool>('isStepCountingAvailable') ??
           false;
+    } on PlatformException {
+      return false;
+    } on MissingPluginException {
+      return false;
+    }
+  }
+
+  static Future<bool> isPaceAvailable() async {
+    if (kIsWeb || defaultTargetPlatform != TargetPlatform.iOS) return false;
+
+    try {
+      return await _channel.invokeMethod<bool>('isPaceAvailable') ?? false;
     } on PlatformException {
       return false;
     } on MissingPluginException {
@@ -96,6 +111,33 @@ class MotionFitness {
           return 0;
         })
         .where((steps) => steps >= 0);
+  }
+
+  /// Emits current Core Motion pace as a per-kilometer duration on iOS.
+  ///
+  /// Values are best-effort and may be sparse/null while Core Motion is still
+  /// estimating gait.
+  static Stream<Duration> currentPaceStream() {
+    if (kIsWeb || defaultTargetPlatform != TargetPlatform.iOS) {
+      return const Stream<Duration>.empty();
+    }
+
+    return _paceChannel
+        .receiveBroadcastStream()
+        .map((event) {
+          final secondsPerMeter = switch (event) {
+            {'secondsPerMeter': final num value} => value.toDouble(),
+            final num value => value.toDouble(),
+            _ => 0.0,
+          };
+          if (!secondsPerMeter.isFinite || secondsPerMeter <= 0) {
+            return Duration.zero;
+          }
+          return Duration(
+            milliseconds: (secondsPerMeter * 1000 * 1000).round(),
+          );
+        })
+        .where((pace) => pace > Duration.zero);
   }
 
   static MotionFitnessAuthorizationStatus _parseStatus(String? status) {

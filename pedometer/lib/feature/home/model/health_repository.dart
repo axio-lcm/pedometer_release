@@ -466,10 +466,7 @@ class HealthPluginSyncService {
     final deadline = DateTime.now().add(budget);
     for (var i = 0; i < dayList.length; i += batchSize) {
       if (DateTime.now().isAfter(deadline)) break;
-      final batch = dayList.sublist(
-        i,
-        math.min(i + batchSize, dayList.length),
-      );
+      final batch = dayList.sublist(i, math.min(i + batchSize, dayList.length));
       await Future.wait([
         for (final day in batch)
           () async {
@@ -733,12 +730,12 @@ class SyncedHealthDataSource implements HealthDataSource {
       segments: const [],
       analyses: _dayAnalyses(),
       summary: SportSummaryData(
-        icon: const MaterialAppIcon(Icons.verified_rounded),
+        icon: const AssetAppIcon(AppMetricAssets.todaySummary),
         color: AppColors.brandGreen,
-        title: '同步总结',
-        primary: '数据来源：',
-        highlight: _sourceTitle(latest.source),
-        secondary: '已同步今日步数、距离、卡路里和活动时间',
+        title: '今日总结',
+        primary: '今日步数：',
+        highlight: '${_formatInt(latest.steps)} 步',
+        secondary: '距离、卡路里和活动时间已更新',
         assetName: 'synced health data',
       ),
     );
@@ -824,8 +821,7 @@ class SyncedHealthDataSource implements HealthDataSource {
     final monthItems = sorted
         .where(
           (item) =>
-              item.date.year == anchor.year &&
-              item.date.month == anchor.month,
+              item.date.year == anchor.year && item.date.month == anchor.month,
         )
         .toList();
     final steps = _sumInt(monthItems.map((item) => item.steps));
@@ -1019,14 +1015,6 @@ class SyncedHealthDataSource implements HealthDataSource {
 
 int _sumInt(Iterable<int> values) {
   return values.fold<int>(0, (sum, value) => sum + value);
-}
-
-String _sourceTitle(HealthSyncSource source) {
-  return switch (source) {
-    HealthSyncSource.appleHealth => 'Apple Health',
-    HealthSyncSource.healthConnect => 'Health Connect',
-    HealthSyncSource.motionSensor => '运动传感器',
-  };
 }
 
 List<TrendPoint> _mockHomeTrend() {

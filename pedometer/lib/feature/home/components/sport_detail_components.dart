@@ -104,6 +104,7 @@ class CircleIconBadge extends StatelessWidget {
   final Color color;
   final double size;
   final double iconSize;
+  final bool glow;
 
   const CircleIconBadge({
     super.key,
@@ -111,6 +112,7 @@ class CircleIconBadge extends StatelessWidget {
     required this.color,
     this.size = 52,
     this.iconSize = 27,
+    this.glow = true,
   });
 
   @override
@@ -128,13 +130,15 @@ class CircleIconBadge extends StatelessWidget {
           ],
         ),
         border: Border.all(color: color.withValues(alpha: 0.35)),
-        boxShadow: [
-          BoxShadow(
-            color: color.withValues(alpha: 0.18),
-            blurRadius: 20,
-            spreadRadius: -4,
-          ),
-        ],
+        boxShadow: glow
+            ? [
+                BoxShadow(
+                  color: color.withValues(alpha: 0.18),
+                  blurRadius: 20,
+                  spreadRadius: -4,
+                ),
+              ]
+            : null,
       ),
       child: Icon(icon, color: color, size: iconSize),
     );
@@ -1561,7 +1565,9 @@ class _MonthlyHeatCalendarCardState extends State<MonthlyHeatCalendarCard> {
                           : const <int, MonthlyDayData>{},
                       cellExtent: cell,
                       spacing: spacing,
-                      selectedDay: offset == _currentOffset ? _selectedDay : null,
+                      selectedDay: offset == _currentOffset
+                          ? _selectedDay
+                          : null,
                       onDayTap: offset == _currentOffset
                           ? (day) => setState(
                               () => _selectedDay = _selectedDay == day
@@ -1750,27 +1756,20 @@ class SummaryCard extends StatelessWidget {
       child: Row(
         children: [
           SizedBox(
-            width: 70,
-            child: Stack(
-              alignment: Alignment.center,
-              children: [
-                data.icon is AssetAppIcon
-                    ? MetricIconBadge(
-                        assetName: (data.icon as AssetAppIcon).assetName,
-                        size: 56,
-                      )
-                    : CircleIconBadge(
-                        icon: (data.icon as MaterialAppIcon).icon,
-                        color: data.color,
-                        size: 56,
-                        iconSize: 30,
-                      ),
-                // TODO: replace with data.assetName real 3D asset.
-                TransparentAssetPlaceholder(
-                  height: 70,
-                  assetName: data.assetName,
-                ),
-              ],
+            width: 56,
+            child: Center(
+              child: data.icon is AssetAppIcon
+                  ? MetricIconBadge(
+                      assetName: (data.icon as AssetAppIcon).assetName,
+                      size: 52,
+                    )
+                  : CircleIconBadge(
+                      icon: (data.icon as MaterialAppIcon).icon,
+                      color: data.color,
+                      size: 52,
+                      iconSize: 27,
+                      glow: false,
+                    ),
             ),
           ),
           SizedBox(width: AppSpacing.lg),
