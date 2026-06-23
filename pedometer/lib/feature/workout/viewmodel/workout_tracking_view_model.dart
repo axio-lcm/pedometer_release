@@ -105,6 +105,19 @@ class WorkoutTrackingViewModel extends GetxController
     _stopTicker();
   }
 
+  /// 当前运动类型（按标题匹配运动栏的户外 / 室内 / 健走 / 徒步），
+  /// 匹配不到时回退到第一项。用于返回确认弹窗展示对应图标。
+  WorkoutType get currentWorkoutType =>
+      WorkoutPageData.mock.workoutTypes.firstWhere(
+        (t) => t.title == workoutTitle.value,
+        orElse: () => WorkoutPageData.mock.workoutTypes.first,
+      );
+
+  /// 是否已开始且未结束（运动中或暂停中）——用于返回拦截提示。
+  bool get hasActiveSession =>
+      status.value == WorkoutStatus.running ||
+      status.value == WorkoutStatus.paused;
+
   /// 主按钮点击：依据当前状态切换。
   void togglePrimary() {
     switch (status.value) {

@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:pedometer/common/component/app_top_navigation_bar.dart';
+import 'package:pedometer/common/component/asset_metric_icon.dart';
 import 'package:pedometer/common/config/app_colors.dart';
 import 'package:pedometer/common/config/app_dimens.dart';
 import 'package:pedometer/feature/workout/components/workout_tracking_components.dart';
+import 'package:pedometer/feature/workout/model/workout_model.dart';
 import 'package:pedometer/feature/workout/resources/workout_resource.dart';
 import 'package:pedometer/feature/workout/viewmodel/workout_tracking_view_model.dart';
 import 'package:pedometer/feature/workout/views/exercise_result_page.dart';
@@ -82,7 +84,22 @@ class WorkoutTrackingPage extends GetView<WorkoutTrackingViewModel> {
     );
   }
 
-  void _back() {}
+  // 返回：运动进行中时先弹确认框，确认后才退出；未开始则直接返回。
+  void _back() {
+    if (!controller.hasActiveSession) {
+      if (Get.key.currentState?.canPop() ?? false) Get.back<void>();
+      return;
+    }
+    _showExitConfirmDialog();
+  }
+
+  void _showExitConfirmDialog() {
+    Get.dialog<void>(
+      _ExitConfirmDialog(workoutType: controller.currentWorkoutType),
+      barrierDismissible: false,
+      barrierColor: Colors.black.withValues(alpha: 0.55),
+    );
+  }
 
   // 结束运动：聚合真实数据并跳结果页（替换记录中页，结果页「完成」回到运动主页）。
   void _endWorkout() {
@@ -90,6 +107,156 @@ class WorkoutTrackingPage extends GetView<WorkoutTrackingViewModel> {
     Get.offNamed(
       ExerciseResultPage.routeName,
       arguments: controller.toResultData(),
+    );
+  }
+}
+
+/// 运动进行中点击返回的确认弹窗：玻璃卡片风格，提供「继续运动」与「确认返回」。
+class _ExitConfirmDialog extends StatelessWidget {
+  final WorkoutType workoutType;
+
+  const _ExitConfirmDialog({required this.workoutType});
+
+  @override
+  Widget build(BuildContext context) {
+    return Dialog(
+      backgroundColor: Colors.transparent,
+      elevation: 0,
+      insetPadding: EdgeInsets.symmetric(horizontal: AppSpacing.xxxl),
+      child: Container(
+        padding: EdgeInsets.all(AppSpacing.xxl),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(AppRadius.xl),
+          // 不透明背景：取玻璃卡片同色但去掉透明度。
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              Color.alphaBlend(AppColors.surfaceCardTop, AppColors.bgPrimary),
+              Color.alphaBlend(AppColors.surfaceCardBottom, AppColors.bgPrimary),
+            ],
+          ),
+          border: Border.all(color: AppColors.strokeCard, width: 1),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.45),
+              blurRadius: 28,
+              offset: const Offset(0, 10),
+            ),
+          ],
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            _buildTypeIcon(workoutType),
+            SizedBox(height: AppSpacing.lg),
+            Text(
+              WorkoutResource.exitConfirmTitle,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: AppColors.textPrimary,
+                fontSize: 17,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            SizedBox(height: AppSpacing.sm),
+            Text(
+              WorkoutResource.exitConfirmMessage,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: AppColors.textSecondary,
+                fontSize: 13,
+                height: 1.5,
+              ),
+            ),
+            SizedBox(height: AppSpacing.xl),
+            Row(
+              children: [
+                Expanded(
+                  child: _DialogButton(
+                    label: WorkoutResource.exitConfirmBack,
+                    filled: false,
+                    onTap: () {
+                      Get.back<void>(); // 关闭弹窗
+                      if (Get.key.currentState?.canPop() ?? false) {
+                        Get.back<void>(); // 退出运动页
+                      }
+                    },
+                  ),
+                ),
+                SizedBox(width: AppSpacing.md),
+                Expanded(
+                  child: _DialogButton(
+                    label: WorkoutResource.exitConfirmContinue,
+                    filled: true,
+                    onTap: () => Get.back<void>(),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // 运动栏对应类型的图标（户外 / 室内 / 健走 / 徒步），优先用 SVG 资源。
+  Widget _buildTypeIcon(WorkoutType type) {
+    if (type.iconAsset != null) {
+      return SizedBox(
+        width: 56,
+        height: 56,
+        child: AssetMetricIcon(assetName: type.iconAsset!, size: 56),
+      );
+    }
+    return Container(
+      width: 56,
+      height: 56,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: type.color.withValues(alpha: 0.16),
+        border: Border.all(color: type.color.withValues(alpha: 0.55)),
+      ),
+      child: Center(child: Icon(type.icon, color: type.color, size: 28)),
+    );
+  }
+}
+
+class _DialogButton extends StatelessWidget {
+  final String label;
+  final bool filled;
+  final VoidCallback onTap;
+
+  const _DialogButton({
+    required this.label,
+    required this.filled,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      behavior: HitTestBehavior.opaque,
+      child: Container(
+        height: 46,
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(AppRadius.full),
+          color: filled ? AppColors.brandGreen : Colors.transparent,
+          border: filled
+              ? null
+              : Border.all(color: AppColors.strokeCard, width: 1),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            color: filled ? AppColors.bgPrimary : AppColors.textSecondary,
+            fontSize: 15,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ),
     );
   }
 }

@@ -118,6 +118,14 @@ class WorkoutResource {
       _string('result_avg_speed', WorkoutText.resultAvgSpeed);
   static String get resultElevation =>
       _string('result_elevation', WorkoutText.resultElevation);
+  static String get exitConfirmTitle =>
+      _string('exit_confirm_title', WorkoutText.exitConfirmTitle);
+  static String get exitConfirmMessage =>
+      _string('exit_confirm_message', WorkoutText.exitConfirmMessage);
+  static String get exitConfirmBack =>
+      _string('exit_confirm_back', WorkoutText.exitConfirmBack);
+  static String get exitConfirmContinue =>
+      _string('exit_confirm_continue', WorkoutText.exitConfirmContinue);
 
   static String trackingTarget(String value) {
     return _string(
@@ -192,6 +200,10 @@ class WorkoutText {
   static const resultSteps = '步数 (步)';
   static const resultAvgSpeed = '平均速度 (km/h)';
   static const resultElevation = '累计爬升 (m)';
+  static const exitConfirmTitle = '确认结束本次运动？';
+  static const exitConfirmMessage = '运动尚未结束，返回将不会保存本次运动记录。';
+  static const exitConfirmBack = '确认返回';
+  static const exitConfirmContinue = '继续运动';
 }
 
 /// 运动页模块路由定义（对齐 HomeRouteTable 写法）。
