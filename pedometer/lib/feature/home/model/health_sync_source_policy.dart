@@ -36,6 +36,7 @@ class HealthSyncSourcePolicy {
     return switch (source) {
       HealthSyncSource.appleHealth => appleHealthTitle,
       HealthSyncSource.healthConnect => healthConnectTitle,
+      HealthSyncSource.motionSensor => '运动传感器',
     };
   }
 

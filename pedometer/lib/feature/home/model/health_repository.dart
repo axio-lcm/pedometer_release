@@ -75,16 +75,32 @@ class HealthSyncRuntime {
   static final ValueNotifier<int> connectionRevision = ValueNotifier<int>(0);
 
   static HealthDataSource? _realDataSource;
+  static HealthDataSource? _motionSensorDataSource;
+  static int? _motionSensorSteps;
   static final Map<HealthSyncSource, HealthAuthStatus> _connectionStatus = {};
 
   HealthSyncRuntime._();
 
   static HealthDataSource dataSourceOr(HealthDataSource fallback) {
-    return _realDataSource ?? fallback;
+    return _realDataSource ?? _motionSensorDataSource ?? fallback;
   }
+
+  static bool get hasRealDataSource => _realDataSource != null;
 
   static void replaceRealDataSource(HealthDataSource dataSource) {
     _realDataSource = dataSource;
+    _motionSensorDataSource = null;
+    _motionSensorSteps = null;
+    revision.value++;
+  }
+
+  static void replaceMotionSensorDataSource(
+    HealthDataSource dataSource, {
+    required int steps,
+  }) {
+    if (_realDataSource != null || _motionSensorSteps == steps) return;
+    _motionSensorDataSource = dataSource;
+    _motionSensorSteps = steps;
     revision.value++;
   }
 
@@ -105,6 +121,8 @@ class HealthSyncRuntime {
 
   static void resetForTest() {
     _realDataSource = null;
+    _motionSensorDataSource = null;
+    _motionSensorSteps = null;
     _connectionStatus.clear();
     revision.value++;
     connectionRevision.value++;
@@ -484,7 +502,7 @@ class SyncedHealthDataSource implements HealthDataSource {
         caloriesKcal: latest.caloriesKcal,
         activeMinutes: latest.activeMinutes,
       ),
-      hourly: [HourlyStepData('24:00', latest.steps)],
+      hourly: [HourlyStepData(_hourlyLabelFor(latest.date), latest.steps)],
       segments: const [],
       analyses: _dayAnalyses(),
       summary: SportSummaryData(
@@ -743,6 +761,7 @@ String _sourceTitle(HealthSyncSource source) {
   return switch (source) {
     HealthSyncSource.appleHealth => 'Apple Health',
     HealthSyncSource.healthConnect => 'Health Connect',
+    HealthSyncSource.motionSensor => '运动传感器',
   };
 }
 
@@ -853,6 +872,16 @@ String _dateTitle(DateTime date) {
 String _shortDate(DateTime date) => '${date.month}月${date.day}日';
 
 DateTime _dateOnly(DateTime date) => DateTime(date.year, date.month, date.day);
+
+String _hourlyLabelFor(DateTime date) {
+  final today = _dateOnly(DateTime.now());
+  final day = _dateOnly(date);
+  if (day.isBefore(today)) return '24:00';
+  final now = DateTime.now();
+  final hour = now.hour.toString().padLeft(2, '0');
+  final minute = now.minute.toString().padLeft(2, '0');
+  return '$hour:$minute';
+}
 
 DateTime _weekMonday(DateTime date) =>
     _dateOnly(date).subtract(Duration(days: date.weekday - 1));

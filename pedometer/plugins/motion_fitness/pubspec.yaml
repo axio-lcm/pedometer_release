@@ -1,0 +1,21 @@
+name: motion_fitness
+description: Local Flutter plugin for motion fitness authorization and step counting.
+version: 0.1.0
+publish_to: 'none'
+
+environment:
+  sdk: ^3.11.5
+  flutter: ">=3.19.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+flutter:
+  plugin:
+    platforms:
+      android:
+        package: com.pedometer.motion_fitness
+        pluginClass: MotionFitnessPlugin
+      ios:
+        pluginClass: MotionFitnessPlugin

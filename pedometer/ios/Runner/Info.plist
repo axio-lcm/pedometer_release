@@ -45,6 +45,8 @@
 	</dict>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>用于在户外跑步时显示当前位置并记录运动轨迹。</string>
+	<key>NSMotionUsageDescription</key>
+	<string>用于读取设备步数、距离和活动数据，并展示在运动统计中。</string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>

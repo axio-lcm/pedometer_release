@@ -1,4 +1,4 @@
-enum HealthSyncSource { appleHealth, healthConnect }
+enum HealthSyncSource { appleHealth, healthConnect, motionSensor }
 
 enum HealthSyncDataType { steps, distance, calories, activeMinutes }
 

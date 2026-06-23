@@ -463,6 +463,7 @@ class HourlyStepTrendCard extends StatefulWidget {
 
   const HourlyStepTrendCard({super.key, required this.data});
 
+  static const double _chartMaxX = 10;
   static const double _chartMaxY = 5000;
   static const double _leftTitleReservedSize = 34;
   static const double _bottomTitleReservedSize = 26;
@@ -585,9 +586,11 @@ class _HourlyStepTrendCardState extends State<HourlyStepTrendCard> {
     if (dx < left) return;
     final width = chartWidth - left - right;
     if (width <= 0) return;
-    final index = (((dx - left) / width) * (widget.data.length - 1))
-        .round()
-        .clamp(0, widget.data.length - 1);
+    final chartX = ((dx - left) / width * HourlyStepTrendCard._chartMaxX).clamp(
+      0.0,
+      HourlyStepTrendCard._chartMaxX,
+    );
+    final index = _nearestIndexTo(chartX);
     if (_selectedIndex == index) return;
     setState(() => _selectedIndex = index);
   }
@@ -599,12 +602,15 @@ class _HourlyStepTrendCardState extends State<HourlyStepTrendCard> {
     const bottom = HourlyStepTrendCard._bottomTitleReservedSize;
     final width = size.width - left - right;
     final height = size.height - top - bottom;
-    final divisor = math.max(1, widget.data.length - 1);
+    final chartX = _timeAxisXForLabel(widget.data[index].label);
     final yRatio =
         1 -
         steps.clamp(0, HourlyStepTrendCard._chartMaxY) /
             HourlyStepTrendCard._chartMaxY;
-    return Offset(left + width * index / divisor, top + height * yRatio);
+    return Offset(
+      left + width * chartX / HourlyStepTrendCard._chartMaxX,
+      top + height * yRatio,
+    );
   }
 
   double _tooltipLeftFor(double pointX, double chartWidth) {
@@ -621,13 +627,19 @@ class _HourlyStepTrendCardState extends State<HourlyStepTrendCard> {
   }
 
   LineChartData _lineData(int selectedIndex) {
+    final selectedX = selectedIndex < 0
+        ? null
+        : _timeAxisXForLabel(widget.data[selectedIndex].label);
     final spots = <FlSpot>[
       for (var i = 0; i < widget.data.length; i++)
-        FlSpot(i.toDouble(), widget.data[i].steps.toDouble()),
+        FlSpot(
+          _timeAxisXForLabel(widget.data[i].label),
+          widget.data[i].steps.toDouble(),
+        ),
     ];
     return LineChartData(
       minX: 0,
-      maxX: (widget.data.length - 1).toDouble(),
+      maxX: HourlyStepTrendCard._chartMaxX,
       minY: 0,
       maxY: HourlyStepTrendCard._chartMaxY,
       lineTouchData: const LineTouchData(enabled: false),
@@ -644,7 +656,7 @@ class _HourlyStepTrendCardState extends State<HourlyStepTrendCard> {
       extraLinesData: ExtraLinesData(
         verticalLines: [
           VerticalLine(
-            x: 5,
+            x: selectedX ?? 5,
             color: AppColors.textSecondary.withValues(alpha: 0.55),
             strokeWidth: 1,
             dashArray: const [3, 3],
@@ -674,7 +686,7 @@ class _HourlyStepTrendCardState extends State<HourlyStepTrendCard> {
             interval: 2.5,
             reservedSize: HourlyStepTrendCard._bottomTitleReservedSize,
             getTitlesWidget: (value, meta) {
-              final labels = {
+              final labels = <double, String>{
                 0: '00:00',
                 2.5: '06:00',
                 5: '12:00',
@@ -711,11 +723,16 @@ class _HourlyStepTrendCardState extends State<HourlyStepTrendCard> {
           dotData: FlDotData(
             show: true,
             checkToShowDot: (spot, bar) =>
-                spot.x == selectedIndex || spot.x % 2 == 0,
+                selectedX != null && (spot.x - selectedX).abs() < 0.001,
             getDotPainter: (spot, percent, bar, index) => FlDotCirclePainter(
-              radius: spot.x == selectedIndex ? 5 : 3,
+              radius: selectedX != null && (spot.x - selectedX).abs() < 0.001
+                  ? 5
+                  : 3,
               color: AppColors.white,
-              strokeWidth: spot.x == selectedIndex ? 2.5 : 1.5,
+              strokeWidth:
+                  selectedX != null && (spot.x - selectedX).abs() < 0.001
+                  ? 2.5
+                  : 1.5,
               strokeColor: AppColors.brandGreen,
             ),
           ),
@@ -733,6 +750,29 @@ class _HourlyStepTrendCardState extends State<HourlyStepTrendCard> {
         ),
       ],
     );
+  }
+
+  int _nearestIndexTo(double chartX) {
+    var nearestIndex = 0;
+    var nearestDistance = double.infinity;
+    for (var i = 0; i < widget.data.length; i++) {
+      final distance = (_timeAxisXForLabel(widget.data[i].label) - chartX)
+          .abs();
+      if (distance < nearestDistance) {
+        nearestDistance = distance;
+        nearestIndex = i;
+      }
+    }
+    return nearestIndex;
+  }
+
+  double _timeAxisXForLabel(String label) {
+    final parts = label.split(':');
+    if (parts.length != 2) return 0;
+    final hour = int.tryParse(parts[0]) ?? 0;
+    final minute = int.tryParse(parts[1]) ?? 0;
+    final totalMinutes = (hour * 60 + minute).clamp(0, 24 * 60);
+    return totalMinutes / (24 * 60) * HourlyStepTrendCard._chartMaxX;
   }
 }
 
