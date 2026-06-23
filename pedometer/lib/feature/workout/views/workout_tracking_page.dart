@@ -16,75 +16,73 @@ class WorkoutTrackingPage extends GetView<WorkoutTrackingViewModel> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: WorkoutResource.background,
-      body: Stack(
-        children: [
-          const Positioned.fill(child: _WorkoutTrackingBackground()),
-          SafeArea(
-            bottom: false,
-            child: Column(
-              children: [
-                Padding(
-                  padding: EdgeInsets.symmetric(horizontal: AppSpacing.lg),
-                  child: Obx(
-                    () => AppTopNavigationBar(
-                      title: controller.workoutTitle.value,
-                      onBack: _back,
+    return PopScope(
+      canPop: false,
+      child: Scaffold(
+        backgroundColor: WorkoutResource.background,
+        body: Stack(
+          children: [
+            const Positioned.fill(child: _WorkoutTrackingBackground()),
+            SafeArea(
+              bottom: false,
+              child: Column(
+                children: [
+                  Padding(
+                    padding: EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+                    child: Obx(
+                      () => AppTopNavigationBar(
+                        title: controller.workoutTitle.value,
+                        onBack: _back,
+                      ),
                     ),
                   ),
-                ),
-                Expanded(
-                  child: SingleChildScrollView(
-                    padding: EdgeInsets.only(bottom: AppSpacing.xl),
-                    child: Column(
-                      children: [
-                        WorkoutMapSection(
-                          data: controller.template,
-                          controller: controller,
-                        ),
-                        const SizedBox(height: 4),
-                        Padding(
-                          padding: EdgeInsets.symmetric(
-                            horizontal: AppSpacing.lg,
+                  Expanded(
+                    child: SingleChildScrollView(
+                      padding: EdgeInsets.only(bottom: AppSpacing.xl),
+                      child: Column(
+                        children: [
+                          WorkoutMapSection(
+                            data: controller.template,
+                            controller: controller,
                           ),
-                          child: Obx(() {
-                            final data = controller.liveData;
-                            return Column(
-                              children: [
-                                WorkoutMetricPanel(data: data),
-                                const SizedBox(height: 28),
-                                WorkoutControlPanel(
-                                  data: data,
-                                  onPrimaryTap: controller.togglePrimary,
-                                  onEnd: _endWorkout,
-                                ),
-                                const SizedBox(
-                                  height: AppBottomTabBarMetrics.bottomOffset,
-                                ),
-                                WorkoutMusicCard(data: data),
-                              ],
-                            );
-                          }),
-                        ),
-                      ],
+                          const SizedBox(height: 4),
+                          Padding(
+                            padding: EdgeInsets.symmetric(
+                              horizontal: AppSpacing.lg,
+                            ),
+                            child: Obx(() {
+                              final data = controller.liveData;
+                              return Column(
+                                children: [
+                                  WorkoutMetricPanel(data: data),
+                                  const SizedBox(height: 28),
+                                  WorkoutControlPanel(
+                                    data: data,
+                                    onPrimaryTap: controller.togglePrimary,
+                                    onEnd: _endWorkout,
+                                  ),
+                                  const SizedBox(
+                                    height: AppBottomTabBarMetrics.bottomOffset,
+                                  ),
+                                  WorkoutMusicCard(data: data),
+                                ],
+                              );
+                            }),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
 
-  void _back() {
-    if (Get.key.currentState?.canPop() ?? false) {
-      Get.back();
-      return;
-    }
-  }
+  void _back() {}
 
   // 结束运动：聚合真实数据并跳结果页（替换记录中页，结果页「完成」回到运动主页）。
   void _endWorkout() {
