@@ -65,17 +65,17 @@ class SyncHistoryDetailViewModel extends GetxController
       ],
       infoItems: [
         SyncInfoItem(
-          icon: Icons.sell_outlined,
+          icon: const AssetAppIcon(AppMetricAssets.syncId),
           title: '同步编号',
           value: _syncId(entry.time),
         ),
         const SyncInfoItem(
-          icon: Icons.phone_iphone_rounded,
+          icon: AssetAppIcon(AppMetricAssets.syncDevice),
           title: '发起设备',
           value: '本机',
         ),
         const SyncInfoItem(
-          icon: Icons.verified_user_outlined,
+          icon: AssetAppIcon(AppMetricAssets.syncStatus),
           title: '记录状态',
           value: '成功',
           highlight: true,

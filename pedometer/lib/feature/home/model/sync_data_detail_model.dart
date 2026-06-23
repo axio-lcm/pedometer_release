@@ -258,17 +258,17 @@ class SyncHistoryDetailData {
     ],
     infoItems: [
       SyncInfoItem(
-        icon: Icons.sell_outlined,
+        icon: AssetAppIcon(AppMetricAssets.syncId),
         title: '同步编号',
         value: 'SYNC-2026-0513-0941',
       ),
       SyncInfoItem(
-        icon: Icons.phone_iphone_rounded,
+        icon: AssetAppIcon(AppMetricAssets.syncDevice),
         title: '发起设备',
         value: 'iPhone',
       ),
       SyncInfoItem(
-        icon: Icons.verified_user_outlined,
+        icon: AssetAppIcon(AppMetricAssets.syncStatus),
         title: '记录状态',
         value: '成功',
         highlight: true,
@@ -279,7 +279,7 @@ class SyncHistoryDetailData {
 }
 
 class SyncInfoItem {
-  final IconData? icon;
+  final AppIconSource? icon;
   final String title;
   final String value;
   final bool highlight;

@@ -311,8 +311,14 @@ class InfoRow extends StatelessWidget {
           child: Row(
             children: [
               SizedBox(
-                width: 28,
-                child: Icon(item.icon, color: AppColors.brandGreen, size: 24),
+                width: 36,
+                child: item.icon == null
+                    ? null
+                    : AppIconView(
+                        icon: item.icon!,
+                        color: AppColors.brandGreen,
+                        size: 36,
+                      ),
               ),
               SizedBox(width: AppSpacing.xl),
               Expanded(
@@ -350,7 +356,7 @@ class InfoRow extends StatelessWidget {
         ),
         if (showDivider)
           Padding(
-            padding: EdgeInsetsDirectional.only(start: 28 + AppSpacing.xl),
+            padding: EdgeInsetsDirectional.only(start: 36 + AppSpacing.xl),
             child: Divider(height: 1, color: AppColors.divider),
           ),
       ],

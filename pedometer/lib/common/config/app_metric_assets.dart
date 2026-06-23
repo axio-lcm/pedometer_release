@@ -19,4 +19,9 @@ class AppMetricAssets {
   static const String editGoalDuration = 'assets/edit_goal_duration.svg';
   static const String editGoalCalorie = 'assets/edit_goal_calorie.svg';
   static const String editGoalFreeTraining = 'assets/edit_goal_free_training.svg';
+
+  // 同步历史详情页「同步信息」图标
+  static const String syncId = 'assets/sync_id.svg';
+  static const String syncDevice = 'assets/sync_device.svg';
+  static const String syncStatus = 'assets/sync_status.svg';
 }
