@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:pedometer/common/component/app_top_navigation_bar.dart';
 import 'package:pedometer/common/config/app_colors.dart';
 import 'package:pedometer/common/config/app_dimens.dart';
+import 'package:pedometer/common/config/app_metric_assets.dart';
 import 'package:pedometer/feature/workout/components/edit_sport_goal_components.dart';
 import 'package:pedometer/feature/workout/components/workout_components.dart';
 import 'package:pedometer/feature/workout/resources/workout_resource.dart';
@@ -62,7 +63,7 @@ class EditSportGoalPage extends GetView<EditSportGoalViewModel> {
                   SizedBox(height: AppSpacing.xl),
                   Obx(
                     () => GoalAdjustCard(
-                      icon: Icons.adjust_rounded,
+                      iconAsset: AppMetricAssets.editGoalDistance,
                       color: AppColors.brandGreen,
                       title: WorkoutResource.targetDistance,
                       value: controller.distance.value.toStringAsFixed(2),
@@ -80,7 +81,7 @@ class EditSportGoalPage extends GetView<EditSportGoalViewModel> {
                   SizedBox(height: AppSpacing.lg),
                   Obx(
                     () => GoalAdjustCard(
-                      icon: Icons.timer_outlined,
+                      iconAsset: AppMetricAssets.editGoalDuration,
                       color: AppColors.accentCyan,
                       title: WorkoutResource.targetDuration,
                       value: '${controller.duration.value}',
@@ -98,7 +99,7 @@ class EditSportGoalPage extends GetView<EditSportGoalViewModel> {
                   SizedBox(height: AppSpacing.lg),
                   Obx(
                     () => GoalAdjustCard(
-                      icon: Icons.local_fire_department_rounded,
+                      iconAsset: AppMetricAssets.editGoalCalorie,
                       color: AppColors.accentOrange,
                       title: WorkoutResource.targetCalorie,
                       value: '${controller.calories.value}',

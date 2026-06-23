@@ -1,46 +1,11 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:pedometer/common/component/asset_metric_icon.dart';
 import 'package:pedometer/common/component/glass_card.dart';
 import 'package:pedometer/common/config/app_colors.dart';
 import 'package:pedometer/common/config/app_dimens.dart';
+import 'package:pedometer/common/config/app_metric_assets.dart';
 import 'package:pedometer/feature/workout/resources/workout_resource.dart';
-
-/// 圆形玻璃底座图标：深色玻璃 + 功能色描边与柔和发光。
-class CircleIconBadge extends StatelessWidget {
-  final IconData icon;
-  final Color color;
-  final double size;
-
-  const CircleIconBadge({
-    super.key,
-    required this.icon,
-    required this.color,
-    this.size = 52,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: size,
-      height: size,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        gradient: RadialGradient(
-          colors: [color.withValues(alpha: 0.22), AppColors.surfaceIcon],
-        ),
-        border: Border.all(color: color.withValues(alpha: 0.5)),
-        boxShadow: [
-          BoxShadow(
-            color: color.withValues(alpha: 0.30),
-            blurRadius: 16,
-            spreadRadius: -4,
-          ),
-        ],
-      ),
-      child: Icon(icon, color: color, size: size * 0.46),
-    );
-  }
-}
 
 /// 圆形加减调节按钮。
 class RoundAdjustButton extends StatelessWidget {
@@ -79,7 +44,7 @@ class RoundAdjustButton extends StatelessWidget {
 
 /// 可复用目标编辑卡片：图标 + 标题/当前值（左），减号-数值-加号 + 建议（右）。
 class GoalAdjustCard extends StatelessWidget {
-  final IconData icon;
+  final String iconAsset;
   final Color color;
   final String title;
   final String value;
@@ -93,7 +58,7 @@ class GoalAdjustCard extends StatelessWidget {
 
   const GoalAdjustCard({
     super.key,
-    required this.icon,
+    required this.iconAsset,
     required this.color,
     required this.title,
     required this.value,
@@ -111,7 +76,7 @@ class GoalAdjustCard extends StatelessWidget {
       padding: EdgeInsets.all(AppSpacing.lg),
       child: Row(
         children: [
-          CircleIconBadge(icon: icon, color: color),
+          AssetMetricIcon(assetName: iconAsset, size: 52),
           SizedBox(width: AppSpacing.md),
           Expanded(
             child: Column(
@@ -234,9 +199,9 @@ class FreeTrainingCard extends StatelessWidget {
       padding: EdgeInsets.all(AppSpacing.lg),
       child: Row(
         children: [
-          CircleIconBadge(
-            icon: Icons.all_inclusive_rounded,
-            color: AppColors.accentPurple,
+          AssetMetricIcon(
+            assetName: AppMetricAssets.editGoalFreeTraining,
+            size: 52,
           ),
           SizedBox(width: AppSpacing.md),
           Expanded(

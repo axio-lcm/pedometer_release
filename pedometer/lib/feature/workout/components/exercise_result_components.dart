@@ -9,6 +9,8 @@ import 'package:pedometer/feature/workout/components/workout_components.dart';
 import 'package:pedometer/feature/workout/model/workout_model.dart';
 import 'package:pedometer/feature/workout/resources/workout_resource.dart';
 
+import '../../home/components/sport_detail_components.dart';
+
 /// 运动完成 Hero：发光六边形 + 勾选 + 彩纸，主副标题。
 class ExerciseCompleteHero extends StatelessWidget {
   /// 图标区域 key：供页面定位礼花发射点。

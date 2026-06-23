@@ -13,4 +13,10 @@ class AppMetricAssets {
   static const String monthSummary = 'assets/month_summary.svg';
   static const String activeDays = 'assets/ativ.svg';
   static const String targetMet = 'assets/dabiao.svg';
+
+  // 编辑运动目标页图标
+  static const String editGoalDistance = 'assets/edit_goal_distance.svg';
+  static const String editGoalDuration = 'assets/edit_goal_duration.svg';
+  static const String editGoalCalorie = 'assets/edit_goal_calorie.svg';
+  static const String editGoalFreeTraining = 'assets/edit_goal_free_training.svg';
 }
