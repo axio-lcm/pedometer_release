@@ -312,22 +312,22 @@ class SyncSourceDetailData {
       source: source,
       permissions: const [
         SyncSourcePermission(
-          icon: MaterialAppIcon(Icons.directions_walk_rounded),
+          icon: AssetAppIcon(AppMetricAssets.syncSteps),
           iconColor: Color(0xFF24F04E),
           title: '步数',
         ),
         SyncSourcePermission(
-          icon: AssetAppIcon(AppMetricAssets.distance),
+          icon: AssetAppIcon(AppMetricAssets.syncDistance),
           iconColor: Color(0xFF43F56B),
           title: '距离',
         ),
         SyncSourcePermission(
-          icon: AssetAppIcon(AppMetricAssets.calories),
+          icon: AssetAppIcon(AppMetricAssets.syncCalories),
           iconColor: Color(0xFFFF9F12),
           title: '卡路里',
         ),
         SyncSourcePermission(
-          icon: AssetAppIcon(AppMetricAssets.activeTime),
+          icon: AssetAppIcon(AppMetricAssets.syncActiveTime),
           iconColor: Color(0xFF0CD9FF),
           title: '活动时间',
         ),

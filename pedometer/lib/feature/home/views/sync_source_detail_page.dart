@@ -319,7 +319,7 @@ class _PermissionRow extends StatelessWidget {
       height: 44,
       child: Row(
         children: [
-          AppIconView(icon: item.icon, color: item.iconColor, size: 22),
+          AppIconView(icon: item.icon, color: item.iconColor, size: 36),
           SizedBox(width: AppSpacing.md),
           Expanded(
             child: Text(
