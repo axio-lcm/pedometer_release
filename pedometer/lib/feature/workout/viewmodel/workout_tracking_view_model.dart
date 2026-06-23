@@ -184,39 +184,54 @@ class WorkoutTrackingViewModel extends GetxController
     );
     if (result == null) return;
 
-    final tracks = result.files
+    final pickedTracks = result.files
         .map(_trackFromPickedFile)
         .whereType<_WorkoutMusicTrack>()
         .toList(growable: false);
-    if (tracks.isEmpty) return;
+    final existingPaths = _musicTracks.map((track) => track.path).toSet();
+    final selectedPaths = <String>{};
+    final newTracks = [
+      for (final track in pickedTracks)
+        if (!existingPaths.contains(track.path) &&
+            selectedPaths.add(track.path))
+          track,
+    ];
+    if (newTracks.isEmpty) return;
 
+    final previousTracks = _musicTracks;
     final player = _ensureMusicPlayer();
     try {
+      final tracks = [...previousTracks, ...newTracks];
+      final firstNewIndex = previousTracks.length;
       await player.stop();
       await player.setAudioSources(
         [
           for (final track in tracks)
             AudioSource.uri(Uri.file(track.path), tag: track.name),
         ],
-        initialIndex: 0,
+        initialIndex: firstNewIndex,
         initialPosition: Duration.zero,
       );
       await player.setLoopMode(LoopMode.all);
       _musicTracks = tracks;
       musicTrackNames.assignAll([for (final track in tracks) track.name]);
-      currentMusicIndex.value = 0;
+      currentMusicIndex.value = firstNewIndex;
       hasMusic.value = true;
-      musicTitle.value = tracks.first.name;
+      musicTitle.value = tracks[firstNewIndex].name;
       musicStatus.value = WorkoutResource.trackingMusicStatus;
       await player.play();
     } catch (_) {
-      _musicTracks = const [];
-      musicTrackNames.clear();
-      currentMusicIndex.value = -1;
-      hasMusic.value = false;
-      musicPlaying.value = false;
-      musicTitle.value = WorkoutResource.trackingMusicTitle;
-      musicStatus.value = WorkoutResource.trackingMusicIdle;
+      _musicTracks = previousTracks;
+      musicTrackNames.assignAll([
+        for (final track in previousTracks) track.name,
+      ]);
+      hasMusic.value = previousTracks.isNotEmpty;
+      if (previousTracks.isEmpty) {
+        currentMusicIndex.value = -1;
+        musicPlaying.value = false;
+        musicTitle.value = WorkoutText.trackingMusicTitle;
+        musicStatus.value = WorkoutText.trackingMusicIdle;
+      }
     }
   }
 
@@ -250,6 +265,42 @@ class WorkoutTrackingViewModel extends GetxController
     final player = _ensureMusicPlayer();
     await player.seek(Duration.zero, index: index);
     await player.play();
+  }
+
+  Future<void> deleteMusicAt(int index) async {
+    if (index < 0 || index >= _musicTracks.length) return;
+
+    final wasCurrent = index == currentMusicIndex.value;
+    final player = _musicPlayer;
+    if (player != null) {
+      await player.removeAudioSourceAt(index);
+    }
+
+    _musicTracks = [
+      for (var i = 0; i < _musicTracks.length; i++)
+        if (i != index) _musicTracks[i],
+    ];
+    musicTrackNames.assignAll([for (final track in _musicTracks) track.name]);
+
+    if (_musicTracks.isEmpty) {
+      await player?.stop();
+      hasMusic.value = false;
+      musicPlaying.value = false;
+      currentMusicIndex.value = -1;
+      musicTitle.value = WorkoutText.trackingMusicTitle;
+      musicStatus.value = WorkoutText.trackingMusicIdle;
+      return;
+    }
+
+    final current = player?.currentIndex;
+    currentMusicIndex.value = (current ?? currentMusicIndex.value).clamp(
+      0,
+      _musicTracks.length - 1,
+    );
+    musicTitle.value = _musicTracks[currentMusicIndex.value].name;
+    if (wasCurrent && player != null && !player.playing) {
+      musicStatus.value = WorkoutText.trackingMusicPaused;
+    }
   }
 
   List<WorkoutMusicTrackData> get musicTracks {
