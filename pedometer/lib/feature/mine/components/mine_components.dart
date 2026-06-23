@@ -4,6 +4,7 @@ import 'package:pedometer/common/component/glass_card.dart';
 import 'package:pedometer/common/config/app_colors.dart';
 import 'package:pedometer/common/config/app_dimens.dart';
 import 'package:pedometer/feature/mine/model/mine_model.dart';
+import 'package:pedometer/feature/mine/resources/mine_resource.dart';
 
 /// 身体指标总览卡片：身高 / 体重 / BMI / 年龄 四列等宽展示。
 class BodyStatsCard extends StatelessWidget {
@@ -101,6 +102,76 @@ class _StatusPill extends StatelessWidget {
           color: AppColors.brandGreen,
           fontSize: 13,
           fontWeight: FontWeight.w600,
+        ),
+      ),
+    );
+  }
+}
+
+/// 订阅会员横幅：绿色胶囊入口 + 皇冠图标 + 右侧圆形箭头。
+class MembershipSubscriptionCard extends StatelessWidget {
+  final VoidCallback? onTap;
+
+  const MembershipSubscriptionCard({super.key, this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: onTap,
+      child: Container(
+        height: 78,
+        padding: EdgeInsets.symmetric(horizontal: AppSpacing.xxl),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(AppRadius.xl),
+          gradient: const LinearGradient(
+            begin: Alignment.centerLeft,
+            end: Alignment.centerRight,
+            colors: [Color(0xFF43F21A), Color(0xFF91FF00)],
+          ),
+        ),
+        child: Row(
+          children: [
+            AssetMetricIcon(
+              assetName: MineResource.membershipCrownIcon,
+              size: 32,
+            ),
+            SizedBox(width: AppSpacing.lg),
+            Expanded(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    MineResource.subscribeTitle,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      color: Color(0xFF07130A),
+                      fontSize: 20,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                  SizedBox(height: AppSpacing.xxs),
+                  Text(
+                    MineResource.subscribeSubtitle,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      color: Color(0xCC07130A),
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            SizedBox(width: AppSpacing.md),
+            AssetMetricIcon(
+              assetName: MineResource.membershipArrowIcon,
+              size: 28,
+            ),
+          ],
         ),
       ),
     );

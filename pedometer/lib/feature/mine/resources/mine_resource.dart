@@ -21,6 +21,10 @@ class MineResource {
   static String get bmiNormal => _string('bmi_normal', MineText.bmiNormal);
   static String get age => _string('age', MineText.age);
   static String get ageUnit => _string('age_unit', MineText.ageUnit);
+  static String get subscribeTitle =>
+      _string('subscribe_title', MineText.subscribeTitle);
+  static String get subscribeSubtitle =>
+      _string('subscribe_subtitle', MineText.subscribeSubtitle);
   static String get themeSetting =>
       _string('theme_setting', MineText.themeSetting);
   static String get language => _string('language', MineText.language);
@@ -40,6 +44,9 @@ class MineResource {
   static String _string(String key, String fallback) {
     return ResourceLoader.string('mine', key, fallback: fallback);
   }
+
+  static const membershipCrownIcon = 'assets/membership_crown.svg';
+  static const membershipArrowIcon = 'assets/membership_arrow.svg';
 }
 
 /// 我的页模块 const 文案。供 const mock / 默认数据使用；动态读取请走 [MineResource]。
@@ -54,12 +61,13 @@ class MineText {
   static const bmiNormal = '正常';
   static const age = '年龄';
   static const ageUnit = '岁';
+  static const subscribeTitle = '订阅会员';
+  static const subscribeSubtitle = '解锁全部高级功能';
   static const themeSetting = '主题设置';
   static const language = '语言';
   static const shareApp = '分享应用';
-  static const shareAppSubject = '推荐一款好用的计步运动 App';  //这个是应用分享的宣传语
-  static const shareAppContent =
-      '我正在用这款计步运动 App 记录每天的步数和锻炼，一起来打卡运动吧！';
+  static const shareAppSubject = '推荐一款好用的计步运动 App'; //这个是应用分享的宣传语
+  static const shareAppContent = '我正在用这款计步运动 App 记录每天的步数和锻炼，一起来打卡运动吧！';
   static const rateUs = '给我们评分';
   static const userAgreement = '用户协议';
   static const privacyPolicy = '隐私政策';

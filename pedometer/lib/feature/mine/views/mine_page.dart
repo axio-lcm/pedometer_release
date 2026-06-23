@@ -40,6 +40,8 @@ class MinePage extends GetView<MineViewModel> {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     BodyStatsCard(stats: data.bodyStats),
+                    SizedBox(height: AppSpacing.xl),
+                    const MembershipSubscriptionCard(),
                     SizedBox(height: AppSpacing.xxl),
                     MineSettingsCard(
                       entries: data.entries,
