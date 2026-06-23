@@ -188,8 +188,10 @@ class DataSourceRow extends StatelessWidget {
             ],
           ),
         ),
-        SizedBox(width: AppSpacing.sm),
-        DataSourceViewButton(onTap: onView),
+        if (onView != null) ...[
+          SizedBox(width: AppSpacing.sm),
+          DataSourceViewButton(onTap: onView),
+        ],
       ],
     );
   }
