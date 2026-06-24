@@ -27,6 +27,7 @@ class _WorkoutTrackingPageState extends State<WorkoutTrackingPage> {
       Get.find<WorkoutTrackingViewModel>();
 
   bool _showMoreMenu = false;
+  bool _controlsLocked = false;
   String? _countdownLabel;
   int _countdownStep = 0;
   Timer? _countdownTimer;
@@ -57,9 +58,11 @@ class _WorkoutTrackingPageState extends State<WorkoutTrackingPage> {
                     child: Obx(
                       () => AppTopNavigationBar(
                         title: controller.workoutTitle.value,
-                        onBack: _back,
+                        onBack: _controlsLocked ? _ignoreLockedTap : _back,
                         rightIcon: Icons.more_horiz_rounded,
-                        onRightTap: _toggleMoreMenu,
+                        onRightTap: _controlsLocked
+                            ? _ignoreLockedTap
+                            : _toggleMoreMenu,
                       ),
                     ),
                   ),
@@ -75,6 +78,7 @@ class _WorkoutTrackingPageState extends State<WorkoutTrackingPage> {
                             onDismissMoreMenu: _dismissMoreMenu,
                             onImportMusic: _importMusic,
                             onWorkoutRoute: _handleMoreAction,
+                            controlsLocked: _controlsLocked,
                           ),
                           const SizedBox(height: 4),
                           Padding(
@@ -89,6 +93,8 @@ class _WorkoutTrackingPageState extends State<WorkoutTrackingPage> {
                                   const SizedBox(height: 28),
                                   WorkoutControlPanel(
                                     data: data,
+                                    locked: _controlsLocked,
+                                    onLockToggle: _toggleControlsLock,
                                     onPrimaryTap: _handlePrimaryTap,
                                     onEnd: _endWorkout,
                                   ),
@@ -97,9 +103,15 @@ class _WorkoutTrackingPageState extends State<WorkoutTrackingPage> {
                                   ),
                                   WorkoutMusicCard(
                                     data: data,
-                                    onPlayPause: controller.toggleMusic,
-                                    onNext: controller.nextMusic,
-                                    onOpenList: _openMusicList,
+                                    onPlayPause: _controlsLocked
+                                        ? null
+                                        : controller.toggleMusic,
+                                    onNext: _controlsLocked
+                                        ? null
+                                        : controller.nextMusic,
+                                    onOpenList: _controlsLocked
+                                        ? null
+                                        : _openMusicList,
                                   ),
                                 ],
                               );
@@ -126,6 +138,7 @@ class _WorkoutTrackingPageState extends State<WorkoutTrackingPage> {
   }
 
   void _toggleMoreMenu() {
+    if (_controlsLocked) return;
     setState(() => _showMoreMenu = !_showMoreMenu);
   }
 
@@ -135,6 +148,7 @@ class _WorkoutTrackingPageState extends State<WorkoutTrackingPage> {
   }
 
   void _handlePrimaryTap() {
+    if (_controlsLocked) return;
     if (_countdownLabel != null) return;
     if (controller.status.value == WorkoutStatus.ready) {
       _startCountdown();
@@ -175,23 +189,38 @@ class _WorkoutTrackingPageState extends State<WorkoutTrackingPage> {
     });
   }
 
+  void _toggleControlsLock() {
+    setState(() {
+      _controlsLocked = !_controlsLocked;
+      if (_controlsLocked) {
+        _showMoreMenu = false;
+      }
+    });
+  }
+
+  void _ignoreLockedTap() {}
+
   void _handleMoreAction() {
+    if (_controlsLocked) return;
     _dismissMoreMenu();
     Get.toNamed(WorkoutRouteTable.pathRouteHistory);
   }
 
   Future<void> _importMusic() async {
+    if (_controlsLocked) return;
     _dismissMoreMenu();
     await controller.importMusic();
   }
 
   void _openMusicList() {
+    if (_controlsLocked) return;
     _dismissMoreMenu();
     Get.toNamed(WorkoutRouteTable.pathMusicList);
   }
 
   // 返回：运动进行中时先弹确认框，确认后才退出；未开始则直接返回。
   void _back() {
+    if (_controlsLocked) return;
     if (!controller.hasActiveSession) {
       if (Get.key.currentState?.canPop() ?? false) Get.back<void>();
       return;
@@ -209,6 +238,7 @@ class _WorkoutTrackingPageState extends State<WorkoutTrackingPage> {
 
   // 结束运动：聚合真实数据并跳结果页（替换记录中页，结果页「完成」回到运动主页）。
   void _endWorkout() {
+    if (_controlsLocked) return;
     controller.end();
     Get.offNamed(
       ExerciseResultPage.routeName,

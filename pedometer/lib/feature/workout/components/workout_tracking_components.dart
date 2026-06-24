@@ -32,6 +32,7 @@ class WorkoutMapSection extends StatefulWidget {
   final VoidCallback? onDismissMoreMenu;
   final VoidCallback? onImportMusic;
   final VoidCallback? onWorkoutRoute;
+  final bool controlsLocked;
 
   const WorkoutMapSection({
     super.key,
@@ -41,6 +42,7 @@ class WorkoutMapSection extends StatefulWidget {
     this.onDismissMoreMenu,
     this.onImportMusic,
     this.onWorkoutRoute,
+    this.controlsLocked = false,
   });
 
   @override
@@ -60,9 +62,12 @@ class _WorkoutMapSectionState extends State<WorkoutMapSection> {
         clipBehavior: Clip.none,
         children: [
           Positioned.fill(
-            child: indoor
-                ? const ColoredBox(color: WorkoutResource.indoorBackground)
-                : WorkoutMapView(key: _mapKey, controller: widget.controller),
+            child: AbsorbPointer(
+              absorbing: widget.controlsLocked,
+              child: indoor
+                  ? const ColoredBox(color: WorkoutResource.indoorBackground)
+                  : WorkoutMapView(key: _mapKey, controller: widget.controller),
+            ),
           ),
           Obx(() {
             final data = _liveData();
@@ -84,10 +89,12 @@ class _WorkoutMapSectionState extends State<WorkoutMapSection> {
               left: 14,
               bottom: 24,
               child: MapControlButtons(
-                onLocate: () => _mapKey.currentState?.centerOnCurrentLocation(),
+                onLocate: widget.controlsLocked
+                    ? null
+                    : () => _mapKey.currentState?.centerOnCurrentLocation(),
               ),
             ),
-          if (widget.showMoreMenu) ...[
+          if (widget.showMoreMenu && !widget.controlsLocked) ...[
             Positioned.fill(
               child: GestureDetector(
                 behavior: HitTestBehavior.translucent,
@@ -1072,6 +1079,8 @@ class _MetricDivider extends StatelessWidget {
 class WorkoutControlPanel extends StatelessWidget {
   final WorkoutTrackingData data;
   final VoidCallback? onPrimaryTap;
+  final bool locked;
+  final VoidCallback? onLockToggle;
 
   /// 长按主按钮满 3 秒后触发（结束运动）。
   final VoidCallback? onEnd;
@@ -1080,6 +1089,8 @@ class WorkoutControlPanel extends StatelessWidget {
     super.key,
     required this.data,
     this.onPrimaryTap,
+    this.locked = false,
+    this.onLockToggle,
     this.onEnd,
   });
 
@@ -1087,8 +1098,9 @@ class WorkoutControlPanel extends StatelessWidget {
   Widget build(BuildContext context) {
     // 仅运动中 / 暂停时允许长按结束（与「长按结束」提示一致）。
     final holdEnabled =
-        data.status == WorkoutStatus.running ||
-        data.status == WorkoutStatus.paused;
+        !locked &&
+        (data.status == WorkoutStatus.running ||
+            data.status == WorkoutStatus.paused);
     final hintText = switch (data.status) {
       WorkoutStatus.ready => WorkoutResource.trackingStartHint,
       WorkoutStatus.running => data.endHint,
@@ -1104,15 +1116,18 @@ class WorkoutControlPanel extends StatelessWidget {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
-                CircleGlassIconButton(icon: Icons.lock_rounded, onTap: () {}),
+                CircleGlassIconButton(
+                  icon: locked ? Icons.lock_rounded : Icons.lock_open_rounded,
+                  onTap: onLockToggle,
+                ),
                 NeonPauseButton(
                   showStartIcon: data.status != WorkoutStatus.running,
-                  onTap: onPrimaryTap,
+                  onTap: locked ? null : onPrimaryTap,
                   onHoldComplete: holdEnabled ? onEnd : null,
                 ),
                 CircleGlassIconButton(
                   icon: Icons.volume_up_rounded,
-                  onTap: () {},
+                  onTap: locked ? null : () {},
                 ),
               ],
             ),
