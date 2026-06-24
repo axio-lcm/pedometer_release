@@ -1081,6 +1081,8 @@ class WorkoutControlPanel extends StatelessWidget {
   final VoidCallback? onPrimaryTap;
   final bool locked;
   final VoidCallback? onLockToggle;
+  final bool muted;
+  final VoidCallback? onMuteToggle;
 
   /// 长按主按钮满 3 秒后触发（结束运动）。
   final VoidCallback? onEnd;
@@ -1091,6 +1093,8 @@ class WorkoutControlPanel extends StatelessWidget {
     this.onPrimaryTap,
     this.locked = false,
     this.onLockToggle,
+    this.muted = false,
+    this.onMuteToggle,
     this.onEnd,
   });
 
@@ -1126,8 +1130,10 @@ class WorkoutControlPanel extends StatelessWidget {
                   onHoldComplete: holdEnabled ? onEnd : null,
                 ),
                 CircleGlassIconButton(
-                  icon: Icons.volume_up_rounded,
-                  onTap: locked ? null : () {},
+                  icon: muted
+                      ? Icons.volume_off_rounded
+                      : Icons.volume_up_rounded,
+                  onTap: locked ? null : onMuteToggle,
                 ),
               ],
             ),

@@ -67,6 +67,7 @@ class WorkoutTrackingViewModel extends GetxController
   final musicStatus = WorkoutText.trackingMusicIdle.obs;
   final hasMusic = false.obs;
   final musicPlaying = false.obs;
+  final musicMuted = false.obs;
   final currentMusicIndex = (-1).obs;
   final musicTrackNames = <String>[].obs;
 
@@ -267,6 +268,14 @@ class WorkoutTrackingViewModel extends GetxController
     await player.play();
   }
 
+  Future<void> toggleMusicMute() async {
+    musicMuted.value = !musicMuted.value;
+    final player = _musicPlayer;
+    if (player != null) {
+      await player.setVolume(musicMuted.value ? 0 : 1);
+    }
+  }
+
   Future<void> deleteMusicAt(int index) async {
     if (index < 0 || index >= _musicTracks.length) return;
 
@@ -339,6 +348,7 @@ class WorkoutTrackingViewModel extends GetxController
 
     final player = AudioPlayer();
     _musicPlayer = player;
+    unawaited(player.setVolume(musicMuted.value ? 0 : 1));
     _bindMusicPlayer(player);
     return player;
   }

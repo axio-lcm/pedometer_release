@@ -95,6 +95,9 @@ class _WorkoutTrackingPageState extends State<WorkoutTrackingPage> {
                                     data: data,
                                     locked: _controlsLocked,
                                     onLockToggle: _toggleControlsLock,
+                                    muted: controller.musicMuted.value,
+                                    onMuteToggle: () =>
+                                        controller.toggleMusicMute(),
                                     onPrimaryTap: _handlePrimaryTap,
                                     onEnd: _endWorkout,
                                   ),
