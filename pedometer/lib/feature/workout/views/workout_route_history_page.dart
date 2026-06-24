@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:pedometer/common/component/app_top_navigation_bar.dart';
+import 'package:pedometer/common/component/asset_metric_icon.dart';
 import 'package:pedometer/common/component/glass_card.dart';
 import 'package:pedometer/common/config/app_colors.dart';
 import 'package:pedometer/common/config/app_dimens.dart';
@@ -105,6 +106,7 @@ class _CurrentRouteCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final hasSnapshot = mapSnapshot != null;
+    final workoutType = _workoutTypeFor(title);
     return GlassCard(
       radius: AppRadius.xl,
       padding: EdgeInsets.all(AppSpacing.lg),
@@ -113,19 +115,7 @@ class _CurrentRouteCard extends StatelessWidget {
         children: [
           Row(
             children: [
-              Container(
-                width: 38,
-                height: 38,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(AppRadius.sm),
-                  color: AppColors.brandGreen.withValues(alpha: 0.18),
-                ),
-                child: Icon(
-                  Icons.route_rounded,
-                  color: AppColors.brandGreen,
-                  size: 22,
-                ),
-              ),
+              _RouteDetailWorkoutTypeIcon(type: workoutType),
               SizedBox(width: AppSpacing.md),
               Expanded(
                 child: Text(
@@ -184,6 +174,42 @@ class _CurrentRouteCard extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+
+  WorkoutType _workoutTypeFor(String title) {
+    return WorkoutPageData.mock.workoutTypes.firstWhere(
+      (type) => type.title == title,
+      orElse: () => WorkoutPageData.mock.workoutTypes.first,
+    );
+  }
+}
+
+class _RouteDetailWorkoutTypeIcon extends StatelessWidget {
+  final WorkoutType type;
+
+  const _RouteDetailWorkoutTypeIcon({required this.type});
+
+  @override
+  Widget build(BuildContext context) {
+    final iconAsset = type.iconAsset;
+    if (iconAsset != null) {
+      return SizedBox(
+        width: 38,
+        height: 38,
+        child: Center(child: AssetMetricIcon(assetName: iconAsset, size: 38)),
+      );
+    }
+
+    return Container(
+      width: 38,
+      height: 38,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(AppRadius.sm),
+        color: type.color.withValues(alpha: 0.16),
+        border: Border.all(color: type.color.withValues(alpha: 0.45)),
+      ),
+      child: Icon(type.icon, color: type.color, size: 22),
     );
   }
 }

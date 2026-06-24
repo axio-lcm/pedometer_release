@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:pedometer/common/component/app_top_navigation_bar.dart';
+import 'package:pedometer/common/component/asset_metric_icon.dart';
 import 'package:pedometer/common/component/glass_card.dart';
 import 'package:pedometer/common/config/app_colors.dart';
 import 'package:pedometer/common/config/app_dimens.dart';
@@ -20,6 +21,7 @@ class WorkoutRouteListPage extends StatelessWidget {
   }
 
   void _openDetail(WorkoutRouteHistoryRecord record) {
+    if (record.sportType == WorkoutText.indoorRun) return;
     Get.toNamed(WorkoutRouteHistoryPage.routeName, arguments: record);
   }
 
@@ -80,7 +82,9 @@ class _RouteListContent extends StatelessWidget {
         for (var i = 0; i < records.length; i++) ...[
           _RouteListItem(
             record: records[i],
-            onTap: () => onRouteTap(records[i]),
+            onTap: records[i].sportType == WorkoutText.indoorRun
+                ? null
+                : () => onRouteTap(records[i]),
           ),
           if (i != records.length - 1) SizedBox(height: AppSpacing.md),
         ],
@@ -91,12 +95,13 @@ class _RouteListContent extends StatelessWidget {
 
 class _RouteListItem extends StatelessWidget {
   final WorkoutRouteHistoryRecord record;
-  final VoidCallback onTap;
+  final VoidCallback? onTap;
 
   const _RouteListItem({required this.record, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
+    final workoutType = _workoutTypeFor(record.sportType);
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: onTap,
@@ -108,19 +113,7 @@ class _RouteListItem extends StatelessWidget {
           children: [
             Row(
               children: [
-                Container(
-                  width: 42,
-                  height: 42,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(AppRadius.md),
-                    color: AppColors.brandGreen.withValues(alpha: 0.18),
-                  ),
-                  child: Icon(
-                    Icons.route_rounded,
-                    color: AppColors.brandGreen,
-                    size: 24,
-                  ),
-                ),
+                _RouteWorkoutTypeIcon(type: workoutType),
                 SizedBox(width: AppSpacing.md),
                 Expanded(
                   child: Column(
@@ -149,11 +142,12 @@ class _RouteListItem extends StatelessWidget {
                     ],
                   ),
                 ),
-                Icon(
-                  Icons.chevron_right_rounded,
-                  color: AppColors.textSecondary,
-                  size: 26,
-                ),
+                if (onTap != null)
+                  Icon(
+                    Icons.chevron_right_rounded,
+                    color: AppColors.textSecondary,
+                    size: 26,
+                  ),
               ],
             ),
             SizedBox(height: AppSpacing.lg),
@@ -192,6 +186,42 @@ class _RouteListItem extends StatelessWidget {
     final hour = value.hour.toString().padLeft(2, '0');
     final minute = value.minute.toString().padLeft(2, '0');
     return '${value.year}年$month月$day日 $hour:$minute';
+  }
+
+  WorkoutType _workoutTypeFor(String title) {
+    return WorkoutPageData.mock.workoutTypes.firstWhere(
+      (type) => type.title == title,
+      orElse: () => WorkoutPageData.mock.workoutTypes.first,
+    );
+  }
+}
+
+class _RouteWorkoutTypeIcon extends StatelessWidget {
+  final WorkoutType type;
+
+  const _RouteWorkoutTypeIcon({required this.type});
+
+  @override
+  Widget build(BuildContext context) {
+    final iconAsset = type.iconAsset;
+    if (iconAsset != null) {
+      return SizedBox(
+        width: 42,
+        height: 42,
+        child: Center(child: AssetMetricIcon(assetName: iconAsset, size: 42)),
+      );
+    }
+
+    return Container(
+      width: 42,
+      height: 42,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(AppRadius.md),
+        color: type.color.withValues(alpha: 0.16),
+        border: Border.all(color: type.color.withValues(alpha: 0.45)),
+      ),
+      child: Icon(type.icon, color: type.color, size: 24),
+    );
   }
 }
 
