@@ -3,7 +3,7 @@ import 'dart:typed_data';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:pedometer/feature/workout/resources/workout_resource.dart';
 
-/// 运动类型（户外跑步 / 室内跑步 / 健走 / 徒步）。
+/// 运动类型（户外 / 室内 / 健走 / 徒步）。
 class WorkoutType {
   final String title;
   final IconData icon;

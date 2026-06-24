@@ -1070,7 +1070,7 @@ void main() {
 
   testWidgets('uses ExerciseResultData passed via Get.arguments', (tester) async {
     const real = ExerciseResultData(
-      sportType: '户外跑步',
+      sportType: '户外',
       dateText: '今天',
       distance: '3.33',
       distanceUnit: '公里',

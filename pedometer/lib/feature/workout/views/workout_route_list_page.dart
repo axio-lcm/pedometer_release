@@ -211,7 +211,7 @@ bool _isIndoorRecord(WorkoutRouteHistoryRecord record) {
   return title == WorkoutResource.indoorRun ||
       title == WorkoutText.indoorRun ||
       title == '室内' ||
-      title == '室内跑步';
+      title == '室内';
 }
 
 class _RouteWorkoutTypeIcon extends StatelessWidget {

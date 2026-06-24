@@ -164,13 +164,13 @@ class WorkoutResource {
     if (title == outdoorRun ||
         title == WorkoutText.outdoorRun ||
         title == '户外' ||
-        title == '户外跑步') {
+        title == '户外') {
       return outdoorRun;
     }
     if (title == indoorRun ||
         title == WorkoutText.indoorRun ||
         title == '室内' ||
-        title == '室内跑步') {
+        title == '室内') {
       return indoorRun;
     }
     if (title == fitnessWalk ||
