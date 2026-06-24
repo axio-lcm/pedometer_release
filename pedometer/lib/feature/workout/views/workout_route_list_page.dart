@@ -4,8 +4,8 @@ import 'package:pedometer/common/component/app_top_navigation_bar.dart';
 import 'package:pedometer/common/component/glass_card.dart';
 import 'package:pedometer/common/config/app_colors.dart';
 import 'package:pedometer/common/config/app_dimens.dart';
+import 'package:pedometer/feature/workout/model/workout_model.dart';
 import 'package:pedometer/feature/workout/resources/workout_resource.dart';
-import 'package:pedometer/feature/workout/viewmodel/workout_tracking_view_model.dart';
 import 'package:pedometer/feature/workout/views/workout_route_history_page.dart';
 
 class WorkoutRouteListPage extends StatelessWidget {
@@ -13,24 +13,18 @@ class WorkoutRouteListPage extends StatelessWidget {
 
   const WorkoutRouteListPage({super.key});
 
-  WorkoutTrackingViewModel? get _trackingController =>
-      Get.isRegistered<WorkoutTrackingViewModel>()
-      ? Get.find<WorkoutTrackingViewModel>()
-      : null;
-
   void _back() {
     if (Get.key.currentState?.canPop() ?? false) {
       Get.back<void>();
     }
   }
 
-  void _openDetail() {
-    Get.toNamed(WorkoutRouteHistoryPage.routeName);
+  void _openDetail(WorkoutRouteHistoryRecord record) {
+    Get.toNamed(WorkoutRouteHistoryPage.routeName, arguments: record);
   }
 
   @override
   Widget build(BuildContext context) {
-    final trackingController = _trackingController;
     return Scaffold(
       backgroundColor: WorkoutResource.background,
       body: Stack(
@@ -45,17 +39,14 @@ class WorkoutRouteListPage extends StatelessWidget {
                 AppSpacing.lg,
                 AppSpacing.xxl,
               ),
-              child: trackingController == null
-                  ? _RouteListContent(onBack: _back)
-                  : Obx(
-                      () => _RouteListContent(
-                        onBack: _back,
-                        distance: trackingController.distanceKmText,
-                        duration: trackingController.durationText,
-                        pace: trackingController.paceText,
-                        onRouteTap: _openDetail,
-                      ),
-                    ),
+              child: ValueListenableBuilder<int>(
+                valueListenable: WorkoutRouteHistoryStore.revision,
+                builder: (context, _, _) => _RouteListContent(
+                  records: WorkoutRouteHistoryStore.records,
+                  onBack: _back,
+                  onRouteTap: _openDetail,
+                ),
+              ),
             ),
           ),
         ],
@@ -65,23 +56,18 @@ class WorkoutRouteListPage extends StatelessWidget {
 }
 
 class _RouteListContent extends StatelessWidget {
-  final String distance;
-  final String duration;
-  final String pace;
+  final List<WorkoutRouteHistoryRecord> records;
   final VoidCallback onBack;
-  final VoidCallback? onRouteTap;
+  final ValueChanged<WorkoutRouteHistoryRecord> onRouteTap;
 
   const _RouteListContent({
+    required this.records,
     required this.onBack,
-    this.distance = '0.00',
-    this.duration = '00:00:00',
-    this.pace = "--'--''",
-    this.onRouteTap,
+    required this.onRouteTap,
   });
 
   @override
   Widget build(BuildContext context) {
-    final hasRoute = onRouteTap != null;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -90,32 +76,24 @@ class _RouteListContent extends StatelessWidget {
           onBack: onBack,
         ),
         SizedBox(height: AppSpacing.lg),
-        if (hasRoute)
+        if (records.isEmpty) const _RouteListEmptyState(),
+        for (var i = 0; i < records.length; i++) ...[
           _RouteListItem(
-            distance: distance,
-            duration: duration,
-            pace: pace,
-            onTap: onRouteTap!,
-          )
-        else
-          const _RouteListEmptyState(),
+            record: records[i],
+            onTap: () => onRouteTap(records[i]),
+          ),
+          if (i != records.length - 1) SizedBox(height: AppSpacing.md),
+        ],
       ],
     );
   }
 }
 
 class _RouteListItem extends StatelessWidget {
-  final String distance;
-  final String duration;
-  final String pace;
+  final WorkoutRouteHistoryRecord record;
   final VoidCallback onTap;
 
-  const _RouteListItem({
-    required this.distance,
-    required this.duration,
-    required this.pace,
-    required this.onTap,
-  });
+  const _RouteListItem({required this.record, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -149,7 +127,7 @@ class _RouteListItem extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        WorkoutResource.routeHistoryCurrent,
+                        record.sportType,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
@@ -160,7 +138,7 @@ class _RouteListItem extends StatelessWidget {
                       ),
                       SizedBox(height: 4),
                       Text(
-                        WorkoutResource.routeHistoryRecording,
+                        _formatEndedAt(record.endedAt),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
@@ -184,20 +162,20 @@ class _RouteListItem extends StatelessWidget {
                 Expanded(
                   child: _RouteListMetric(
                     label: WorkoutResource.metricDistance,
-                    value: distance,
+                    value: record.distanceKm,
                     unit: 'km',
                   ),
                 ),
                 Expanded(
                   child: _RouteListMetric(
                     label: WorkoutResource.metricDuration,
-                    value: duration,
+                    value: record.duration,
                   ),
                 ),
                 Expanded(
                   child: _RouteListMetric(
-                    label: WorkoutResource.metricPace,
-                    value: pace,
+                    label: WorkoutResource.metricPaceMinKm,
+                    value: record.averagePace,
                   ),
                 ),
               ],
@@ -206,6 +184,14 @@ class _RouteListItem extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  String _formatEndedAt(DateTime value) {
+    final month = value.month.toString().padLeft(2, '0');
+    final day = value.day.toString().padLeft(2, '0');
+    final hour = value.hour.toString().padLeft(2, '0');
+    final minute = value.minute.toString().padLeft(2, '0');
+    return '${value.year}年$month月$day日 $hour:$minute';
   }
 }
 

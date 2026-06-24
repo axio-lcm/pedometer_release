@@ -46,11 +46,15 @@ class WorkoutMapSection extends StatefulWidget {
   });
 
   @override
-  State<WorkoutMapSection> createState() => _WorkoutMapSectionState();
+  WorkoutMapSectionState createState() => WorkoutMapSectionState();
 }
 
-class _WorkoutMapSectionState extends State<WorkoutMapSection> {
+class WorkoutMapSectionState extends State<WorkoutMapSection> {
   final _mapKey = GlobalKey<_WorkoutMapViewState>();
+
+  Future<Uint8List?> takeSnapshot() async {
+    return _mapKey.currentState?.takeSnapshot();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -336,7 +340,7 @@ class _WorkoutMapViewState extends State<WorkoutMapView> {
       children: [
         Positioned.fill(
           child: Obx(() {
-            final routePoints = _controller.pathPoints.toList(growable: false);
+            final routePoints = _routePointsForDisplay();
             return GoogleMap(
               style: WorkoutMapStyle.night,
               initialCameraPosition: _currentPosition == null
@@ -564,6 +568,24 @@ class _WorkoutMapViewState extends State<WorkoutMapView> {
     await _moveCamera(position, immediate: true);
   }
 
+  Future<Uint8List?> takeSnapshot() async {
+    return _mapController?.takeSnapshot();
+  }
+
+  List<LatLng> _routePointsForDisplay() {
+    final route = _controller.pathPoints.toList(growable: true);
+    final start = _controller.startPoint.value;
+    final end = _controller.endPoint.value;
+    if (route.isEmpty) {
+      if (start != null) route.add(start);
+      if (end != null && (route.isEmpty || route.last != end)) route.add(end);
+      return route;
+    }
+    if (start != null && route.first != start) route.insert(0, start);
+    if (end != null && route.last != end) route.add(end);
+    return route;
+  }
+
   Set<Marker> get _trackingMarkers {
     final markers = <Marker>{};
 
@@ -582,9 +604,26 @@ class _WorkoutMapViewState extends State<WorkoutMapView> {
       );
     }
 
+    final end = _controller.endPoint.value;
+    if (end != null) {
+      markers.add(
+        Marker(
+          markerId: const MarkerId('workout-end'),
+          position: end,
+          icon: BitmapDescriptor.defaultMarkerWithHue(
+            BitmapDescriptor.hueOrange,
+          ),
+          anchor: const Offset(0.5, 1),
+          zIndexInt: 2,
+        ),
+      );
+    }
+
     final position = _currentPosition;
     final icon = _currentLocationMarkerIcon;
-    if (position != null && icon != null) {
+    if (position != null &&
+        icon != null &&
+        _controller.status.value != WorkoutStatus.ended) {
       markers.add(
         Marker(
           markerId: const MarkerId('workout-current-location'),
@@ -594,7 +633,7 @@ class _WorkoutMapViewState extends State<WorkoutMapView> {
           // 箭头随设备罗盘朝向旋转（站着转手机也会转）。
           rotation: _headingDegrees,
           flat: true,
-          zIndexInt: 2,
+          zIndexInt: 3,
         ),
       );
     }

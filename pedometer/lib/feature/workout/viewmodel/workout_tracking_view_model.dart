@@ -55,6 +55,7 @@ class WorkoutTrackingViewModel extends GetxController
 
   final status = WorkoutStatus.ready.obs;
   final startPoint = Rxn<LatLng>();
+  final endPoint = Rxn<LatLng>();
   final currentPosition = Rxn<LatLng>();
   final pathPoints = <LatLng>[].obs;
   final distanceMeters = 0.0.obs;
@@ -85,6 +86,7 @@ class WorkoutTrackingViewModel extends GetxController
   StreamSubscription<int?>? _musicIndexSubscription;
   DateTime? _lastMotionPaceAt;
   List<_WorkoutMusicTrack> _musicTracks = const [];
+  bool _routeHistorySaved = false;
 
   static const _motionPaceFreshness = Duration(seconds: 10);
   static const _calorieSpeedFreshness = Duration(seconds: 5);
@@ -112,12 +114,14 @@ class WorkoutTrackingViewModel extends GetxController
     calories.value = 0;
     pace.value = null;
     pathPoints.clear();
+    endPoint.value = null;
     _pacePolicy.reset();
     _lastRaw = _usableMetricRawOrNull(_currentRaw);
     _lastRouteRaw = _currentRaw;
     _lastSpeedKmh = 0;
     _lastSpeedUpdatedAt = null;
     _lastMotionPaceAt = null;
+    _routeHistorySaved = false;
 
     final pos = currentPosition.value;
     startPoint.value = pos;
@@ -140,8 +144,48 @@ class WorkoutTrackingViewModel extends GetxController
   }
 
   void end() {
+    endPoint.value =
+        currentPosition.value ??
+        (pathPoints.isEmpty ? startPoint.value : pathPoints.last);
     status.value = WorkoutStatus.ended;
     _stopTicker();
+  }
+
+  WorkoutRouteHistoryRecord saveRouteHistory({Uint8List? mapSnapshot}) {
+    final endedAt = DateTime.now();
+    final routeSnapshot = pathPoints.toList(growable: true);
+    final start =
+        startPoint.value ??
+        (routeSnapshot.isEmpty ? null : routeSnapshot.first);
+    final end =
+        endPoint.value ??
+        currentPosition.value ??
+        (routeSnapshot.isEmpty ? null : routeSnapshot.last);
+
+    if (start != null && routeSnapshot.isEmpty) {
+      routeSnapshot.add(start);
+    }
+    if (end != null && (routeSnapshot.isEmpty || routeSnapshot.last != end)) {
+      routeSnapshot.add(end);
+    }
+
+    final record = WorkoutRouteHistoryRecord(
+      id: endedAt.microsecondsSinceEpoch.toString(),
+      sportType: workoutTitle.value,
+      endedAt: endedAt,
+      distanceKm: distanceKmText,
+      duration: durationText,
+      averagePace: averagePaceText,
+      startPoint: start,
+      endPoint: end,
+      routePoints: List<LatLng>.unmodifiable(routeSnapshot),
+      mapSnapshot: mapSnapshot,
+    );
+    if (!_routeHistorySaved) {
+      WorkoutRouteHistoryStore.add(record);
+      _routeHistorySaved = true;
+    }
+    return record;
   }
 
   /// 当前运动类型（按标题匹配运动栏的户外 / 室内 / 健走 / 徒步），

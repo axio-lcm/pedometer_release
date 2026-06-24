@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'dart:typed_data';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:pedometer/feature/workout/resources/workout_resource.dart';
 
 /// 运动类型（户外跑步 / 室内跑步 / 健走 / 徒步）。
@@ -54,6 +56,51 @@ class WorkoutMusicTrackData {
   final bool current;
 
   const WorkoutMusicTrackData({required this.name, required this.current});
+}
+
+class WorkoutRouteHistoryRecord {
+  final String id;
+  final String sportType;
+  final DateTime endedAt;
+  final String distanceKm;
+  final String duration;
+  final String averagePace;
+  final LatLng? startPoint;
+  final LatLng? endPoint;
+  final List<LatLng> routePoints;
+  final Uint8List? mapSnapshot;
+
+  const WorkoutRouteHistoryRecord({
+    required this.id,
+    required this.sportType,
+    required this.endedAt,
+    required this.distanceKm,
+    required this.duration,
+    required this.averagePace,
+    required this.startPoint,
+    required this.endPoint,
+    required this.routePoints,
+    this.mapSnapshot,
+  });
+}
+
+class WorkoutRouteHistoryStore {
+  WorkoutRouteHistoryStore._();
+
+  static final revision = ValueNotifier<int>(0);
+  static final List<WorkoutRouteHistoryRecord> _records = [];
+
+  static List<WorkoutRouteHistoryRecord> get records =>
+      List<WorkoutRouteHistoryRecord>.unmodifiable(_records);
+
+  static WorkoutRouteHistoryRecord? get latest =>
+      _records.isEmpty ? null : _records.first;
+
+  static void add(WorkoutRouteHistoryRecord record) {
+    _records.removeWhere((item) => item.id == record.id);
+    _records.insert(0, record);
+    revision.value++;
+  }
 }
 
 /// 开始运动后的实时记录展示数据。
