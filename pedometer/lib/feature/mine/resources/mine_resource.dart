@@ -47,6 +47,7 @@ class MineResource {
   static String get shareAppSubject =>
       _string('share_app_subject', MineText.shareAppSubject);
   static String get rateUs => _string('rate_us', MineText.rateUs);
+  static String get suggestion => _string('suggestion', MineText.suggestion);
   static String get userAgreement =>
       _string('user_agreement', MineText.userAgreement);
   static String get privacyPolicy =>
@@ -90,6 +91,7 @@ class MineText {
   static const shareAppContent =
       'I am using this pedometer app to track steps and workouts every day. Join me!';
   static const rateUs = 'Rate Us';
+  static const suggestion = 'Suggestion';
   static const userAgreement = 'User Agreement';
   static const privacyPolicy = 'Privacy Policy';
   static const aboutUs = 'About Us';

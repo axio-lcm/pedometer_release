@@ -105,6 +105,11 @@ class MinePageData {
           title: MineResource.rateUs,
         ),
         MineEntry(
+          icon: Icons.chat_bubble_outline_rounded,
+          color: _cyan,
+          title: MineResource.suggestion,
+        ),
+        MineEntry(
           icon: Icons.description_outlined,
           color: _green,
           title: MineResource.userAgreement,
@@ -175,6 +180,11 @@ class MinePageData {
         icon: Icons.star_rounded,
         color: _orange,
         title: MineText.rateUs,
+      ),
+      MineEntry(
+        icon: Icons.chat_bubble_outline_rounded,
+        color: _cyan,
+        title: MineText.suggestion,
       ),
       MineEntry(
         icon: Icons.description_outlined,
