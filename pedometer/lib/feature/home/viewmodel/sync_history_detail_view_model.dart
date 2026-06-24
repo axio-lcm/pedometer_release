@@ -170,7 +170,7 @@ class SyncHistoryDetailViewModel extends GetxController
       SyncDataType(
         icon: const AssetAppIcon(AppMetricAssets.activeTime),
         iconColor: const Color(0xFF0CD9FF),
-        title: lt('Active Time', '活动时间'),
+        title: lt('Time', '时间'),
         value: '${_formatInt(summary.activeMinutes)} min',
       ),
       SyncDataType(

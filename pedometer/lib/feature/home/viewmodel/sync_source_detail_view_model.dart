@@ -424,6 +424,8 @@ class SyncSourceDetailViewModel extends GetxController
           selected.add(HealthSyncDataType.calories);
         case 'Active Time':
         case '活动时间':
+        case 'Time':
+        case '时间':
           selected.add(HealthSyncDataType.activeMinutes);
       }
     }

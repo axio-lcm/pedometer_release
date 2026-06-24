@@ -1,7 +1,7 @@
 {
-  "entry_overview": "运动总览",
-  "entry_health_sync": "Health 同步",
-  "today_steps": "今日步数",
+  "entry_overview": "总览",
+  "entry_health_sync": "Health",
+  "today_steps": "今日",
   "goal_suffix": "步",
   "achieved": "达成",
   "trend": "趋势"

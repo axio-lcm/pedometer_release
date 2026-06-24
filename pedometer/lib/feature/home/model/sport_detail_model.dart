@@ -235,7 +235,7 @@ class SportDetailFixtures {
     period: SportPeriod.day,
     dateTitle: _todayTitle(),
     progress: SportProgressData(
-      title: lt('Today\'s Steps', '今日步数'),
+      title: lt('Today', '今日'),
       value: 5276,
       goal: 6000,
       goalUnit: lt('steps', '步'),
@@ -259,7 +259,7 @@ class SportDetailFixtures {
       SportMetricData(
         iconAsset: AppMetricAssets.activeTime,
         color: AppColors.accentCyan,
-        title: lt('Active Time', '活动时间'),
+        title: lt('Time', '时间'),
         value: '28',
         unit: 'min',
       ),
@@ -304,7 +304,7 @@ class SportDetailFixtures {
       SportAnalysisData(
         assetIcon: AppMetricAssets.calories,
         color: AppColors.accentOrange,
-        title: lt('Calories Analysis', '卡路里分析'),
+        title: lt('Calories', '卡路里'),
         value: '293',
         unit: 'kcal',
         delta: lt('vs yesterday +12%', '较昨日 +12%'),
@@ -313,7 +313,7 @@ class SportDetailFixtures {
       SportAnalysisData(
         assetIcon: AppMetricAssets.activeTime,
         color: AppColors.accentCyan,
-        title: lt('Active Time Analysis', '活动时间分析'),
+        title: lt('Time', '时间'),
         value: '28',
         unit: 'min',
         delta: lt('vs yesterday +8%', '较昨日 +8%'),
@@ -380,7 +380,7 @@ class SportDetailFixtures {
       SportAnalysisData(
         assetIcon: AppMetricAssets.calories,
         color: AppColors.accentOrange,
-        title: lt('Calories Analysis', '卡路里分析'),
+        title: lt('Calories', '卡路里'),
         value: '2,340',
         unit: 'kcal',
         delta: lt('vs last week +12%', '较上周 +12%'),
@@ -389,7 +389,7 @@ class SportDetailFixtures {
       SportAnalysisData(
         assetIcon: AppMetricAssets.activeTime,
         color: AppColors.accentCyan,
-        title: lt('Active Time Analysis', '活动时间分析'),
+        title: lt('Time', '时间'),
         value: '3h 48',
         unit: 'min',
         delta: lt('vs last week +9%', '较上周 +9%'),
@@ -479,7 +479,7 @@ class SportDetailFixtures {
       SportAnalysisData(
         assetIcon: AppMetricAssets.calories,
         color: AppColors.accentOrange,
-        title: lt('Calories Analysis', '卡路里分析'),
+        title: lt('Calories', '卡路里'),
         value: '9,360',
         unit: 'kcal',
         delta: lt('vs last month +8%', '较上月 +8%'),
@@ -488,7 +488,7 @@ class SportDetailFixtures {
       SportAnalysisData(
         assetIcon: AppMetricAssets.activeTime,
         color: AppColors.accentCyan,
-        title: lt('Active Time Analysis', '活动时间分析'),
+        title: lt('Time', '时间'),
         value: '17h 24',
         unit: 'min',
         delta: lt('vs last month +11%', '较上月 +11%'),

@@ -46,10 +46,7 @@ class SyncDataDetailData {
         value: '1,256',
         label: lt('Total Calories (kcal)', '总卡路里（kcal）'),
       ),
-      SyncMetric(
-        value: '98',
-        label: lt('Total Active Time (min)', '总活动时长（min）'),
-      ),
+      SyncMetric(value: '98', label: lt('Total Time (min)', '总时间（min）')),
     ],
     dataTypes: [
       SyncDataType(
@@ -67,7 +64,7 @@ class SyncDataDetailData {
       SyncDataType(
         icon: const AssetAppIcon(AppMetricAssets.activeTime),
         iconColor: const Color(0xFF0CD9FF),
-        title: lt('Active Time', '活动时间'),
+        title: lt('Time', '时间'),
         value: '98 min',
       ),
       SyncDataType(
@@ -257,7 +254,7 @@ class SyncHistoryDetailData {
       SyncDataType(
         icon: const AssetAppIcon(AppMetricAssets.activeTime),
         iconColor: const Color(0xFF0CD9FF),
-        title: lt('Active Time', '活动时间'),
+        title: lt('Time', '时间'),
         value: '28 min',
       ),
       SyncDataType(
@@ -362,7 +359,7 @@ class SyncSourceDetailData {
         SyncSourcePermission(
           icon: const AssetAppIcon(AppMetricAssets.syncActiveTime),
           iconColor: const Color(0xFF0CD9FF),
-          title: lt('Active Time', '活动时间'),
+          title: lt('Time', '时间'),
         ),
       ],
       modeOptions: [
@@ -386,7 +383,7 @@ class SyncSourceDetailData {
         ManualSyncSelectionItem(title: lt('Steps', '步数'), selected: true),
         ManualSyncSelectionItem(title: lt('Distance', '距离'), selected: true),
         ManualSyncSelectionItem(title: lt('Calories', '卡路里'), selected: true),
-        ManualSyncSelectionItem(title: lt('Active Time', '活动时间')),
+        ManualSyncSelectionItem(title: lt('Time', '时间')),
       ],
       safetyText: lt(
         'Your health data is read only after authorization and is encrypted in transit.',

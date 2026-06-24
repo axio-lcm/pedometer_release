@@ -265,7 +265,7 @@ class MockHealthDataSource implements HealthDataSource {
         ),
         KpiItem(
           assetIcon: AppMetricAssets.activeTime,
-          title: lt('Active Time', '活动时间'),
+          title: lt('Time', '时间'),
           value: '28',
           unit: 'min',
         ),
@@ -273,7 +273,7 @@ class MockHealthDataSource implements HealthDataSource {
       trend: _mockHomeTrend(),
       analyses: [
         AnalysisData(
-          title: lt('Calories Analysis', '卡路里分析'),
+          title: lt('Calories', '卡路里'),
           assetIcon: AppMetricAssets.calories,
           value: '293',
           unit: 'kcal',
@@ -282,7 +282,7 @@ class MockHealthDataSource implements HealthDataSource {
           samples: const [0.30, 0.45, 0.38, 0.60, 0.55, 0.78, 0.92],
         ),
         AnalysisData(
-          title: lt('Active Time Analysis', '活动时间分析'),
+          title: lt('Time', '时间'),
           assetIcon: AppMetricAssets.activeTime,
           value: '28',
           unit: 'min',
@@ -663,7 +663,7 @@ class SyncedHealthDataSource implements HealthDataSource {
         ),
         KpiItem(
           assetIcon: AppMetricAssets.activeTime,
-          title: lt('Active Time', '活动时间'),
+          title: lt('Time', '时间'),
           value: _formatInt(latest.activeMinutes),
           unit: 'min',
         ),
@@ -671,7 +671,7 @@ class SyncedHealthDataSource implements HealthDataSource {
       trend: _homeTrendEndingToday(_sorted),
       analyses: [
         AnalysisData(
-          title: lt('Calories Analysis', '卡路里分析'),
+          title: lt('Calories', '卡路里'),
           assetIcon: AppMetricAssets.calories,
           value: _formatInt(latest.caloriesKcal.round()),
           unit: 'kcal',
@@ -680,7 +680,7 @@ class SyncedHealthDataSource implements HealthDataSource {
           samples: _normalizedSamples(recent.map((item) => item.caloriesKcal)),
         ),
         AnalysisData(
-          title: lt('Active Time Analysis', '活动时间分析'),
+          title: lt('Time', '时间'),
           assetIcon: AppMetricAssets.activeTime,
           value: _formatInt(latest.activeMinutes),
           unit: 'min',
@@ -716,7 +716,7 @@ class SyncedHealthDataSource implements HealthDataSource {
       period: SportPeriod.day,
       dateTitle: _dateTitle(latest.date),
       progress: SportProgressData(
-        title: lt('Today\'s Steps', '今日步数'),
+        title: lt('Today', '今日'),
         value: latest.steps,
         goal: 6000,
         goalUnit: lt('steps', '步'),
@@ -734,7 +734,7 @@ class SyncedHealthDataSource implements HealthDataSource {
         icon: const AssetAppIcon(AppMetricAssets.todaySummary),
         color: AppColors.brandGreen,
         title: lt('Today\'s Summary', '今日总结'),
-        primary: lt('Today\'s steps:', '今日步数：'),
+        primary: lt('Today:', '今日：'),
         highlight: lt(
           '${_formatInt(latest.steps)} steps',
           '${_formatInt(latest.steps)} 步',
@@ -937,7 +937,7 @@ class SyncedHealthDataSource implements HealthDataSource {
       SportMetricData(
         iconAsset: AppMetricAssets.activeTime,
         color: AppColors.accentCyan,
-        title: lt('Active Time', '活动时间'),
+        title: lt('Time', '时间'),
         value: _formatInt(activeMinutes),
         unit: 'min',
       ),
@@ -962,7 +962,7 @@ class SyncedHealthDataSource implements HealthDataSource {
       SportAnalysisData(
         assetIcon: AppMetricAssets.calories,
         color: AppColors.accentOrange,
-        title: lt('Calories Analysis', '卡路里分析'),
+        title: lt('Calories', '卡路里'),
         value: _formatInt(latest.caloriesKcal.round()),
         unit: 'kcal',
         delta: _deltaVsYesterday(latest.caloriesKcal, previous?.caloriesKcal),
@@ -971,7 +971,7 @@ class SyncedHealthDataSource implements HealthDataSource {
       SportAnalysisData(
         assetIcon: AppMetricAssets.activeTime,
         color: AppColors.accentCyan,
-        title: lt('Active Time Analysis', '活动时间分析'),
+        title: lt('Time', '时间'),
         value: _formatInt(latest.activeMinutes),
         unit: 'min',
         delta: _deltaVsYesterday(
@@ -1009,7 +1009,7 @@ class SyncedHealthDataSource implements HealthDataSource {
       SportAnalysisData(
         assetIcon: AppMetricAssets.calories,
         color: AppColors.accentOrange,
-        title: lt('Calories Analysis', '卡路里分析'),
+        title: lt('Calories', '卡路里'),
         value: _formatInt(calories.round()),
         unit: 'kcal',
         delta: _deltaVsPrevious(compareLabel, calories, prevCalories),
@@ -1018,7 +1018,7 @@ class SyncedHealthDataSource implements HealthDataSource {
       SportAnalysisData(
         assetIcon: AppMetricAssets.activeTime,
         color: AppColors.accentCyan,
-        title: lt('Active Time Analysis', '活动时间分析'),
+        title: lt('Time', '时间'),
         value: _formatInt(minutes),
         unit: 'min',
         delta: _deltaVsPrevious(

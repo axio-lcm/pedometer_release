@@ -24,7 +24,7 @@ class HomeResource {
     fallback: 'Health Sync',
   );
   static String get todaySteps =>
-      ResourceLoader.string('home', 'today_steps', fallback: 'Today\'s Steps');
+      ResourceLoader.string('home', 'today_steps', fallback: 'Today');
   static String get goalSuffix =>
       ResourceLoader.string('home', 'goal_suffix', fallback: 'steps');
   static String get achieved =>

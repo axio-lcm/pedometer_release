@@ -139,7 +139,7 @@ class SyncDataDetailViewModel extends GetxController implements IBaseViewModel {
         ),
         SyncMetric(
           value: _formatInt(recent7Summary.activeMinutes),
-          label: lt('Last 7 Days Active Time (min)', '近7天活动时间（min）'),
+          label: lt('Last 7 Days Time (min)', '近7天时间（min）'),
         ),
       ],
       dataTypes: dataTypes,
@@ -164,7 +164,7 @@ class SyncDataDetailViewModel extends GetxController implements IBaseViewModel {
         ),
         SyncMetric(
           value: '0',
-          label: lt('Last 7 Days Active Time (min)', '近7天活动时间（min）'),
+          label: lt('Last 7 Days Time (min)', '近7天时间（min）'),
         ),
       ],
       dataTypes: _dataTypesFor(
@@ -258,7 +258,7 @@ class SyncDataDetailViewModel extends GetxController implements IBaseViewModel {
       SyncDataType(
         icon: const AssetAppIcon(AppMetricAssets.syncActiveTime),
         iconColor: const Color(0xFF0CD9FF),
-        title: lt('Active Time', '活动时间'),
+        title: lt('Time', '时间'),
         value: '${_formatInt(summary.activeMinutes)} min',
       ),
       SyncDataType(
