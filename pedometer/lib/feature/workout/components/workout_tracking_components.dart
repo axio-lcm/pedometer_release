@@ -56,6 +56,10 @@ class WorkoutMapSectionState extends State<WorkoutMapSection> {
     return _mapKey.currentState?.takeSnapshot();
   }
 
+  Future<void> prepareSnapshot() async {
+    await _mapKey.currentState?.fitRouteForSnapshot();
+  }
+
   @override
   Widget build(BuildContext context) {
     // 室内运动无 GPS 轨迹：用纯色背景替代地图，且不展示定位按钮。
@@ -75,14 +79,6 @@ class WorkoutMapSectionState extends State<WorkoutMapSection> {
           ),
           Obx(() {
             final data = _liveData();
-            if (data.status == WorkoutStatus.ended) {
-              return Positioned(
-                left: AppSpacing.lg,
-                right: AppSpacing.lg,
-                bottom: AppSpacing.lg,
-                child: WorkoutEndedMapSummary(data: data),
-              );
-            }
             // 室内：累积里程固定居中显示，点击开始不变换位置。
             return indoor
                 ? _FixedDistanceOverlayAnchor(data: data)
@@ -572,6 +568,34 @@ class _WorkoutMapViewState extends State<WorkoutMapView> {
     return _mapController?.takeSnapshot();
   }
 
+  Future<void> fitRouteForSnapshot() async {
+    final controller = _mapController;
+    if (controller == null) return;
+    final route = _routePointsForDisplay();
+    if (route.isEmpty) return;
+    _cameraMoving = true;
+    try {
+      if (route.length == 1) {
+        await controller.moveCamera(
+          CameraUpdate.newCameraPosition(
+            CameraPosition(
+              target: route.first,
+              zoom: WorkoutMapZoomPolicy.trackingZoom,
+            ),
+          ),
+        );
+      } else {
+        await controller.animateCamera(
+          CameraUpdate.newLatLngBounds(_boundsFor(route), 54),
+        );
+      }
+    } catch (_) {
+      // Platform-map camera calls can fail during creation/disposal races.
+    } finally {
+      _cameraMoving = false;
+    }
+  }
+
   List<LatLng> _routePointsForDisplay() {
     final route = _controller.pathPoints.toList(growable: true);
     final start = _controller.startPoint.value;
@@ -584,6 +608,23 @@ class _WorkoutMapViewState extends State<WorkoutMapView> {
     if (start != null && route.first != start) route.insert(0, start);
     if (end != null && route.last != end) route.add(end);
     return route;
+  }
+
+  LatLngBounds _boundsFor(List<LatLng> points) {
+    var minLat = points.first.latitude;
+    var maxLat = points.first.latitude;
+    var minLng = points.first.longitude;
+    var maxLng = points.first.longitude;
+    for (final point in points.skip(1)) {
+      if (point.latitude < minLat) minLat = point.latitude;
+      if (point.latitude > maxLat) maxLat = point.latitude;
+      if (point.longitude < minLng) minLng = point.longitude;
+      if (point.longitude > maxLng) maxLng = point.longitude;
+    }
+    return LatLngBounds(
+      southwest: LatLng(minLat, minLng),
+      northeast: LatLng(maxLat, maxLng),
+    );
   }
 
   Set<Marker> get _trackingMarkers {
@@ -929,71 +970,6 @@ class WorkoutDistanceOverlay extends StatelessWidget {
           ),
         ],
       ),
-    );
-  }
-}
-
-class WorkoutEndedMapSummary extends StatelessWidget {
-  final WorkoutTrackingData data;
-
-  const WorkoutEndedMapSummary({super.key, required this.data});
-
-  @override
-  Widget build(BuildContext context) {
-    return GlassCard(
-      radius: AppRadius.lg,
-      padding: EdgeInsets.all(AppSpacing.lg),
-      borderColor: AppColors.strokeGreen,
-      child: Row(
-        children: [
-          Expanded(
-            child: _EndedMetric(
-              label: WorkoutResource.metricDistance,
-              value: data.distanceKm,
-            ),
-          ),
-          Expanded(
-            child: _EndedMetric(
-              label: WorkoutResource.metricDuration,
-              value: data.duration,
-            ),
-          ),
-          Expanded(
-            child: _EndedMetric(
-              label: WorkoutResource.metricPace,
-              value: data.pace,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _EndedMetric extends StatelessWidget {
-  final String label;
-  final String value;
-
-  const _EndedMetric({required this.label, required this.value});
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Text(
-          label,
-          style: TextStyle(color: AppColors.textSecondary, fontSize: 12),
-        ),
-        const SizedBox(height: 4),
-        Text(
-          value,
-          style: TextStyle(
-            color: AppColors.textPrimary,
-            fontSize: 18,
-            fontWeight: FontWeight.w800,
-          ),
-        ),
-      ],
     );
   }
 }

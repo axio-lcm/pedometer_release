@@ -252,7 +252,9 @@ class _WorkoutTrackingPageState extends State<WorkoutTrackingPage> {
   Future<void> _finishWorkout() async {
     _finishingWorkout = true;
     controller.end();
-    await Future<void>.delayed(const Duration(milliseconds: 220));
+    await Future<void>.delayed(const Duration(milliseconds: 120));
+    await _mapSectionKey.currentState?.prepareSnapshot();
+    await Future<void>.delayed(const Duration(milliseconds: 520));
     final snapshot = await _takeMapSnapshot();
     controller.saveRouteHistory(mapSnapshot: snapshot);
     if (!mounted) return;
