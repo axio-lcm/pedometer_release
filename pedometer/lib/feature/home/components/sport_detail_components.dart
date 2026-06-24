@@ -1904,7 +1904,7 @@ class SportPeriodTabBar extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       key: const ValueKey('shared_bottom_tab_capsule'),
-      width: AppBottomTabBarMetrics.width,
+      width: AppBottomTabBarMetrics.width(context),
       height: AppBottomTabBarMetrics.height,
       padding: EdgeInsets.symmetric(horizontal: AppSpacing.sm),
       decoration: BoxDecoration(
@@ -1968,9 +1968,7 @@ class _PeriodTabButton extends StatelessWidget {
         child: Center(
           child: AnimatedContainer(
             duration: const Duration(milliseconds: 180),
-            width: selected
-                ? AppBottomTabBarMetrics.selectedWidth
-                : AppBottomTabBarMetrics.itemExtent,
+            width: AppBottomTabBarMetrics.selectedWidth,
             height: AppBottomTabBarMetrics.itemExtent,
             alignment: Alignment.center,
             decoration: selected
@@ -1989,6 +1987,8 @@ class _PeriodTabButton extends StatelessWidget {
                 : null,
             child: Text(
               label,
+              maxLines: 1,
+              softWrap: false,
               style: TextStyle(
                 color: selected ? AppColors.bgPrimary : AppColors.tabInactive,
                 fontSize: 18,

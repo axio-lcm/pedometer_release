@@ -776,7 +776,7 @@ class SyncedHealthDataSource implements HealthDataSource {
       period: SportPeriod.week,
       dateTitle: '${_shortDate(weekStart)} - ${_shortDate(weekEnd)}',
       progress: SportProgressData(
-        title: lt('This Week\'s Steps', '本周步数'),
+        title: lt('This Week', '本周'),
         value: steps,
         goal: 42000,
         goalUnit: lt('Goal', '目标'),
@@ -857,7 +857,7 @@ class SyncedHealthDataSource implements HealthDataSource {
       period: SportPeriod.month,
       dateTitle: localizedMonthTitle(anchor),
       progress: SportProgressData(
-        title: lt('This Month\'s Steps', '本月步数'),
+        title: lt('This Month', '本月'),
         value: steps,
         goal: 180000,
         goalUnit: lt('Goal', '目标'),

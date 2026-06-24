@@ -338,7 +338,7 @@ class SportDetailFixtures {
     period: SportPeriod.week,
     dateTitle: weekTitle(),
     progress: SportProgressData(
-      title: lt('This Week\'s Steps', '本周步数'),
+      title: lt('This Week', '本周'),
       value: 42380,
       goal: 42000,
       goalUnit: lt('Goal', '目标'),
@@ -414,7 +414,7 @@ class SportDetailFixtures {
     period: SportPeriod.month,
     dateTitle: monthTitle(),
     progress: SportProgressData(
-      title: lt('This Month\'s Steps', '本月步数'),
+      title: lt('This Month', '本月'),
       value: 162500,
       goal: 180000,
       goalUnit: lt('Goal', '目标'),

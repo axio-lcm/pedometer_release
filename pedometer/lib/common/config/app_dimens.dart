@@ -1,3 +1,6 @@
+import 'dart:math' as math;
+
+import 'package:flutter/widgets.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 /// 圆角令牌（规范 §6.1）
@@ -29,10 +32,14 @@ class AppSpacing {
 class AppBottomTabBarMetrics {
   AppBottomTabBarMetrics._();
 
-  static const double width = 300;
+  static double width(BuildContext context) {
+    final availableWidth = MediaQuery.sizeOf(context).width - 32;
+    return math.min(330, availableWidth);
+  }
+
   static const double height = 62;
   static const double bottomOffset = 28;
-  static const double selectedWidth = 64;
-  static const double itemExtent = 44;
+  static const double selectedWidth = 84;
+  static const double itemExtent = 48;
   static const double iconSize = 24;
 }

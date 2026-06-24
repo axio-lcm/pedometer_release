@@ -31,7 +31,7 @@ class GlassBottomNavBar extends StatelessWidget {
           ),
           child: Container(
             key: const ValueKey('shared_bottom_tab_capsule'),
-            width: AppBottomTabBarMetrics.width,
+            width: AppBottomTabBarMetrics.width(context),
             height: AppBottomTabBarMetrics.height,
             padding: EdgeInsets.symmetric(horizontal: AppSpacing.sm),
             decoration: BoxDecoration(
