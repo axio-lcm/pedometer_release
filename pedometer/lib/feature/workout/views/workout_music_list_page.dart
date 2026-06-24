@@ -65,6 +65,7 @@ class WorkoutMusicListPage extends StatelessWidget {
                         children: [
                           for (var i = 0; i < tracks.length; i++)
                             _MusicListRow(
+                              key: ValueKey('music-${tracks[i].name}-$i'),
                               name: tracks[i].name,
                               current: tracks[i].current,
                               playing:
@@ -72,6 +73,7 @@ class WorkoutMusicListPage extends StatelessWidget {
                                   controller.musicPlaying.value,
                               showDivider: i != tracks.length - 1,
                               onTap: () => controller.playMusicAt(i),
+                              onDelete: () => controller.deleteMusicAt(i),
                             ),
                         ],
                       ),
@@ -87,77 +89,193 @@ class WorkoutMusicListPage extends StatelessWidget {
   }
 }
 
-class _MusicListRow extends StatelessWidget {
+class _MusicListRow extends StatefulWidget {
   final String name;
   final bool current;
   final bool playing;
   final bool showDivider;
   final VoidCallback onTap;
+  final Future<void> Function() onDelete;
 
   const _MusicListRow({
+    super.key,
     required this.name,
     required this.current,
     required this.playing,
     required this.showDivider,
     required this.onTap,
+    required this.onDelete,
   });
+
+  @override
+  State<_MusicListRow> createState() => _MusicListRowState();
+}
+
+class _MusicListRowState extends State<_MusicListRow> {
+  static const double _rowHeight = 62;
+  static const double _deleteActionWidth = 52;
+
+  double _dragOffset = 0;
+  bool _deleting = false;
+
+  void _handleHorizontalDragUpdate(DragUpdateDetails details) {
+    setState(() {
+      _dragOffset = (_dragOffset + details.delta.dx).clamp(
+        -_deleteActionWidth,
+        0,
+      );
+    });
+  }
+
+  void _handleHorizontalDragEnd(DragEndDetails details) {
+    final shouldOpen =
+        _dragOffset.abs() > _deleteActionWidth * 0.42 ||
+        details.primaryVelocity != null && details.primaryVelocity! < -220;
+    setState(() {
+      _dragOffset = shouldOpen ? -_deleteActionWidth : 0;
+    });
+  }
+
+  Future<void> _delete() async {
+    if (_deleting) return;
+    setState(() => _deleting = true);
+    try {
+      await widget.onDelete();
+    } finally {
+      if (mounted) {
+        setState(() => _deleting = false);
+      }
+    }
+  }
+
+  void _tapRow() {
+    if (_dragOffset < 0) {
+      setState(() => _dragOffset = 0);
+      return;
+    }
+    widget.onTap();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Column(
       children: [
-        GestureDetector(
-          behavior: HitTestBehavior.opaque,
-          onTap: onTap,
+        ClipRect(
           child: SizedBox(
-            height: 62,
-            child: Row(
+            height: _rowHeight,
+            child: Stack(
+              alignment: Alignment.centerRight,
               children: [
-                Container(
-                  width: 38,
-                  height: 38,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(AppRadius.sm),
-                    color: current
-                        ? AppColors.brandGreen.withValues(alpha: 0.2)
-                        : AppColors.surfaceIcon.withValues(alpha: 0.72),
-                  ),
-                  child: Icon(
-                    playing
-                        ? Icons.equalizer_rounded
-                        : Icons.music_note_rounded,
-                    color: current
-                        ? AppColors.brandGreen
-                        : AppColors.textSecondary,
-                    size: 22,
-                  ),
-                ),
-                SizedBox(width: AppSpacing.md),
-                Expanded(
-                  child: Text(
-                    name,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      color: current
-                          ? AppColors.textPrimary
-                          : AppColors.textSecondary,
-                      fontSize: 16,
-                      fontWeight: current ? FontWeight.w700 : FontWeight.w500,
+                Positioned(
+                  right: 0,
+                  width: _deleteActionWidth,
+                  top: 10,
+                  bottom: 10,
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 170),
+                    curve: Curves.easeOutCubic,
+                    transform: Matrix4.translationValues(
+                      _deleteActionWidth + _dragOffset,
+                      0,
+                      0,
+                    ),
+                    child: GestureDetector(
+                      behavior: HitTestBehavior.opaque,
+                      onTap: _delete,
+                      child: DecoratedBox(
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(AppRadius.md),
+                          color: AppColors.accentPink.withValues(alpha: 0.92),
+                        ),
+                        child: Icon(
+                          _deleting
+                              ? Icons.hourglass_empty_rounded
+                              : Icons.delete_rounded,
+                          color: AppColors.white,
+                          size: 21,
+                        ),
+                      ),
                     ),
                   ),
                 ),
-                if (current)
-                  Icon(
-                    Icons.check_circle_rounded,
-                    color: AppColors.brandGreen,
-                    size: 20,
+                Positioned.fill(
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 170),
+                    curve: Curves.easeOutCubic,
+                    transform: Matrix4.translationValues(_dragOffset, 0, 0),
+                    child: GestureDetector(
+                      behavior: HitTestBehavior.opaque,
+                      onTap: _tapRow,
+                      onHorizontalDragUpdate: _handleHorizontalDragUpdate,
+                      onHorizontalDragEnd: _handleHorizontalDragEnd,
+                      child: DecoratedBox(
+                        decoration: BoxDecoration(
+                          color: AppColors.surfaceCardBottom.withValues(
+                            alpha: 0.01,
+                          ),
+                        ),
+                        child: Row(
+                          children: [
+                            Container(
+                              width: 38,
+                              height: 38,
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(
+                                  AppRadius.sm,
+                                ),
+                                color: widget.current
+                                    ? AppColors.brandGreen.withValues(
+                                        alpha: 0.2,
+                                      )
+                                    : AppColors.surfaceIcon.withValues(
+                                        alpha: 0.72,
+                                      ),
+                              ),
+                              child: Icon(
+                                widget.playing
+                                    ? Icons.equalizer_rounded
+                                    : Icons.music_note_rounded,
+                                color: widget.current
+                                    ? AppColors.brandGreen
+                                    : AppColors.textSecondary,
+                                size: 22,
+                              ),
+                            ),
+                            SizedBox(width: AppSpacing.md),
+                            Expanded(
+                              child: Text(
+                                widget.name,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(
+                                  color: widget.current
+                                      ? AppColors.textPrimary
+                                      : AppColors.textSecondary,
+                                  fontSize: 16,
+                                  fontWeight: widget.current
+                                      ? FontWeight.w700
+                                      : FontWeight.w500,
+                                ),
+                              ),
+                            ),
+                            if (widget.current)
+                              Icon(
+                                Icons.check_circle_rounded,
+                                color: AppColors.brandGreen,
+                                size: 20,
+                              ),
+                            SizedBox(width: AppSpacing.sm),
+                          ],
+                        ),
+                      ),
+                    ),
                   ),
+                ),
               ],
             ),
           ),
         ),
-        if (showDivider)
+        if (widget.showDivider)
           Padding(
             padding: EdgeInsetsDirectional.only(start: 38 + AppSpacing.md),
             child: Divider(height: 1, color: AppColors.divider),
