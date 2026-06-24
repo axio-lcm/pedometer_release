@@ -285,11 +285,10 @@ class SyncSourceDetailViewModel extends GetxController
       _recordHistory(source: source, types: types, elapsed: stopwatch.elapsed);
       _setSyncResult(lt('$title sync successful', '$title 同步成功'), true);
 
-      // 第二阶段：后台逐天去重步数（仅 Apple Health 步数需要多源去重），
-      // 完成后静默替换数据源刷新展示，不阻塞界面、不影响「同步中」状态。
-      if (source == HealthSyncSource.appleHealth &&
-          types.contains(HealthSyncDataType.steps)) {
-        _refineStepsInBackground(
+      // 第二阶段：后台补齐更准确的步数细节。Apple Health 额外做逐天去重；
+      // 所有来源都会尝试读取最近一天的真实小时步数，用于日详情页小时趋势。
+      if (types.contains(HealthSyncDataType.steps)) {
+        _refineStepDetailsInBackground(
           points: result.points,
           source: source,
           startDate: _historyStartDate,
@@ -350,11 +349,11 @@ class SyncSourceDetailViewModel extends GetxController
     );
   }
 
-  /// 后台逐天去重步数，完成后静默替换数据源刷新展示。不阻塞界面、不改 [syncing]。
+  /// 后台补齐更准确的步数细节，完成后静默替换数据源刷新展示。不阻塞界面、不改 [syncing]。
   ///
   /// 这是「即发即忘」的后台任务：即便用户已离开本页，更新的是全局运行时数据源，
   /// 仍能安全完成；期间若又发起新同步（[_syncToken] 变化）则丢弃这次过期结果。
-  void _refineStepsInBackground({
+  void _refineStepDetailsInBackground({
     required List<HealthDataPoint> points,
     required HealthSyncSource source,
     required DateTime startDate,
@@ -363,7 +362,7 @@ class SyncSourceDetailViewModel extends GetxController
   }) {
     unawaited(() async {
       try {
-        final refined = await service.refineSteps(
+        final refined = await service.refineStepDetails(
           points: points,
           source: source,
           startDate: startDate,

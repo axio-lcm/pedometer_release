@@ -346,7 +346,7 @@ class HealthPluginSyncService {
 
   /// 快速同步（第一阶段）：读取原始样本并按天聚合后立即返回，供界面秒级展示。
   ///
-  /// 此处步数为多源样本「求和」，可能偏大；精确去重交给后台的 [refineSteps]，
+  /// 此处步数为多源样本「求和」，可能偏大；精确去重交给后台的 [refineStepDetails]，
   /// 避免逐天去重的耗时把界面长时间卡在「同步中」。返回值同时带回原始样本，
   /// 供后台精修复用，免去二次读取。
   Future<({SyncedHealthDataSource source, List<HealthDataPoint> points})> sync({
@@ -393,11 +393,18 @@ class HealthPluginSyncService {
       }
     }
 
+    final summaries = _dailySummariesFromPoints(
+      points,
+      source: source,
+      startDate: startDate,
+      endDate: endDate,
+    );
     return (
       source: SyncedHealthDataSource(
-        summaries: _dailySummariesFromPoints(
+        summaries: summaries,
+        hourlyStepsByDay: _latestHourlyStepsFromPoints(
           points,
-          source: source,
+          summaries: summaries,
           startDate: startDate,
           endDate: endDate,
         ),
@@ -406,33 +413,55 @@ class HealthPluginSyncService {
     );
   }
 
-  /// 后台精修（第二阶段）：对 [points] 逐天去重步数，返回步数校正后的数据源。
+  /// 后台精修（第二阶段）：补齐更准确的步数数据，返回步数校正后的数据源。
   ///
   /// iOS 的原始步数样本会因 iPhone / Apple Watch / 第三方 App 多来源记录而重叠，
   /// 直接求和会重复计数（「健康」App 显示 2750，求和却得 5449）。这里对每个有步数
   /// 的自然日改用 getTotalStepsInInterval（原生 HKStatisticsQuery 累计求和，
-  /// 与「健康」App 同一套去重逻辑）得到真实步数。耗时较长，应在后台调用。
-  Future<SyncedHealthDataSource> refineSteps({
+  /// 与「健康」App 同一套去重逻辑）得到真实步数；同时按小时读取最近一天的真实步数，
+  /// 供日详情页小时趋势展示。耗时较长，应在后台调用。
+  Future<SyncedHealthDataSource> refineStepDetails({
     required List<HealthDataPoint> points,
     required HealthSyncSource source,
     required DateTime startDate,
     required DateTime endDate,
     Duration budget = const Duration(minutes: 5),
   }) async {
-    final stepsOverride = await _accurateDailySteps(
+    final fallbackSummaries = _dailySummariesFromPoints(
       points,
+      source: source,
       startDate: startDate,
       endDate: endDate,
-      budget: budget,
+    );
+    final fallbackHourlyStepsByDay = _latestHourlyStepsFromPoints(
+      points,
+      summaries: fallbackSummaries,
+      startDate: startDate,
+      endDate: endDate,
+    );
+    final stepsOverride = source == HealthSyncSource.appleHealth
+        ? await _accurateDailySteps(
+            points,
+            startDate: startDate,
+            endDate: endDate,
+            budget: budget,
+          )
+        : null;
+    final summaries = _dailySummariesFromPoints(
+      points,
+      source: source,
+      startDate: startDate,
+      endDate: endDate,
+      stepsOverride: stepsOverride,
+    );
+    final hourlyStepsByDay = await _accurateLatestHourlySteps(
+      summaries: summaries,
+      endDate: endDate,
+      fallback: fallbackHourlyStepsByDay,
     );
     return SyncedHealthDataSource(
-      summaries: _dailySummariesFromPoints(
-        points,
-        source: source,
-        startDate: startDate,
-        endDate: endDate,
-        stepsOverride: stepsOverride,
-      ),
+      summaries: summaries,
+      hourlyStepsByDay: hourlyStepsByDay,
     );
   }
 
@@ -581,6 +610,139 @@ class HealthPluginSyncService {
     summaries.sort((a, b) => a.date.compareTo(b.date));
     return summaries;
   }
+
+  Map<DateTime, List<HourlyStepData>> _latestHourlyStepsFromPoints(
+    List<HealthDataPoint> points, {
+    required List<HealthDailySummary> summaries,
+    required DateTime startDate,
+    required DateTime endDate,
+  }) {
+    final targetDay = _latestStepDayForHourly(
+      points,
+      summaries: summaries,
+      startDate: startDate,
+      endDate: endDate,
+    );
+    if (targetDay == null) return const {};
+    final buckets = List<double>.filled(24, 0);
+    final dayStart = _dateOnly(targetDay);
+    final dayEnd = dayStart.add(const Duration(days: 1));
+    for (final point in points) {
+      if (point.type != HealthDataType.STEPS) continue;
+      final value = _numericHealthValue(point);
+      if (value <= 0) continue;
+      var from = point.dateFrom.toLocal();
+      var to = point.dateTo.toLocal();
+      if (!to.isAfter(from)) {
+        if (_dateOnly(from) == dayStart) {
+          buckets[from.hour.clamp(0, 23)] += value;
+        }
+        continue;
+      }
+      if (!to.isAfter(dayStart) || !from.isBefore(dayEnd)) continue;
+      if (from.isBefore(dayStart)) from = dayStart;
+      if (to.isAfter(dayEnd)) to = dayEnd;
+      final totalMs = to.difference(from).inMilliseconds;
+      if (totalMs <= 0) continue;
+      for (var hour = 0; hour < 24; hour++) {
+        final hourStart = dayStart.add(Duration(hours: hour));
+        final hourEnd = hourStart.add(const Duration(hours: 1));
+        final overlapStart = from.isAfter(hourStart) ? from : hourStart;
+        final overlapEnd = to.isBefore(hourEnd) ? to : hourEnd;
+        if (!overlapEnd.isAfter(overlapStart)) continue;
+        final ratio =
+            overlapEnd.difference(overlapStart).inMilliseconds / totalMs;
+        buckets[hour] += value * ratio;
+      }
+    }
+    return {dayStart: _hourlyDataFromBuckets(buckets)};
+  }
+
+  DateTime? _latestStepDayForHourly(
+    List<HealthDataPoint> points, {
+    required List<HealthDailySummary> summaries,
+    required DateTime startDate,
+    required DateTime endDate,
+  }) {
+    DateTime? latest;
+    for (final summary in summaries) {
+      if (summary.steps <= 0) continue;
+      final day = _dateOnly(summary.date);
+      if (day.isBefore(_dateOnly(startDate)) ||
+          day.isAfter(_dateOnly(endDate))) {
+        continue;
+      }
+      if (latest == null || day.isAfter(latest)) latest = day;
+    }
+    if (latest != null) return latest;
+    for (final point in points) {
+      if (point.type != HealthDataType.STEPS) continue;
+      final day = _dateOnly(point.dateFrom.toLocal());
+      if (day.isBefore(_dateOnly(startDate)) ||
+          day.isAfter(_dateOnly(endDate))) {
+        continue;
+      }
+      if (latest == null || day.isAfter(latest)) latest = day;
+    }
+    return latest;
+  }
+
+  Future<Map<DateTime, List<HourlyStepData>>> _accurateLatestHourlySteps({
+    required List<HealthDailySummary> summaries,
+    required DateTime endDate,
+    required Map<DateTime, List<HourlyStepData>> fallback,
+  }) async {
+    final targetDay = fallback.keys.isNotEmpty
+        ? fallback.keys.reduce((a, b) => a.isAfter(b) ? a : b)
+        : summaries
+              .where((summary) => summary.steps > 0)
+              .map((summary) => _dateOnly(summary.date))
+              .fold<DateTime?>(null, (latest, day) {
+                if (latest == null || day.isAfter(latest)) return day;
+                return latest;
+              });
+    if (targetDay == null) return fallback;
+
+    final buckets = List<double>.filled(24, 0);
+    final successfulHours = List<bool>.filled(24, false);
+    final now = DateTime.now();
+    final upperBound = endDate.isBefore(now) ? endDate : now;
+    const batchSize = 6;
+    var anyAccurateValue = false;
+    for (var startHour = 0; startHour < 24; startHour += batchSize) {
+      final endHour = math.min(startHour + batchSize, 24);
+      await Future.wait([
+        for (var hour = startHour; hour < endHour; hour++)
+          () async {
+            final hourStart = targetDay.add(Duration(hours: hour));
+            final hourEnd = hourStart.add(const Duration(hours: 1));
+            if (!hourStart.isBefore(upperBound)) return;
+            final queryEnd = hourEnd.isAfter(upperBound) ? upperBound : hourEnd;
+            try {
+              final total = await health
+                  .getTotalStepsInInterval(hourStart, queryEnd)
+                  .timeout(const Duration(seconds: 5));
+              if (total == null) return;
+              buckets[hour] = total.toDouble();
+              successfulHours[hour] = true;
+              anyAccurateValue = true;
+            } catch (_) {
+              // 单小时失败则保留原始样本聚合结果。
+            }
+          }(),
+      ]);
+    }
+    if (!anyAccurateValue) return fallback;
+    final fallbackBuckets = fallback[targetDay];
+    if (fallbackBuckets != null) {
+      for (var i = 0; i < math.min(24, fallbackBuckets.length); i++) {
+        if (!successfulHours[i]) {
+          buckets[i] = fallbackBuckets[i].steps.toDouble();
+        }
+      }
+    }
+    return {targetDay: _hourlyDataFromBuckets(buckets)};
+  }
 }
 
 class _DailyHealthAccumulator {
@@ -592,8 +754,12 @@ class _DailyHealthAccumulator {
 
 class SyncedHealthDataSource implements HealthDataSource {
   final List<HealthDailySummary> summaries;
+  final Map<DateTime, List<HourlyStepData>> hourlyStepsByDay;
 
-  const SyncedHealthDataSource({required this.summaries});
+  const SyncedHealthDataSource({
+    required this.summaries,
+    this.hourlyStepsByDay = const {},
+  });
 
   /// 是否读到任何有效健康数据（非空且至少一天有非零指标）。
   /// 用于区分“同步成功但全为 0”（如模拟器无数据/未授权读取）的情况。
@@ -727,7 +893,7 @@ class SyncedHealthDataSource implements HealthDataSource {
         caloriesKcal: latest.caloriesKcal,
         activeMinutes: latest.activeMinutes,
       ),
-      hourly: [HourlyStepData(_hourlyLabelFor(latest.date), latest.steps)],
+      hourly: _hourlyStepsFor(latest),
       segments: const [],
       analyses: _dayAnalyses(),
       summary: SportSummaryData(
@@ -944,6 +1110,13 @@ class SyncedHealthDataSource implements HealthDataSource {
     ];
   }
 
+  List<HourlyStepData> _hourlyStepsFor(HealthDailySummary summary) {
+    final day = _dateOnly(summary.date);
+    final hourly = hourlyStepsByDay[day];
+    if (hourly != null && hourly.isNotEmpty) return hourly;
+    return [HourlyStepData(_hourlyLabelFor(summary.date), summary.steps)];
+  }
+
   /// 日维度分析：当日卡路里 / 活动时间，并与前一日对比（较昨日）。
   List<SportAnalysisData> _dayAnalyses() {
     final sorted = _sorted;
@@ -1101,6 +1274,16 @@ List<WeeklyStepData> _weeklyTrendForCurrentWeek(
           date.isAfter(currentDay) ? 0 : stepsByDate[date] ?? 0,
         );
       }(),
+  ];
+}
+
+List<HourlyStepData> _hourlyDataFromBuckets(List<double> buckets) {
+  return [
+    for (var hour = 0; hour < 24; hour++)
+      HourlyStepData(
+        '${hour.toString().padLeft(2, '0')}:00',
+        hour < buckets.length ? buckets[hour].round() : 0,
+      ),
   ];
 }
 

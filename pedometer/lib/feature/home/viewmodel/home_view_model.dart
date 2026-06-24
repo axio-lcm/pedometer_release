@@ -16,6 +16,7 @@ class HomeViewModel extends GetxController implements IBaseViewModel {
   final HealthRepository repository;
   StreamSubscription<int>? _motionStepSubscription;
   int? _motionSensorSteps;
+  List<int>? _motionHourlySteps;
   Worker? _languageWorker;
 
   HomeViewModel({HealthRepository? repository})
@@ -87,10 +88,12 @@ class HomeViewModel extends GetxController implements IBaseViewModel {
     if (todaySteps != null) {
       _motionSensorSteps = todaySteps;
       _applyMotionSensorDataIfNeeded();
+      unawaited(_loadMotionHourlySteps());
     }
 
     _motionStepSubscription = MotionFitnessPermissionService.todayStepStream()
         .listen((steps) {
+          _updateCurrentMotionHour(steps);
           _motionSensorSteps = steps;
           _applyMotionSensorDataIfNeeded();
         });
@@ -103,12 +106,54 @@ class HomeViewModel extends GetxController implements IBaseViewModel {
 
     final dataSource = SyncedHealthDataSource(
       summaries: [_motionSummaryFor(steps)],
+      hourlyStepsByDay: _motionHourlyStepsByDay(),
     );
     HealthSyncRuntime.replaceMotionSensorDataSource(dataSource, steps: steps);
     final snapshot = dataSource.homeSnapshot();
     vo.trend.assignAll(snapshot.trend);
     vo.analyses.assignAll(snapshot.analyses);
     vo.dayOverview.value = dataSource.sportPeriodData(SportPeriod.day);
+  }
+
+  Future<void> _loadMotionHourlySteps() async {
+    if (HealthSyncRuntime.hasRealDataSource) return;
+    final values = await MotionFitnessPermissionService.todayHourlySteps();
+    if (values.isEmpty || HealthSyncRuntime.hasRealDataSource) return;
+    _motionHourlySteps = _normalizeHourlySteps(values);
+    _applyMotionSensorDataIfNeeded();
+  }
+
+  void _updateCurrentMotionHour(int latestTotalSteps) {
+    final hourly = _motionHourlySteps;
+    final previousTotalSteps = _motionSensorSteps;
+    if (hourly == null || previousTotalSteps == null) return;
+    final delta = latestTotalSteps - previousTotalSteps;
+    if (delta <= 0) return;
+    final hour = DateTime.now().hour.clamp(0, 23);
+    hourly[hour] += delta;
+  }
+
+  Map<DateTime, List<HourlyStepData>> _motionHourlyStepsByDay() {
+    final values = _motionHourlySteps;
+    if (values == null || values.isEmpty) return const {};
+    final now = DateTime.now();
+    final day = DateTime(now.year, now.month, now.day);
+    return {
+      day: [
+        for (var hour = 0; hour < 24; hour++)
+          HourlyStepData(
+            '${hour.toString().padLeft(2, '0')}:00',
+            hour < values.length ? values[hour] : 0,
+          ),
+      ],
+    };
+  }
+
+  List<int> _normalizeHourlySteps(List<int> values) {
+    return [
+      for (var hour = 0; hour < 24; hour++)
+        hour < values.length ? values[hour].clamp(0, 1 << 31) : 0,
+    ];
   }
 
   HealthDailySummary _motionSummaryFor(int steps) {

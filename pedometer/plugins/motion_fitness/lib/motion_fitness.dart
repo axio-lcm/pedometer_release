@@ -93,6 +93,32 @@ class MotionFitness {
     }
   }
 
+  /// Returns today's hourly step buckets from the platform motion sensor.
+  ///
+  /// iOS uses Core Motion's historical pedometer query for each hour. Values
+  /// represent the current device's motion data and may differ from Apple
+  /// Health totals that merge Apple Watch / iPhone / third-party sources.
+  static Future<List<int>> todayHourlySteps() async {
+    if (kIsWeb || defaultTargetPlatform != TargetPlatform.iOS) {
+      return const <int>[];
+    }
+
+    try {
+      final values = await _channel.invokeMethod<List<dynamic>>(
+        'todayHourlySteps',
+      );
+      if (values == null) return const <int>[];
+      return [
+        for (final value in values.take(24))
+          value is num ? value.round().clamp(0, 1 << 31) : 0,
+      ];
+    } on PlatformException {
+      return const <int>[];
+    } on MissingPluginException {
+      return const <int>[];
+    }
+  }
+
   /// Emits today's steps from the native motion sensor.
   ///
   /// The stream is intentionally lossy and best-effort; consumers should keep

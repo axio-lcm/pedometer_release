@@ -469,7 +469,9 @@ class HourlyStepTrendCard extends StatefulWidget {
   const HourlyStepTrendCard({super.key, required this.data});
 
   static const double _chartMaxX = 10;
-  static const double _chartMaxY = 5000;
+
+  /// Y 轴最小上限：低活动量时也保持合理的纵向比例，不会让曲线贴顶。
+  static const double _minChartMaxY = 5000;
   static const double _leftTitleReservedSize = 34;
   static const double _bottomTitleReservedSize = 26;
   static const double _tooltipWidth = 126;
@@ -497,6 +499,41 @@ class _HourlyStepTrendCardState extends State<HourlyStepTrendCard> {
     }
     final noonIndex = widget.data.indexWhere((item) => item.label == '12:00');
     return noonIndex == -1 ? widget.data.length ~/ 2 : noonIndex;
+  }
+
+  /// 根据数据峰值动态计算 Y 轴上限与刻度间隔：
+  /// - 峰值超过默认 5000 时上限自动抬高，避免曲线被削顶；
+  /// - 间隔取「整齐」的 1/2/5×10ⁿ，使网格线保持约 5 条、刻度都是 1000 的整数倍。
+  ({double maxY, double interval}) get _chartScale {
+    var peak = 0;
+    for (final item in widget.data) {
+      if (item.steps > peak) peak = item.steps;
+    }
+    // 留约 15% 顶部余量，且不低于默认最小上限。
+    final target = math.max(
+      peak * 1.15,
+      HourlyStepTrendCard._minChartMaxY,
+    );
+    final interval = _niceInterval(target / 5);
+    final maxY = (target / interval).ceil() * interval;
+    return (maxY: maxY, interval: interval);
+  }
+
+  /// 把粗略间隔归整到最接近的 1/2/5×10ⁿ。
+  double _niceInterval(double rough) {
+    if (rough <= 0) return 1000;
+    final magnitude = math
+        .pow(10, (math.log(rough) / math.ln10).floor())
+        .toDouble();
+    final normalized = rough / magnitude;
+    final niceNormalized = normalized <= 1
+        ? 1.0
+        : normalized <= 2
+        ? 2.0
+        : normalized <= 5
+        ? 5.0
+        : 10.0;
+    return niceNormalized * magnitude;
   }
 
   @override
@@ -611,10 +648,8 @@ class _HourlyStepTrendCardState extends State<HourlyStepTrendCard> {
     final width = size.width - left - right;
     final height = size.height - top - bottom;
     final chartX = _timeAxisXForLabel(widget.data[index].label);
-    final yRatio =
-        1 -
-        steps.clamp(0, HourlyStepTrendCard._chartMaxY) /
-            HourlyStepTrendCard._chartMaxY;
+    final maxY = _chartScale.maxY;
+    final yRatio = 1 - steps.clamp(0, maxY) / maxY;
     return Offset(
       left + width * chartX / HourlyStepTrendCard._chartMaxX,
       top + height * yRatio,
@@ -638,6 +673,7 @@ class _HourlyStepTrendCardState extends State<HourlyStepTrendCard> {
     final selectedX = selectedIndex < 0
         ? null
         : _timeAxisXForLabel(widget.data[selectedIndex].label);
+    final scale = _chartScale;
     final spots = <FlSpot>[
       for (var i = 0; i < widget.data.length; i++)
         FlSpot(
@@ -645,16 +681,21 @@ class _HourlyStepTrendCardState extends State<HourlyStepTrendCard> {
           widget.data[i].steps.toDouble(),
         ),
     ];
+    // fl_chart 至少需要 2 个点才能连成线。当只有单点（如仅拿到当日总步数的兜底）
+    // 且该点不在 00:00 时，补一个原点，让曲线从 00:00 的 0 步上升到该点。
+    if (spots.length == 1 && spots.first.x > 0) {
+      spots.insert(0, const FlSpot(0, 0));
+    }
     return LineChartData(
       minX: 0,
       maxX: HourlyStepTrendCard._chartMaxX,
       minY: 0,
-      maxY: HourlyStepTrendCard._chartMaxY,
+      maxY: scale.maxY,
       lineTouchData: const LineTouchData(enabled: false),
       gridData: FlGridData(
         show: true,
         drawVerticalLine: false,
-        horizontalInterval: 1000,
+        horizontalInterval: scale.interval,
         getDrawingHorizontalLine: (value) => FlLine(
           color: AppColors.gridLine,
           strokeWidth: 1,
@@ -680,7 +721,7 @@ class _HourlyStepTrendCardState extends State<HourlyStepTrendCard> {
         leftTitles: AxisTitles(
           sideTitles: SideTitles(
             showTitles: true,
-            interval: 1000,
+            interval: scale.interval,
             reservedSize: HourlyStepTrendCard._leftTitleReservedSize,
             getTitlesWidget: (value, meta) => Text(
               value == 0 ? '0' : '${(value / 1000).round()}K',

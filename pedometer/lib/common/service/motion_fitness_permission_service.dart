@@ -31,6 +31,10 @@ class MotionFitnessPermissionService {
     return plugin.MotionFitness.todaySteps();
   }
 
+  static Future<List<int>> todayHourlySteps() async {
+    return plugin.MotionFitness.todayHourlySteps();
+  }
+
   static Stream<int> todayStepStream() {
     return plugin.MotionFitness.todayStepStream();
   }

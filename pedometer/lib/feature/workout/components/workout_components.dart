@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:pedometer/common/component/asset_metric_icon.dart';
 import 'package:pedometer/common/component/glass_card.dart';
 import 'package:pedometer/common/config/app_colors.dart';
@@ -11,6 +12,10 @@ import 'package:pedometer/feature/workout/resources/workout_resource.dart';
 class GradientActionButton extends StatelessWidget {
   final String label;
   final IconData? icon;
+
+  /// 可选的 SVG 图标资源（如 `assets/workout_start.svg`）。
+  /// 设置后优先于 [icon]，并按按钮前景色（[AppColors.bgPrimary]）着色。
+  final String? iconAsset;
   final VoidCallback? onTap;
   final bool glow;
 
@@ -18,6 +23,7 @@ class GradientActionButton extends StatelessWidget {
     super.key,
     required this.label,
     this.icon,
+    this.iconAsset,
     this.onTap,
     this.glow = true,
   });
@@ -50,7 +56,18 @@ class GradientActionButton extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            if (icon != null) ...[
+            if (iconAsset != null) ...[
+              SvgPicture.asset(
+                iconAsset!,
+                width: 20,
+                height: 20,
+                colorFilter: ColorFilter.mode(
+                  AppColors.bgPrimary,
+                  BlendMode.srcIn,
+                ),
+              ),
+              SizedBox(width: AppSpacing.sm),
+            ] else if (icon != null) ...[
               Icon(icon, color: AppColors.bgPrimary, size: 20),
               SizedBox(width: AppSpacing.sm),
             ],
@@ -331,7 +348,7 @@ class WorkoutHeroCard extends StatelessWidget {
                       alignment: Alignment.centerLeft,
                       child: GradientActionButton(
                         label: actionLabel ?? WorkoutResource.startWorkout,
-                        icon: Icons.play_arrow_rounded,
+                        iconAsset: 'assets/workout_start.svg',
                         glow: false,
                         onTap: onStart,
                       ),

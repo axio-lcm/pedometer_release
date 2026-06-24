@@ -38,6 +38,8 @@ public final class MotionFitnessPlugin: NSObject, FlutterPlugin, FlutterStreamHa
       result(CMPedometer.isPaceAvailable())
     case "todaySteps":
       queryTodaySteps(result: result)
+    case "todayHourlySteps":
+      queryTodayHourlySteps(result: result)
     default:
       result(FlutterMethodNotImplemented)
     }
@@ -119,6 +121,72 @@ public final class MotionFitnessPlugin: NSObject, FlutterPlugin, FlutterStreamHa
           return
         }
         result(data?.numberOfSteps.intValue ?? 0)
+      }
+    }
+  }
+
+  private func queryTodayHourlySteps(result: @escaping FlutterResult) {
+    guard CMPedometer.isStepCountingAvailable() else {
+      result(
+        FlutterError(
+          code: "unsupported",
+          message: "Step counting is not available on this device.",
+          details: nil
+        )
+      )
+      return
+    }
+
+    let calendar = Calendar.current
+    let now = Date()
+    let startOfDay = calendar.startOfDay(for: now)
+    var hourlySteps = Array(repeating: 0, count: 24)
+    var completedQueries = 0
+    var firstError: NSError?
+    let hoursToQuery = max(0, min(24, calendar.component(.hour, from: now) + 1))
+
+    if hoursToQuery == 0 {
+      result(hourlySteps)
+      return
+    }
+
+    for hour in 0..<hoursToQuery {
+      guard let hourStart = calendar.date(byAdding: .hour, value: hour, to: startOfDay),
+            let nextHourStart = calendar.date(byAdding: .hour, value: hour + 1, to: startOfDay) else {
+        completedQueries += 1
+        continue
+      }
+      let hourEnd = min(nextHourStart, now)
+      if hourEnd <= hourStart {
+        completedQueries += 1
+        continue
+      }
+
+      pedometer.queryPedometerData(from: hourStart, to: hourEnd) { data, error in
+        DispatchQueue.main.async {
+          if let error = error as NSError? {
+            if firstError == nil {
+              firstError = error
+            }
+          } else {
+            hourlySteps[hour] = data?.numberOfSteps.intValue ?? 0
+          }
+
+          completedQueries += 1
+          if completedQueries == hoursToQuery {
+            if hourlySteps.contains(where: { $0 > 0 }) || firstError == nil {
+              result(hourlySteps)
+              return
+            }
+            result(
+              FlutterError(
+                code: "motion_error",
+                message: firstError?.localizedDescription,
+                details: nil
+              )
+            )
+          }
+        }
       }
     }
   }
