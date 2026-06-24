@@ -43,10 +43,7 @@ class SyncHistoryDetailPage extends GetView<SyncHistoryDetailViewModel> {
                     SyncHistoryStatusHero(data: data),
                     CurrentSyncDataCard(items: data.syncedItems),
                     SizedBox(height: AppSpacing.lg),
-                    SourceAndMethodCard(
-                      sources: data.sources,
-                      methodItems: data.methodItems,
-                    ),
+                    SourceAndMethodCard(sources: data.sources),
                     SizedBox(height: AppSpacing.lg),
                     SyncInfoCard(items: data.infoItems),
                     SizedBox(height: AppSpacing.xl),

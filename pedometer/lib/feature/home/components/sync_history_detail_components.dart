@@ -159,13 +159,20 @@ class SyncDataValueRow extends StatelessWidget {
                 ),
               ),
               SizedBox(width: AppSpacing.lg),
-              Flexible(
-                child: Text(
-                  data.value,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  textAlign: TextAlign.end,
-                  style: TextStyle(color: AppColors.textPrimary, fontSize: 18),
+              SizedBox(
+                width: 128,
+                child: Align(
+                  alignment: AlignmentDirectional.centerEnd,
+                  child: Text(
+                    data.value,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    textAlign: TextAlign.end,
+                    style: TextStyle(
+                      color: AppColors.textPrimary,
+                      fontSize: 18,
+                    ),
+                  ),
                 ),
               ),
             ],
@@ -183,56 +190,24 @@ class SyncDataValueRow extends StatelessWidget {
 
 class SourceAndMethodCard extends StatelessWidget {
   final List<SyncDataSource> sources;
-  final List<SyncInfoItem> methodItems;
 
-  const SourceAndMethodCard({
-    super.key,
-    required this.sources,
-    required this.methodItems,
-  });
+  const SourceAndMethodCard({super.key, required this.sources});
 
   @override
   Widget build(BuildContext context) {
     return GlassCard(
       radius: AppRadius.xxl,
       padding: EdgeInsets.all(AppSpacing.xxl),
-      child: IntrinsicHeight(
-        child: Row(
-          children: [
-            Expanded(
-              flex: 11,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  SectionHeader(title: lt('Data Sources', '数据来源')),
-                  SizedBox(height: AppSpacing.xl),
-                  for (var i = 0; i < sources.length; i++) ...[
-                    DataSourceRow(data: sources[i]),
-                    if (i != sources.length - 1)
-                      SizedBox(height: AppSpacing.lg),
-                  ],
-                ],
-              ),
-            ),
-            Padding(
-              padding: EdgeInsets.symmetric(horizontal: AppSpacing.xl),
-              child: VerticalDivider(color: AppColors.divider, width: 1),
-            ),
-            Expanded(
-              flex: 8,
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  for (var i = 0; i < methodItems.length; i++) ...[
-                    CompactInfoRow(item: methodItems[i]),
-                    if (i != methodItems.length - 1)
-                      SizedBox(height: AppSpacing.xl),
-                  ],
-                ],
-              ),
-            ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          SectionHeader(title: lt('Data Sources', '数据来源')),
+          SizedBox(height: AppSpacing.xl),
+          for (var i = 0; i < sources.length; i++) ...[
+            DataSourceRow(data: sources[i]),
+            if (i != sources.length - 1) SizedBox(height: AppSpacing.lg),
           ],
-        ),
+        ],
       ),
     );
   }
