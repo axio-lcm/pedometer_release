@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:pedometer/common/component/app_top_navigation_bar.dart';
@@ -25,6 +27,17 @@ class _WorkoutTrackingPageState extends State<WorkoutTrackingPage> {
       Get.find<WorkoutTrackingViewModel>();
 
   bool _showMoreMenu = false;
+  String? _countdownLabel;
+  int _countdownStep = 0;
+  Timer? _countdownTimer;
+
+  static const _countdownLabels = ['3', '2', '1', 'GO'];
+
+  @override
+  void dispose() {
+    _countdownTimer?.cancel();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -76,7 +89,7 @@ class _WorkoutTrackingPageState extends State<WorkoutTrackingPage> {
                                   const SizedBox(height: 28),
                                   WorkoutControlPanel(
                                     data: data,
-                                    onPrimaryTap: controller.togglePrimary,
+                                    onPrimaryTap: _handlePrimaryTap,
                                     onEnd: _endWorkout,
                                   ),
                                   const SizedBox(
@@ -99,6 +112,13 @@ class _WorkoutTrackingPageState extends State<WorkoutTrackingPage> {
                 ],
               ),
             ),
+            if (_countdownLabel != null)
+              Positioned.fill(
+                child: _WorkoutStartCountdownOverlay(
+                  label: _countdownLabel!,
+                  step: _countdownStep,
+                ),
+              ),
           ],
         ),
       ),
@@ -112,6 +132,47 @@ class _WorkoutTrackingPageState extends State<WorkoutTrackingPage> {
   void _dismissMoreMenu() {
     if (!_showMoreMenu) return;
     setState(() => _showMoreMenu = false);
+  }
+
+  void _handlePrimaryTap() {
+    if (_countdownLabel != null) return;
+    if (controller.status.value == WorkoutStatus.ready) {
+      _startCountdown();
+      return;
+    }
+    controller.togglePrimary();
+  }
+
+  void _startCountdown() {
+    _dismissMoreMenu();
+    _countdownTimer?.cancel();
+    setState(() {
+      _countdownStep = 0;
+      _countdownLabel = _countdownLabels.first;
+    });
+    _scheduleNextCountdownTick();
+  }
+
+  void _scheduleNextCountdownTick() {
+    final delay = _countdownLabel == 'GO'
+        ? const Duration(milliseconds: 650)
+        : const Duration(seconds: 1);
+    _countdownTimer = Timer(delay, () {
+      if (!mounted) return;
+      final nextStep = _countdownStep + 1;
+      if (nextStep >= _countdownLabels.length) {
+        setState(() => _countdownLabel = null);
+        if (controller.status.value == WorkoutStatus.ready) {
+          controller.start();
+        }
+        return;
+      }
+      setState(() {
+        _countdownStep = nextStep;
+        _countdownLabel = _countdownLabels[nextStep];
+      });
+      _scheduleNextCountdownTick();
+    });
   }
 
   void _handleMoreAction() {
@@ -152,6 +213,48 @@ class _WorkoutTrackingPageState extends State<WorkoutTrackingPage> {
     Get.offNamed(
       ExerciseResultPage.routeName,
       arguments: controller.toResultData(),
+    );
+  }
+}
+
+class _WorkoutStartCountdownOverlay extends StatelessWidget {
+  final String label;
+  final int step;
+
+  const _WorkoutStartCountdownOverlay({
+    required this.label,
+    required this.step,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return ColoredBox(
+      color: Colors.black,
+      child: Center(
+        child: AnimatedSwitcher(
+          duration: const Duration(milliseconds: 360),
+          switchInCurve: Curves.easeOutBack,
+          switchOutCurve: Curves.easeIn,
+          transitionBuilder: (child, animation) {
+            final scale = Tween<double>(begin: 0.72, end: 1).animate(animation);
+            return FadeTransition(
+              opacity: animation,
+              child: ScaleTransition(scale: scale, child: child),
+            );
+          },
+          child: Text(
+            label,
+            key: ValueKey(step),
+            style: TextStyle(
+              color: AppColors.brandGreen,
+              fontSize: 248,
+              fontWeight: FontWeight.w900,
+              height: 1,
+              letterSpacing: 0,
+            ),
+          ),
+        ),
+      ),
     );
   }
 }
