@@ -5,6 +5,7 @@ import 'package:pedometer/common/component/app_top_navigation_bar.dart';
 import 'package:pedometer/common/component/glass_card.dart';
 import 'package:pedometer/common/config/app_colors.dart';
 import 'package:pedometer/common/config/app_dimens.dart';
+import 'package:pedometer/common/config/localized_text.dart';
 import 'package:pedometer/feature/home/components/sync_data_detail_components.dart';
 import 'package:pedometer/feature/home/model/health_sync_models.dart';
 import 'package:pedometer/feature/home/model/sync_data_detail_model.dart';
@@ -172,7 +173,9 @@ class _SourceConnectionCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final title = data.source.title;
     final connected = status == HealthAuthStatus.authorized;
-    final titleText = connected ? '已连接 $title' : '未连接 $title';
+    final titleText = connected
+        ? lt('$title Connected', '已连接 $title')
+        : lt('$title Disconnected', '未连接 $title');
     final (statusIcon, statusColor, statusLabel) = _statusDisplay(title);
 
     return GlassCard(
@@ -218,7 +221,7 @@ class _SourceConnectionCard extends StatelessWidget {
                 ),
                 SizedBox(height: AppSpacing.sm),
                 Text(
-                  '管理同步权限与同步方式',
+                  lt('Manage sync permissions and sync mode', '管理同步权限与同步方式'),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
@@ -239,27 +242,30 @@ class _SourceConnectionCard extends StatelessWidget {
       HealthAuthStatus.authorized => (
         Icons.check_circle_outline_rounded,
         AppColors.brandGreen,
-        '连接成功',
+        lt('Connected', '连接成功'),
       ),
       HealthAuthStatus.denied => (
         Icons.cancel_outlined,
         AppColors.accentOrange,
-        '未授权，请在系统「健康」中允许读取',
+        lt(
+          'Not authorized. Allow access in system Health settings.',
+          '未授权，请在系统「健康」中允许读取',
+        ),
       ),
       HealthAuthStatus.unavailable => (
         Icons.error_outline_rounded,
         AppColors.accentOrange,
-        '$title 当前设备不可用',
+        lt('$title is unavailable on this device', '$title 当前设备不可用'),
       ),
       HealthAuthStatus.unsupported => (
         Icons.block_rounded,
         AppColors.textSecondary,
-        '当前平台不支持',
+        lt('Not supported on this platform', '当前平台不支持'),
       ),
       HealthAuthStatus.unknown => (
         Icons.help_outline_rounded,
         AppColors.textSecondary,
-        '授权状态待确认，请同步以验证',
+        lt('Authorization pending. Sync to verify.', '授权状态待确认，请同步以验证'),
       ),
     };
   }
@@ -289,7 +295,7 @@ class _PermissionCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const SectionHeader(title: 'Health 同步权限'),
+          SectionHeader(title: lt('Health Sync Permissions', 'Health 同步权限')),
           SizedBox(height: AppSpacing.md),
           for (var i = 0; i < items.length; i++) ...[
             _PermissionRow(item: items[i], authorized: authorized),
@@ -298,7 +304,11 @@ class _PermissionCard extends StatelessWidget {
           ],
           SizedBox(height: AppSpacing.sm),
           Text(
-            statusText ?? '需授权后才可同步对应健康数据',
+            statusText ??
+                lt(
+                  'Authorize before syncing selected health data.',
+                  '需授权后才可同步对应健康数据',
+                ),
             style: TextStyle(color: AppColors.textSecondary, fontSize: 13),
           ),
         ],
@@ -399,7 +409,7 @@ class _SyncModeCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const SectionHeader(title: '同步方式'),
+          SectionHeader(title: lt('Sync Mode', '同步方式')),
           SizedBox(height: AppSpacing.md),
           for (var i = 0; i < options.length; i++) ...[
             _SyncModeOptionTile(
@@ -528,7 +538,7 @@ class _ManualSelectionCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const SectionHeader(title: '手动同步数据选择'),
+          SectionHeader(title: lt('Manual Sync Data', '手动同步数据选择')),
           SizedBox(height: AppSpacing.md),
           Wrap(
             spacing: AppSpacing.sm,
@@ -540,7 +550,7 @@ class _ManualSelectionCard extends StatelessWidget {
           ),
           SizedBox(height: AppSpacing.md),
           Text(
-            '手动同步时，仅同步已勾选项目',
+            lt('Manual sync only includes selected items.', '手动同步时，仅同步已勾选项目'),
             style: TextStyle(color: AppColors.textSecondary, fontSize: 13),
           ),
         ],
@@ -655,7 +665,7 @@ class _SourceActionBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return _ActionButton(
-      label: '保存设置',
+      label: lt('Save Settings', '保存设置'),
       foreground: AppColors.bgPrimary,
       background: AppColors.brandGreen,
       borderColor: AppColors.brandGreen,

@@ -2,8 +2,9 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
-import 'package:pedometer/common/service/motion_fitness_permission_service.dart';
 import 'package:pedometer/common/mvvm/ibase_view_model.dart';
+import 'package:pedometer/common/service/motion_fitness_permission_service.dart';
+import 'package:pedometer/common/storage/language_service.dart';
 import 'package:pedometer/feature/home/model/health_repository.dart';
 import 'package:pedometer/feature/home/model/health_sync_models.dart';
 import 'package:pedometer/feature/home/model/home_model.dart';
@@ -15,6 +16,7 @@ class HomeViewModel extends GetxController implements IBaseViewModel {
   final HealthRepository repository;
   StreamSubscription<int>? _motionStepSubscription;
   int? _motionSensorSteps;
+  Worker? _languageWorker;
 
   HomeViewModel({HealthRepository? repository})
     : repository = repository ?? HealthRepository.defaultRepository();
@@ -27,6 +29,12 @@ class HomeViewModel extends GetxController implements IBaseViewModel {
   void onInit() {
     super.onInit();
     HealthSyncRuntime.revision.addListener(_loadHealthData);
+    if (Get.isRegistered<LanguageService>()) {
+      _languageWorker = ever<int>(
+        Get.find<LanguageService>().localeRevision,
+        (_) => _loadHealthData(),
+      );
+    }
     init();
   }
 
@@ -45,6 +53,7 @@ class HomeViewModel extends GetxController implements IBaseViewModel {
   @override
   void onClose() {
     HealthSyncRuntime.revision.removeListener(_loadHealthData);
+    _languageWorker?.dispose();
     unInit();
     super.onClose();
   }

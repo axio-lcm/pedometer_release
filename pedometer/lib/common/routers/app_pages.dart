@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:pedometer/common/config/localized_text.dart';
 import 'package:pedometer/feature/home/resources/home_resource.dart';
 import 'package:pedometer/feature/home/views/sync_data_detail_page.dart';
 import 'package:pedometer/feature/home/views/sync_source_detail_page.dart';
@@ -10,7 +11,9 @@ import 'package:pedometer/feature/home/viewmodel/sync_data_detail_view_model.dar
 import 'package:pedometer/feature/home/viewmodel/sync_history_detail_view_model.dart';
 import 'package:pedometer/feature/home/viewmodel/sync_history_list_view_model.dart';
 import 'package:pedometer/feature/home/viewmodel/sync_source_detail_view_model.dart';
+import 'package:pedometer/feature/mine/viewmodel/language_view_model.dart';
 import 'package:pedometer/feature/mine/viewmodel/mine_view_model.dart';
+import 'package:pedometer/feature/mine/views/language_page.dart';
 import 'package:pedometer/feature/workout/resources/workout_resource.dart';
 import 'package:pedometer/feature/workout/viewmodel/edit_sport_goal_view_model.dart';
 import 'package:pedometer/feature/workout/viewmodel/exercise_result_view_model.dart';
@@ -116,10 +119,18 @@ class AppPages {
       name: WorkoutRouteTable.pathRouteHistoryDetail,
       page: () => const WorkoutRouteHistoryPage(),
     ),
+    GetPage(
+      name: LanguagePage.routeName,
+      page: () => const LanguagePage(),
+      binding: BindingsBuilder(() {
+        Get.lazyPut<LanguageViewModel>(() => LanguageViewModel());
+      }),
+    ),
   ];
 
   static final GetPage unknownRoute = GetPage(
     name: '/404',
-    page: () => const Scaffold(body: Center(child: Text('页面不存在'))),
+    page: () =>
+        Scaffold(body: Center(child: Text(lt('Page not found', '页面不存在')))),
   );
 }

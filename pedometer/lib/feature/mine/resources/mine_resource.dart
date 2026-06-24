@@ -28,6 +28,16 @@ class MineResource {
   static String get themeSetting =>
       _string('theme_setting', MineText.themeSetting);
   static String get language => _string('language', MineText.language);
+  static String get languageTitle =>
+      _string('language_title', MineText.languageTitle);
+  static String get languageEnglish =>
+      _string('language_english', MineText.languageEnglish);
+  static String get languageEnglishSubtitle =>
+      _string('language_english_subtitle', MineText.languageEnglishSubtitle);
+  static String get languageChinese =>
+      _string('language_chinese', MineText.languageChinese);
+  static String get languageChineseSubtitle =>
+      _string('language_chinese_subtitle', MineText.languageChineseSubtitle);
   static String get shareApp => _string('share_app', MineText.shareApp);
   static String get shareAppContent =>
       _string('share_app_content', MineText.shareAppContent);
@@ -53,24 +63,30 @@ class MineResource {
 class MineText {
   MineText._();
 
-  static const height = '身高';
+  static const height = 'Height';
   static const heightUnit = 'cm';
-  static const weight = '体重';
+  static const weight = 'Weight';
   static const weightUnit = 'kg';
   static const bmi = 'BMI';
-  static const bmiNormal = '正常';
-  static const age = '年龄';
-  static const ageUnit = '岁';
-  static const subscribeTitle = '订阅会员';
-  static const subscribeSubtitle = '解锁全部高级功能';
-  static const themeSetting = '主题设置';
-  static const language = '语言';
-  static const shareApp = '分享应用';
-  static const shareAppSubject = '推荐一款好用的计步运动 App'; //这个是应用分享的宣传语
-  static const shareAppContent = '我正在用这款计步运动 App 记录每天的步数和锻炼，一起来打卡运动吧！';
-  static const rateUs = '给我们评分';
-  static const userAgreement = '用户协议';
-  static const privacyPolicy = '隐私政策';
-  static const aboutUs = '关于我们';
-  static const version = '版本号';
+  static const bmiNormal = 'Normal';
+  static const age = 'Age';
+  static const ageUnit = 'yrs';
+  static const subscribeTitle = 'Membership';
+  static const subscribeSubtitle = 'Unlock all premium features';
+  static const themeSetting = 'Theme';
+  static const language = 'Language';
+  static const languageTitle = 'Language';
+  static const languageEnglish = 'English';
+  static const languageEnglishSubtitle = 'Use English by default';
+  static const languageChinese = '简体中文';
+  static const languageChineseSubtitle = '使用中文显示';
+  static const shareApp = 'Share App';
+  static const shareAppSubject = 'A useful pedometer app';
+  static const shareAppContent =
+      'I am using this pedometer app to track steps and workouts every day. Join me!';
+  static const rateUs = 'Rate Us';
+  static const userAgreement = 'User Agreement';
+  static const privacyPolicy = 'Privacy Policy';
+  static const aboutUs = 'About Us';
+  static const version = 'Version';
 }

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:pedometer/common/config/app_icon_source.dart';
+import 'package:pedometer/common/config/localized_text.dart';
 import 'package:pedometer/common/config/app_metric_assets.dart';
 
 /// Health 同步详情页本地展示数据。
@@ -22,64 +23,81 @@ class SyncDataDetailData {
     required this.safetyText,
   });
 
-  static const mock = SyncDataDetailData(
-    statusTitle: '同步成功',
-    lastSyncText: '最后同步： 今天 09:41',
+  static SyncDataDetailData get mock => SyncDataDetailData(
+    statusTitle: lt('Sync Successful', '同步成功'),
+    lastSyncText: lt('Last sync: Today 09:41', '最后同步：今天 09:41'),
     sources: [
       SyncDataSource(
         title: 'Apple Health',
-        status: '已连接',
+        status: lt('Connected', '已连接'),
         icon: Icons.favorite_rounded,
-        iconColor: Color(0xFFFF2D55),
+        iconColor: const Color(0xFFFF2D55),
       ),
       SyncDataSource(
         title: 'Health Connect',
-        status: '已连接',
+        status: lt('Connected', '已连接'),
         icon: Icons.link_rounded,
-        iconColor: Color(0xFF3D7CFF),
+        iconColor: const Color(0xFF3D7CFF),
       ),
     ],
     overviewMetrics: [
-      SyncMetric(value: '12,856', label: '总步数'),
-      SyncMetric(value: '1,256', label: '总卡路里（kcal）'),
-      SyncMetric(value: '98', label: '总活动时长（min）'),
+      SyncMetric(value: '12,856', label: lt('Total Steps', '总步数')),
+      SyncMetric(
+        value: '1,256',
+        label: lt('Total Calories (kcal)', '总卡路里（kcal）'),
+      ),
+      SyncMetric(
+        value: '98',
+        label: lt('Total Active Time (min)', '总活动时长（min）'),
+      ),
     ],
     dataTypes: [
       SyncDataType(
-        icon: MaterialAppIcon(Icons.directions_walk_rounded),
-        iconColor: Color(0xFF24F04E),
-        title: '步数',
-        value: '12,856 步',
+        icon: const MaterialAppIcon(Icons.directions_walk_rounded),
+        iconColor: const Color(0xFF24F04E),
+        title: lt('Steps', '步数'),
+        value: lt('12,856 steps', '12,856 步'),
       ),
       SyncDataType(
-        icon: AssetAppIcon(AppMetricAssets.calories),
-        iconColor: Color(0xFFFF9F12),
-        title: '卡路里',
+        icon: const AssetAppIcon(AppMetricAssets.calories),
+        iconColor: const Color(0xFFFF9F12),
+        title: lt('Calories', '卡路里'),
         value: '1,256 kcal',
       ),
       SyncDataType(
-        icon: AssetAppIcon(AppMetricAssets.activeTime),
-        iconColor: Color(0xFF0CD9FF),
-        title: '活动时间',
+        icon: const AssetAppIcon(AppMetricAssets.activeTime),
+        iconColor: const Color(0xFF0CD9FF),
+        title: lt('Active Time', '活动时间'),
         value: '98 min',
       ),
       SyncDataType(
-        icon: AssetAppIcon(AppMetricAssets.distance),
-        iconColor: Color(0xFF43F56B),
-        title: '距离',
+        icon: const AssetAppIcon(AppMetricAssets.distance),
+        iconColor: const Color(0xFF43F56B),
+        title: lt('Distance', '距离'),
         value: '8.34 km',
       ),
     ],
     histories: [
-      SyncHistoryRecord(time: '今天 09:41', mode: '手动同步', result: '成功同步 4 项数据'),
-      SyncHistoryRecord(time: '昨天 20:30', mode: '自动同步', result: '成功同步 4 项数据'),
+      SyncHistoryRecord(
+        time: lt('Today 09:41', '今天 09:41'),
+        mode: lt('Manual Sync', '手动同步'),
+        result: lt('Synced 4 items', '成功同步 4 项数据'),
+      ),
+      SyncHistoryRecord(
+        time: lt('Yesterday 20:30', '昨天 20:30'),
+        mode: lt('Auto Sync', '自动同步'),
+        result: lt('Synced 4 items', '成功同步 4 项数据'),
+      ),
       SyncHistoryRecord(
         time: '05/13 08:15',
-        mode: '自动同步',
-        result: '成功同步 4 项数据',
+        mode: lt('Auto Sync', '自动同步'),
+        result: lt('Synced 4 items', '成功同步 4 项数据'),
       ),
     ],
-    safetyText: '您的数据安全受保护，所有数据均已加密传输。',
+    safetyText: lt(
+      'Your data is protected and all synced data is encrypted in transit.',
+      '您的数据安全受保护，所有数据均已加密传输。',
+    ),
   );
 }
 
@@ -148,35 +166,47 @@ class SyncHistoryListData {
 
   const SyncHistoryListData({required this.records});
 
-  static const mock = SyncHistoryListData(
+  static SyncHistoryListData get mock => SyncHistoryListData(
     records: [
-      SyncHistoryRecord(time: '今天 09:41', mode: '手动同步', result: '成功同步 4 项数据'),
-      SyncHistoryRecord(time: '昨天 20:30', mode: '自动同步', result: '成功同步 4 项数据'),
-      SyncHistoryRecord(time: '昨天 08:05', mode: '自动同步', result: '成功同步 4 项数据'),
+      SyncHistoryRecord(
+        time: lt('Today 09:41', '今天 09:41'),
+        mode: lt('Manual Sync', '手动同步'),
+        result: lt('Synced 4 items', '成功同步 4 项数据'),
+      ),
+      SyncHistoryRecord(
+        time: lt('Yesterday 20:30', '昨天 20:30'),
+        mode: lt('Auto Sync', '自动同步'),
+        result: lt('Synced 4 items', '成功同步 4 项数据'),
+      ),
+      SyncHistoryRecord(
+        time: lt('Yesterday 08:05', '昨天 08:05'),
+        mode: lt('Auto Sync', '自动同步'),
+        result: lt('Synced 4 items', '成功同步 4 项数据'),
+      ),
       SyncHistoryRecord(
         time: '05/13 08:15',
-        mode: '自动同步',
-        result: '成功同步 4 项数据',
+        mode: lt('Auto Sync', '自动同步'),
+        result: lt('Synced 4 items', '成功同步 4 项数据'),
       ),
       SyncHistoryRecord(
         time: '05/12 21:48',
-        mode: '手动同步',
-        result: '成功同步 3 项数据',
+        mode: lt('Manual Sync', '手动同步'),
+        result: lt('Synced 3 items', '成功同步 3 项数据'),
       ),
       SyncHistoryRecord(
         time: '05/12 07:30',
-        mode: '自动同步',
-        result: '成功同步 4 项数据',
+        mode: lt('Auto Sync', '自动同步'),
+        result: lt('Synced 4 items', '成功同步 4 项数据'),
       ),
       SyncHistoryRecord(
         time: '05/11 19:02',
-        mode: '自动同步',
-        result: '成功同步 4 项数据',
+        mode: lt('Auto Sync', '自动同步'),
+        result: lt('Synced 4 items', '成功同步 4 项数据'),
       ),
       SyncHistoryRecord(
         time: '05/11 08:20',
-        mode: '手动同步',
-        result: '成功同步 4 项数据',
+        mode: lt('Manual Sync', '手动同步'),
+        result: lt('Synced 4 items', '成功同步 4 项数据'),
       ),
     ],
   );
@@ -206,75 +236,78 @@ class SyncHistoryDetailData {
     required this.safetyText,
   });
 
-  static const mock = SyncHistoryDetailData(
-    statusTitle: '同步成功',
-    time: '今天 09:41',
-    mode: '手动同步',
-    result: '成功同步 4 项数据',
+  static SyncHistoryDetailData get mock => SyncHistoryDetailData(
+    statusTitle: lt('Sync Successful', '同步成功'),
+    time: lt('Today 09:41', '今天 09:41'),
+    mode: lt('Manual Sync', '手动同步'),
+    result: lt('Synced 4 items', '成功同步 4 项数据'),
     syncedItems: [
       SyncDataType(
-        icon: MaterialAppIcon(Icons.directions_walk_rounded),
-        iconColor: Color(0xFF24F04E),
-        title: '步数',
-        value: '5,276 步',
+        icon: const MaterialAppIcon(Icons.directions_walk_rounded),
+        iconColor: const Color(0xFF24F04E),
+        title: lt('Steps', '步数'),
+        value: lt('5,276 steps', '5,276 步'),
       ),
       SyncDataType(
-        icon: AssetAppIcon(AppMetricAssets.calories),
-        iconColor: Color(0xFFFF9F12),
-        title: '卡路里',
+        icon: const AssetAppIcon(AppMetricAssets.calories),
+        iconColor: const Color(0xFFFF9F12),
+        title: lt('Calories', '卡路里'),
         value: '293 kcal',
       ),
       SyncDataType(
-        icon: AssetAppIcon(AppMetricAssets.activeTime),
-        iconColor: Color(0xFF0CD9FF),
-        title: '活动时间',
+        icon: const AssetAppIcon(AppMetricAssets.activeTime),
+        iconColor: const Color(0xFF0CD9FF),
+        title: lt('Active Time', '活动时间'),
         value: '28 min',
       ),
       SyncDataType(
-        icon: AssetAppIcon(AppMetricAssets.distance),
-        iconColor: Color(0xFF43F56B),
-        title: '距离',
+        icon: const AssetAppIcon(AppMetricAssets.distance),
+        iconColor: const Color(0xFF43F56B),
+        title: lt('Distance', '距离'),
         value: '1.6 km',
       ),
     ],
     sources: [
       SyncDataSource(
         title: 'Apple Health',
-        status: '已连接',
+        status: lt('Connected', '已连接'),
         icon: Icons.favorite_rounded,
-        iconColor: Color(0xFFFF2D55),
+        iconColor: const Color(0xFFFF2D55),
       ),
       SyncDataSource(
         title: 'Health Connect',
-        status: '已连接',
+        status: lt('Connected', '已连接'),
         icon: Icons.link_rounded,
-        iconColor: Color(0xFF3D7CFF),
+        iconColor: const Color(0xFF3D7CFF),
       ),
     ],
     methodItems: [
-      SyncInfoItem(title: '同步方式', value: '手动'),
-      SyncInfoItem(title: '数据项', value: '4 项'),
-      SyncInfoItem(title: '耗时', value: '2.1 s'),
+      SyncInfoItem(title: lt('Sync Mode', '同步方式'), value: lt('Manual', '手动')),
+      SyncInfoItem(title: lt('Data Items', '数据项'), value: lt('4 items', '4 项')),
+      SyncInfoItem(title: lt('Elapsed', '耗时'), value: '2.1 s'),
     ],
     infoItems: [
       SyncInfoItem(
-        icon: AssetAppIcon(AppMetricAssets.syncId),
-        title: '同步编号',
+        icon: const AssetAppIcon(AppMetricAssets.syncId),
+        title: lt('Sync ID', '同步编号'),
         value: 'SYNC-2026-0513-0941',
       ),
       SyncInfoItem(
-        icon: AssetAppIcon(AppMetricAssets.syncDevice),
-        title: '发起设备',
+        icon: const AssetAppIcon(AppMetricAssets.syncDevice),
+        title: lt('Device', '发起设备'),
         value: 'iPhone',
       ),
       SyncInfoItem(
-        icon: AssetAppIcon(AppMetricAssets.syncStatus),
-        title: '记录状态',
-        value: '成功',
+        icon: const AssetAppIcon(AppMetricAssets.syncStatus),
+        title: lt('Status', '记录状态'),
+        value: lt('Success', '成功'),
         highlight: true,
       ),
     ],
-    safetyText: '您的数据安全受保护，所有数据均已加密传输。',
+    safetyText: lt(
+      'Your data is protected and all synced data is encrypted in transit.',
+      '您的数据安全受保护，所有数据均已加密传输。',
+    ),
   );
 }
 
@@ -310,43 +343,55 @@ class SyncSourceDetailData {
   factory SyncSourceDetailData.forSource(SyncDataSource source) {
     return SyncSourceDetailData(
       source: source,
-      permissions: const [
+      permissions: [
         SyncSourcePermission(
-          icon: AssetAppIcon(AppMetricAssets.syncSteps),
-          iconColor: Color(0xFF24F04E),
-          title: '步数',
+          icon: const AssetAppIcon(AppMetricAssets.syncSteps),
+          iconColor: const Color(0xFF24F04E),
+          title: lt('Steps', '步数'),
         ),
         SyncSourcePermission(
-          icon: AssetAppIcon(AppMetricAssets.syncDistance),
-          iconColor: Color(0xFF43F56B),
-          title: '距离',
+          icon: const AssetAppIcon(AppMetricAssets.syncDistance),
+          iconColor: const Color(0xFF43F56B),
+          title: lt('Distance', '距离'),
         ),
         SyncSourcePermission(
-          icon: AssetAppIcon(AppMetricAssets.syncCalories),
-          iconColor: Color(0xFFFF9F12),
-          title: '卡路里',
+          icon: const AssetAppIcon(AppMetricAssets.syncCalories),
+          iconColor: const Color(0xFFFF9F12),
+          title: lt('Calories', '卡路里'),
         ),
         SyncSourcePermission(
-          icon: AssetAppIcon(AppMetricAssets.syncActiveTime),
-          iconColor: Color(0xFF0CD9FF),
-          title: '活动时间',
+          icon: const AssetAppIcon(AppMetricAssets.syncActiveTime),
+          iconColor: const Color(0xFF0CD9FF),
+          title: lt('Active Time', '活动时间'),
         ),
       ],
-      modeOptions: const [
+      modeOptions: [
         SyncModeOption(
-          title: '自动同步',
-          subtitle: '在连接后自动同步最新健康数据',
+          title: lt('Auto Sync', '自动同步'),
+          subtitle: lt(
+            'Automatically sync latest health data after connecting',
+            '在连接后自动同步最新健康数据',
+          ),
           selected: true,
         ),
-        SyncModeOption(title: '手动同步', subtitle: '仅在手动触发时同步所选数据'),
+        SyncModeOption(
+          title: lt('Manual Sync', '手动同步'),
+          subtitle: lt(
+            'Only sync selected data when triggered manually',
+            '仅在手动触发时同步所选数据',
+          ),
+        ),
       ],
-      manualItems: const [
-        ManualSyncSelectionItem(title: '步数', selected: true),
-        ManualSyncSelectionItem(title: '距离', selected: true),
-        ManualSyncSelectionItem(title: '卡路里', selected: true),
-        ManualSyncSelectionItem(title: '活动时间'),
+      manualItems: [
+        ManualSyncSelectionItem(title: lt('Steps', '步数'), selected: true),
+        ManualSyncSelectionItem(title: lt('Distance', '距离'), selected: true),
+        ManualSyncSelectionItem(title: lt('Calories', '卡路里'), selected: true),
+        ManualSyncSelectionItem(title: lt('Active Time', '活动时间')),
       ],
-      safetyText: '您的健康数据仅在授权后读取，且会加密传输。',
+      safetyText: lt(
+        'Your health data is read only after authorization and is encrypted in transit.',
+        '您的健康数据仅在授权后读取，且会加密传输。',
+      ),
     );
   }
 }

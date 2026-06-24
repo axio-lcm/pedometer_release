@@ -68,7 +68,9 @@ class _RouteHistoryContent extends StatelessWidget {
         ),
         SizedBox(height: AppSpacing.lg),
         _CurrentRouteCard(
-          title: record?.sportType ?? WorkoutResource.routeHistoryEmpty,
+          title: record == null
+              ? WorkoutResource.routeHistoryEmpty
+              : WorkoutResource.localizedWorkoutTypeTitle(record!.sportType),
           points: record?.routePoints ?? const [],
           distance: record?.distanceKm ?? '0.00',
           duration: record?.duration ?? '00:00:00',

@@ -1,5 +1,7 @@
 import 'package:get/get.dart';
+import 'package:pedometer/common/config/localized_text.dart';
 import 'package:pedometer/common/mvvm/ibase_view_model.dart';
+import 'package:pedometer/common/storage/language_service.dart';
 import 'package:pedometer/feature/home/model/health_repository.dart';
 import 'package:pedometer/feature/home/model/sync_data_detail_model.dart';
 import 'package:pedometer/feature/home/views/sync_history_detail_page.dart';
@@ -11,11 +13,18 @@ class SyncHistoryListViewModel extends GetxController
     : data = const SyncHistoryListData(records: []).obs;
 
   final Rx<SyncHistoryListData> data;
+  Worker? _languageWorker;
 
   @override
   void onInit() {
     super.onInit();
     HealthSyncHistory.revision.addListener(_load);
+    if (Get.isRegistered<LanguageService>()) {
+      _languageWorker = ever<int>(
+        Get.find<LanguageService>().localeRevision,
+        (_) => _load(),
+      );
+    }
     init();
   }
 
@@ -27,6 +36,7 @@ class SyncHistoryListViewModel extends GetxController
   @override
   void unInit() {
     HealthSyncHistory.revision.removeListener(_load);
+    _languageWorker?.dispose();
   }
 
   @override
@@ -46,8 +56,11 @@ class SyncHistoryListViewModel extends GetxController
           SyncHistoryRecord(
             id: entry.id,
             time: _timeText(entry.time),
-            mode: entry.mode,
-            result: '同步 ${entry.itemCount} 项数据',
+            mode: _localizedMode(entry.mode),
+            result: lt(
+              'Synced ${entry.itemCount} items',
+              '同步 ${entry.itemCount} 项数据',
+            ),
           ),
       ],
     );
@@ -57,10 +70,20 @@ class SyncHistoryListViewModel extends GetxController
     final now = DateTime.now();
     final prefix =
         date.year == now.year && date.month == now.month && date.day == now.day
-        ? '今天'
+        ? lt('Today', '今天')
         : '${date.month}/${date.day}';
     final hour = date.hour.toString().padLeft(2, '0');
     final minute = date.minute.toString().padLeft(2, '0');
     return '$prefix $hour:$minute';
+  }
+
+  String _localizedMode(String mode) {
+    if (mode == '手动同步' || mode == 'Manual Sync') {
+      return lt('Manual Sync', '手动同步');
+    }
+    if (mode == '自动同步' || mode == 'Auto Sync') {
+      return lt('Auto Sync', '自动同步');
+    }
+    return mode;
   }
 }

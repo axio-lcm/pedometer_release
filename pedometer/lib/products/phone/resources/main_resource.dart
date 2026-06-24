@@ -14,11 +14,11 @@ class MainResource {
   );
 
   static String get tabHome =>
-      ResourceLoader.string('phone', 'tab_home', fallback: '首页');
+      ResourceLoader.string('phone', 'tab_home', fallback: 'Home');
   static String get tabSport =>
-      ResourceLoader.string('phone', 'tab_sport', fallback: '运动');
+      ResourceLoader.string('phone', 'tab_sport', fallback: 'Workout');
   static String get tabMine =>
-      ResourceLoader.string('phone', 'tab_mine', fallback: '我的');
+      ResourceLoader.string('phone', 'tab_mine', fallback: 'Me');
 }
 
 /// 主页路由定义

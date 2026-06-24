@@ -1,5 +1,6 @@
 import 'package:get/get.dart';
 import 'package:pedometer/common/mvvm/ibase_view_model.dart';
+import 'package:pedometer/common/storage/language_service.dart';
 import 'package:pedometer/feature/workout/model/workout_model.dart';
 import 'package:pedometer/feature/workout/resources/workout_resource.dart';
 
@@ -15,6 +16,7 @@ class WorkoutViewModel extends GetxController implements IBaseViewModel {
   int goalDuration = 60;
   int goalCalories = 500;
   bool goalFreeTraining = false;
+  Worker? _languageWorker;
 
   WorkoutType get selectedWorkoutType {
     final types = vo.data.value.workoutTypes;
@@ -27,11 +29,17 @@ class WorkoutViewModel extends GetxController implements IBaseViewModel {
   void onInit() {
     super.onInit();
     init();
+    if (Get.isRegistered<LanguageService>()) {
+      _languageWorker = ever<int>(
+        Get.find<LanguageService>().localeRevision,
+        (_) => refreshLocalizedData(),
+      );
+    }
   }
 
   @override
   void init() {
-    vo.data.value = WorkoutPageData.mock;
+    refreshLocalizedData();
   }
 
   @override
@@ -39,6 +47,7 @@ class WorkoutViewModel extends GetxController implements IBaseViewModel {
 
   @override
   void onClose() {
+    _languageWorker?.dispose();
     unInit();
     super.onClose();
   }
@@ -64,15 +73,21 @@ class WorkoutViewModel extends GetxController implements IBaseViewModel {
     vo.data.value = vo.data.value.copyWith(goalMetrics: _buildGoalMetrics());
   }
 
+  void refreshLocalizedData() {
+    vo.data.value = WorkoutPageData.localized().copyWith(
+      goalMetrics: _buildGoalMetrics(template: WorkoutPageData.localized()),
+    );
+  }
+
   /// 依据当前目标构建目标指标列表，沿用 mock 的图标 / 颜色 / 标题。
-  List<GoalMetric> _buildGoalMetrics() {
-    final template = WorkoutPageData.mock.goalMetrics;
+  List<GoalMetric> _buildGoalMetrics({WorkoutPageData? template}) {
+    final metrics = (template ?? vo.data.value).goalMetrics;
     final free = goalFreeTraining;
     // 进度起点为 0：展示「当前 / 目标」。
     String pair(String start, String target) => '$start / $target';
 
     GoalMetric build(int index, {required String value, String unit = ''}) {
-      final base = template[index];
+      final base = metrics[index];
       return GoalMetric(
         title: base.title,
         value: value,
@@ -86,23 +101,23 @@ class WorkoutViewModel extends GetxController implements IBaseViewModel {
       build(
         0,
         value: free
-            ? WorkoutText.noGoal
+            ? WorkoutResource.noGoal
             : pair('0.00', goalDistance.toStringAsFixed(2)),
-        unit: free ? '' : WorkoutText.distanceUnit,
+        unit: free ? '' : WorkoutResource.distanceUnit,
       ),
       build(
         1,
-        value: free ? WorkoutText.noGoal : pair('0', '$goalDuration'),
-        unit: free ? '' : WorkoutText.durationUnit,
+        value: free ? WorkoutResource.noGoal : pair('0', '$goalDuration'),
+        unit: free ? '' : WorkoutResource.durationUnit,
       ),
       build(
         2,
-        value: free ? WorkoutText.noGoal : pair('0', '$goalCalories'),
+        value: free ? WorkoutResource.noGoal : pair('0', '$goalCalories'),
         unit: free ? '' : 'kcal',
       ),
       build(
         3,
-        value: free ? WorkoutText.freeTrainingOn : WorkoutText.noGoal,
+        value: free ? WorkoutResource.freeTrainingOn : WorkoutResource.noGoal,
       ),
     ];
   }

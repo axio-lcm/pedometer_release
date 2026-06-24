@@ -3,6 +3,7 @@ import 'package:pedometer/common/component/asset_metric_icon.dart';
 import 'package:pedometer/common/component/glass_card.dart';
 import 'package:pedometer/common/config/app_colors.dart';
 import 'package:pedometer/common/config/app_dimens.dart';
+import 'package:pedometer/common/config/localized_text.dart';
 import 'package:pedometer/feature/home/components/sync_data_detail_components.dart';
 import 'package:pedometer/feature/home/model/sync_data_detail_model.dart';
 
@@ -102,7 +103,7 @@ class CurrentSyncDataCard extends StatelessWidget {
       ),
       child: Column(
         children: [
-          const SectionHeader(title: '本次同步数据'),
+          SectionHeader(title: lt('Synced Data', '本次同步数据')),
           SizedBox(height: AppSpacing.lg),
           for (var i = 0; i < items.length; i++)
             SyncDataValueRow(
@@ -203,7 +204,7 @@ class SourceAndMethodCard extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  const SectionHeader(title: '数据来源'),
+                  SectionHeader(title: lt('Data Sources', '数据来源')),
                   SizedBox(height: AppSpacing.xl),
                   for (var i = 0; i < sources.length; i++) ...[
                     DataSourceRow(data: sources[i]),
@@ -254,7 +255,7 @@ class SyncInfoCard extends StatelessWidget {
       ),
       child: Column(
         children: [
-          const SectionHeader(title: '同步信息'),
+          SectionHeader(title: lt('Sync Info', '同步信息')),
           SizedBox(height: AppSpacing.lg),
           for (var i = 0; i < items.length; i++)
             InfoRow(item: items[i], showDivider: i != items.length - 1),

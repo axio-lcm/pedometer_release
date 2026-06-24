@@ -1,5 +1,6 @@
 import 'package:get/get.dart';
 import 'package:pedometer/common/mvvm/ibase_view_model.dart';
+import 'package:pedometer/common/storage/language_service.dart';
 import 'package:pedometer/feature/home/model/health_repository.dart';
 import 'package:pedometer/feature/home/model/sport_detail_model.dart';
 
@@ -7,6 +8,7 @@ import 'package:pedometer/feature/home/model/sport_detail_model.dart';
 class SportDetailViewModel extends GetxController implements IBaseViewModel {
   final SportDetailVo vo = SportDetailVo();
   final HealthRepository repository;
+  Worker? _languageWorker;
 
   SportDetailViewModel({HealthRepository? repository})
     : repository = repository ?? HealthRepository.defaultRepository();
@@ -26,9 +28,12 @@ class SportDetailViewModel extends GetxController implements IBaseViewModel {
 
   /// 当前周期的标题：周/月随偏移实时变化，日为当天日期。
   String get title => switch (vo.period.value) {
-    SportPeriod.week => SportDetailFixtures.weekTitle(offset: vo.weekOffset.value),
-    SportPeriod.month =>
-      SportDetailFixtures.monthTitle(offset: vo.monthOffset.value),
+    SportPeriod.week => SportDetailFixtures.weekTitle(
+      offset: vo.weekOffset.value,
+    ),
+    SportPeriod.month => SportDetailFixtures.monthTitle(
+      offset: vo.monthOffset.value,
+    ),
     SportPeriod.day => vo.data.value.dateTitle,
   };
 
@@ -40,6 +45,12 @@ class SportDetailViewModel extends GetxController implements IBaseViewModel {
       vo.period.value = args;
     }
     HealthSyncRuntime.revision.addListener(_load);
+    if (Get.isRegistered<LanguageService>()) {
+      _languageWorker = ever<int>(
+        Get.find<LanguageService>().localeRevision,
+        (_) => _load(),
+      );
+    }
     init();
   }
 
@@ -54,6 +65,7 @@ class SportDetailViewModel extends GetxController implements IBaseViewModel {
   @override
   void onClose() {
     HealthSyncRuntime.revision.removeListener(_load);
+    _languageWorker?.dispose();
     unInit();
     super.onClose();
   }

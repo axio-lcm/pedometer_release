@@ -211,6 +211,85 @@ class WorkoutPageData {
   static const _purple = Color(0xFF7A3DFF);
   static const _orange = Color(0xFFFF9F12);
 
+  static WorkoutPageData localized() {
+    return WorkoutPageData(
+      heroTitle: WorkoutResource.heroTitle,
+      heroSubtitle: WorkoutResource.heroSubtitle,
+      workoutTypes: [
+        WorkoutType(
+          title: WorkoutResource.outdoorRun,
+          icon: Icons.directions_run_rounded,
+          iconAsset: 'assets/workout_outdoor.svg',
+          color: _green,
+        ),
+        WorkoutType(
+          title: WorkoutResource.indoorRun,
+          icon: Icons.fitness_center_rounded,
+          iconAsset: 'assets/workout_indoor.svg',
+          color: _cyan,
+        ),
+        WorkoutType(
+          title: WorkoutResource.fitnessWalk,
+          icon: Icons.directions_walk_rounded,
+          iconAsset: 'assets/workout_fitness_walk.svg',
+          color: _purple,
+        ),
+        WorkoutType(
+          title: WorkoutResource.hiking,
+          icon: Icons.hiking_rounded,
+          iconAsset: 'assets/workout_hiking.svg',
+          color: _orange,
+        ),
+      ],
+      goalMetrics: [
+        GoalMetric(
+          title: WorkoutResource.goalKm,
+          value: '0.00 / 8.00',
+          unit: WorkoutResource.distanceUnit,
+          icon: Icons.adjust_rounded,
+          color: _green,
+        ),
+        GoalMetric(
+          title: WorkoutResource.goalDuration,
+          value: '0 / 60',
+          unit: WorkoutResource.durationUnit,
+          icon: Icons.timer_outlined,
+          color: _cyan,
+        ),
+        GoalMetric(
+          title: WorkoutResource.goalCalorie,
+          value: '0 / 500',
+          unit: 'kcal',
+          icon: Icons.local_fire_department_rounded,
+          color: _orange,
+        ),
+        GoalMetric(
+          title: WorkoutResource.freeTraining,
+          value: WorkoutResource.noGoal,
+          icon: Icons.all_inclusive_rounded,
+          color: _purple,
+        ),
+      ],
+      achievements: [
+        Achievement(
+          title: WorkoutResource.beginnerRunner,
+          imageAsset: 'assets/1.png',
+          color: _green,
+        ),
+        Achievement(
+          title: WorkoutResource.persistent,
+          imageAsset: 'assets/2.png',
+          color: _cyan,
+        ),
+        Achievement(
+          title: WorkoutResource.hundredKm,
+          imageAsset: 'assets/3.png',
+          color: _purple,
+        ),
+      ],
+    );
+  }
+
   static const mock = WorkoutPageData(
     heroTitle: WorkoutText.heroTitle,
     heroSubtitle: WorkoutText.heroSubtitle,
@@ -319,6 +398,22 @@ class ExerciseResultData {
     required this.distanceUnit,
     required this.metrics,
   });
+
+  ExerciseResultData copyWith({
+    String? sportType,
+    String? dateText,
+    String? distance,
+    String? distanceUnit,
+    List<ExerciseResultMetric>? metrics,
+  }) {
+    return ExerciseResultData(
+      sportType: sportType ?? this.sportType,
+      dateText: dateText ?? this.dateText,
+      distance: distance ?? this.distance,
+      distanceUnit: distanceUnit ?? this.distanceUnit,
+      metrics: metrics ?? this.metrics,
+    );
+  }
 
   // 颜色字面量与 AppColors fallback 一致，保证可 const 化。
   static const _green = Color(0xFF24F04E);

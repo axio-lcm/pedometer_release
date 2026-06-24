@@ -13,18 +13,24 @@ class HomeResource {
     fallback: AppColors.bgPrimary,
   );
 
-  static String get entryOverview =>
-      ResourceLoader.string('home', 'entry_overview', fallback: '运动总览');
-  static String get entryHealthSync =>
-      ResourceLoader.string('home', 'entry_health_sync', fallback: 'Health 同步');
+  static String get entryOverview => ResourceLoader.string(
+    'home',
+    'entry_overview',
+    fallback: 'Activity Overview',
+  );
+  static String get entryHealthSync => ResourceLoader.string(
+    'home',
+    'entry_health_sync',
+    fallback: 'Health Sync',
+  );
   static String get todaySteps =>
-      ResourceLoader.string('home', 'today_steps', fallback: '今日步数');
+      ResourceLoader.string('home', 'today_steps', fallback: 'Today\'s Steps');
   static String get goalSuffix =>
-      ResourceLoader.string('home', 'goal_suffix', fallback: '步');
+      ResourceLoader.string('home', 'goal_suffix', fallback: 'steps');
   static String get achieved =>
-      ResourceLoader.string('home', 'achieved', fallback: '达成');
+      ResourceLoader.string('home', 'achieved', fallback: 'Achieved');
   static String get trend =>
-      ResourceLoader.string('home', 'trend', fallback: '趋势');
+      ResourceLoader.string('home', 'trend', fallback: 'Trend');
 }
 
 /// 首页模块路由定义

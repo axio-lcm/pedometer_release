@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:pedometer/common/config/app_colors.dart';
 import 'package:pedometer/common/config/app_icon_source.dart';
+import 'package:pedometer/common/config/localized_text.dart';
 import 'package:pedometer/common/config/app_metric_assets.dart';
 
 /// 运动详情周期。
@@ -189,9 +190,7 @@ class SportDetailFixtures {
 
   /// 当天日期标题，例如「6月10日 周二」，随系统日期实时变化。
   static String _todayTitle() {
-    const labels = ['周一', '周二', '周三', '周四', '周五', '周六', '周日'];
-    final now = DateTime.now();
-    return '${now.month}月${now.day}日 ${labels[now.weekday - 1]}';
+    return localizedDayTitle(DateTime.now());
   }
 
   /// 指定周偏移的周一日期（0 = 本周，-1 = 上周，依此类推）。
@@ -205,7 +204,7 @@ class SportDetailFixtures {
   static String weekTitle({int offset = 0}) {
     final monday = weekMonday(offset);
     final sunday = monday.add(const Duration(days: 6));
-    return '${monday.month}月${monday.day}日 - ${sunday.month}月${sunday.day}日';
+    return '${localizedShortDate(monday)} - ${localizedShortDate(sunday)}';
   }
 
   /// 指定月偏移的当月第一天（0 = 本月，-1 = 上月，依此类推）。
@@ -217,7 +216,7 @@ class SportDetailFixtures {
   /// 指定月偏移的年月标题，例如「2026年6月」，随系统日期实时变化。
   static String monthTitle({int offset = 0}) {
     final anchor = monthAnchor(offset);
-    return '${anchor.year}年${anchor.month}月';
+    return localizedMonthTitle(anchor);
   }
 
   static SportPeriodData byPeriod(SportPeriod period) {
@@ -228,35 +227,39 @@ class SportDetailFixtures {
     };
   }
 
+  static List<String> get _weekdayLabels => isZhLocale
+      ? const ['周一', '周二', '周三', '周四', '周五', '周六', '周日']
+      : const ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'];
+
   static SportPeriodData get day => SportPeriodData(
     period: SportPeriod.day,
     dateTitle: _todayTitle(),
-    progress: const SportProgressData(
-      title: '今日步数',
+    progress: SportProgressData(
+      title: lt('Today\'s Steps', '今日步数'),
       value: 5276,
       goal: 6000,
-      goalUnit: '步',
-      badgePrefix: '达成',
+      goalUnit: lt('steps', '步'),
+      badgePrefix: lt('Achieved', '达成'),
     ),
     metrics: [
       SportMetricData(
         iconAsset: AppMetricAssets.distance,
         color: AppColors.accentPurple,
-        title: '距离',
+        title: lt('Distance', '距离'),
         value: '1.6',
         unit: 'km',
       ),
       SportMetricData(
         iconAsset: AppMetricAssets.calories,
         color: AppColors.accentOrange,
-        title: '卡路里',
+        title: lt('Calories', '卡路里'),
         value: '293',
         unit: 'kcal',
       ),
       SportMetricData(
         iconAsset: AppMetricAssets.activeTime,
         color: AppColors.accentCyan,
-        title: '活动时间',
+        title: lt('Active Time', '活动时间'),
         value: '28',
         unit: 'min',
       ),
@@ -278,52 +281,55 @@ class SportDetailFixtures {
       SportSegmentData(
         icon: Icons.wb_sunny_rounded,
         color: AppColors.brandGreen,
-        title: '晨间步行',
+        title: lt('Morning Walk', '晨间步行'),
         time: '07:30 - 08:10',
-        steps: '1,280步',
+        steps: lt('1,280 steps', '1,280步'),
       ),
       SportSegmentData(
         icon: Icons.light_mode_rounded,
         color: AppColors.accentOrange,
-        title: '午间活动',
+        title: lt('Midday Activity', '午间活动'),
         time: '12:20 - 12:45',
-        steps: '1,040步',
+        steps: lt('1,040 steps', '1,040步'),
       ),
       SportSegmentData(
         icon: Icons.nights_stay_rounded,
         color: AppColors.accentPurple,
-        title: '晚间散步',
+        title: lt('Evening Walk', '晚间散步'),
         time: '19:10 - 19:35',
-        steps: '1,360步',
+        steps: lt('1,360 steps', '1,360步'),
       ),
     ],
     analyses: [
       SportAnalysisData(
         assetIcon: AppMetricAssets.calories,
         color: AppColors.accentOrange,
-        title: '卡路里分析',
+        title: lt('Calories Analysis', '卡路里分析'),
         value: '293',
         unit: 'kcal',
-        delta: '较昨日 +12%',
+        delta: lt('vs yesterday +12%', '较昨日 +12%'),
         samples: const [0.30, 0.45, 0.38, 0.60, 0.55, 0.78, 0.92],
       ),
       SportAnalysisData(
         assetIcon: AppMetricAssets.activeTime,
         color: AppColors.accentCyan,
-        title: '活动时间分析',
+        title: lt('Active Time Analysis', '活动时间分析'),
         value: '28',
         unit: 'min',
-        delta: '较昨日 +8%',
+        delta: lt('vs yesterday +8%', '较昨日 +8%'),
         samples: const [0.40, 0.35, 0.55, 0.50, 0.70, 0.66, 0.88],
       ),
     ],
     summary: SportSummaryData(
       icon: const AssetAppIcon(AppMetricAssets.goalSuggestion),
       color: AppColors.brandGreen,
-      title: '目标建议',
-      primary: '还差',
+      title: lt('Goal Suggestion', '目标建议'),
+      primary: lt('Remaining', '还差'),
       highlight: '724',
-      secondary: '步达成今日目标\n预计再步行 8 分钟可完成',
+      secondary: lt(
+        'steps to reach today\'s goal\nAbout 8 more minutes of walking',
+        '步达成今日目标\n预计再步行 8 分钟可完成',
+      ),
       assetName: '3D target recommendation',
     ),
   );
@@ -331,72 +337,75 @@ class SportDetailFixtures {
   static SportPeriodData get week => SportPeriodData(
     period: SportPeriod.week,
     dateTitle: weekTitle(),
-    progress: const SportProgressData(
-      title: '本周步数',
+    progress: SportProgressData(
+      title: lt('This Week\'s Steps', '本周步数'),
       value: 42380,
       goal: 42000,
-      goalUnit: '目标',
-      badgePrefix: '完成',
+      goalUnit: lt('Goal', '目标'),
+      badgePrefix: lt('Completed', '完成'),
     ),
     metrics: [
       SportMetricData(
         iconAsset: AppMetricAssets.dayAverage,
         color: AppColors.accentCyan,
-        title: '日均',
+        title: lt('Daily Avg', '日均'),
         value: '6,054',
-        unit: '步',
+        unit: lt('steps', '步'),
       ),
       SportMetricData(
         iconAsset: AppMetricAssets.activeDays,
         color: AppColors.accentOrange,
-        title: '活跃天数',
+        title: lt('Active Days', '活跃天数'),
         value: '6 / 7',
-        unit: '天',
+        unit: lt('days', '天'),
       ),
       SportMetricData(
         iconAsset: AppMetricAssets.targetMet,
         color: AppColors.accentPurple,
-        title: '达标天数',
+        title: lt('Goal Days', '达标天数'),
         value: '5',
-        unit: '天',
+        unit: lt('days', '天'),
       ),
     ],
-    weekly: const [
-      WeeklyStepData('MON', 4000),
-      WeeklyStepData('TUE', 6100),
-      WeeklyStepData('WED', 5200),
-      WeeklyStepData('THU', 8000),
-      WeeklyStepData('FRI', 5900),
-      WeeklyStepData('SAT', 8200),
-      WeeklyStepData('SUN', 4400),
+    weekly: [
+      WeeklyStepData(_weekdayLabels[0], 4000),
+      WeeklyStepData(_weekdayLabels[1], 6100),
+      WeeklyStepData(_weekdayLabels[2], 5200),
+      WeeklyStepData(_weekdayLabels[3], 8000),
+      WeeklyStepData(_weekdayLabels[4], 5900),
+      WeeklyStepData(_weekdayLabels[5], 8200),
+      WeeklyStepData(_weekdayLabels[6], 4400),
     ],
     analyses: [
       SportAnalysisData(
         assetIcon: AppMetricAssets.calories,
         color: AppColors.accentOrange,
-        title: '卡路里分析',
+        title: lt('Calories Analysis', '卡路里分析'),
         value: '2,340',
         unit: 'kcal',
-        delta: '较上周 +12%',
+        delta: lt('vs last week +12%', '较上周 +12%'),
         samples: const [0.25, 0.42, 0.34, 0.55, 0.45, 0.64, 0.82],
       ),
       SportAnalysisData(
         assetIcon: AppMetricAssets.activeTime,
         color: AppColors.accentCyan,
-        title: '活动时间分析',
+        title: lt('Active Time Analysis', '活动时间分析'),
         value: '3h 48',
         unit: 'min',
-        delta: '较上周 +9%',
+        delta: lt('vs last week +9%', '较上周 +9%'),
         samples: const [0.28, 0.47, 0.36, 0.60, 0.50, 0.70, 0.88],
       ),
     ],
     summary: SportSummaryData(
       icon: const AssetAppIcon(AppMetricAssets.weekSummary),
       color: AppColors.brandGreen,
-      title: '周总结',
-      primary: '最佳表现：',
-      highlight: '周六 8,200 步',
-      secondary: '本周已连续 5 天达成目标',
+      title: lt('Weekly Summary', '周总结'),
+      primary: lt('Best Day:', '最佳表现：'),
+      highlight: lt('Sat 8,200 steps', '周六 8,200 步'),
+      secondary: lt(
+        'You reached your goal 5 days in a row this week',
+        '本周已连续 5 天达成目标',
+      ),
       assetName: '3D weekly trophy',
     ),
   );
@@ -404,32 +413,32 @@ class SportDetailFixtures {
   static SportPeriodData get month => SportPeriodData(
     period: SportPeriod.month,
     dateTitle: monthTitle(),
-    progress: const SportProgressData(
-      title: '本月步数',
+    progress: SportProgressData(
+      title: lt('This Month\'s Steps', '本月步数'),
       value: 162500,
       goal: 180000,
-      goalUnit: '目标',
-      badgePrefix: '完成',
+      goalUnit: lt('Goal', '目标'),
+      badgePrefix: lt('Completed', '完成'),
     ),
     metrics: [
       SportMetricData(
         iconAsset: AppMetricAssets.monthDailyAverage,
         color: AppColors.brandGreen,
-        title: '日均',
+        title: lt('Daily Avg', '日均'),
         value: '5,417',
-        unit: '步',
+        unit: lt('steps', '步'),
       ),
       SportMetricData(
         iconAsset: AppMetricAssets.monthTargetMet,
         color: AppColors.accentCyan,
-        title: '达标天数',
+        title: lt('Goal Days', '达标天数'),
         value: '18',
-        unit: '天',
+        unit: lt('days', '天'),
       ),
       SportMetricData(
         iconAsset: AppMetricAssets.monthTotalDistance,
         color: AppColors.accentPurple,
-        title: '总距离',
+        title: lt('Total Distance', '总距离'),
         value: '48.7',
         unit: 'km',
       ),
@@ -470,29 +479,32 @@ class SportDetailFixtures {
       SportAnalysisData(
         assetIcon: AppMetricAssets.calories,
         color: AppColors.accentOrange,
-        title: '卡路里分析',
+        title: lt('Calories Analysis', '卡路里分析'),
         value: '9,360',
         unit: 'kcal',
-        delta: '较上月 +8%',
+        delta: lt('vs last month +8%', '较上月 +8%'),
         samples: const [0.30, 0.42, 0.36, 0.58, 0.47, 0.68, 0.84],
       ),
       SportAnalysisData(
         assetIcon: AppMetricAssets.activeTime,
         color: AppColors.accentCyan,
-        title: '活动时间分析',
+        title: lt('Active Time Analysis', '活动时间分析'),
         value: '17h 24',
         unit: 'min',
-        delta: '较上月 +11%',
+        delta: lt('vs last month +11%', '较上月 +11%'),
         samples: const [0.35, 0.50, 0.40, 0.62, 0.48, 0.64, 0.82],
       ),
     ],
     summary: SportSummaryData(
       icon: const AssetAppIcon(AppMetricAssets.monthSummary),
       color: AppColors.brandGreen,
-      title: '月度总结',
-      primary: '最佳单日：',
-      highlight: '6月12日 · 8,240 步',
-      secondary: '本月已完成目标 18 / 30 天',
+      title: lt('Monthly Summary', '月度总结'),
+      primary: lt('Best Day:', '最佳单日：'),
+      highlight: lt('Jun 12 · 8,240 steps', '6月12日 · 8,240 步'),
+      secondary: lt(
+        'You reached your goal 18 / 30 days this month',
+        '本月已完成目标 18 / 30 天',
+      ),
       assetName: '3D monthly calendar',
     ),
   );

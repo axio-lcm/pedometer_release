@@ -227,9 +227,7 @@ class _IconBadge extends StatelessWidget {
         color: color.withValues(alpha: 0.16),
         border: Border.all(color: color.withValues(alpha: 0.55)),
       ),
-      child: Center(
-        child: Icon(icon, color: color, size: 26),
-      ),
+      child: Center(child: Icon(icon, color: color, size: 26)),
     );
   }
 }
@@ -450,22 +448,7 @@ class GoalAchievementCard extends StatelessWidget {
                 ),
               ),
               SizedBox(width: AppSpacing.sm),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  _TextAction(label: WorkoutResource.edit, onTap: onEdit),
-                  SizedBox(height: AppSpacing.xxs),
-                  Text(
-                    WorkoutResource.goalAchievementHint,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      color: AppColors.accentOrange,
-                      fontSize: 12,
-                    ),
-                  ),
-                ],
-              ),
+              _TextAction(label: WorkoutResource.edit, onTap: onEdit),
             ],
           ),
           SizedBox(height: AppSpacing.lg),

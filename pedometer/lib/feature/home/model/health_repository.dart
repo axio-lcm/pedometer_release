@@ -5,6 +5,7 @@ import 'package:health/health.dart';
 import 'package:pedometer/common/config/app_colors.dart';
 import 'package:pedometer/common/config/app_icon_source.dart';
 import 'package:pedometer/common/config/app_metric_assets.dart';
+import 'package:pedometer/common/config/localized_text.dart';
 import 'package:pedometer/feature/home/model/home_model.dart';
 import 'package:pedometer/feature/home/model/health_sync_models.dart';
 import 'package:pedometer/feature/home/model/sport_detail_model.dart';
@@ -249,22 +250,22 @@ class MockHealthDataSource implements HealthDataSource {
   HealthHomeSnapshot homeSnapshot() {
     return HealthHomeSnapshot(
       step: const StepData(steps: 5276, goal: 6000),
-      kpis: const [
+      kpis: [
         KpiItem(
           assetIcon: AppMetricAssets.distance,
-          title: '距离',
+          title: lt('Distance', '距离'),
           value: '1.6',
           unit: 'km',
         ),
         KpiItem(
           assetIcon: AppMetricAssets.calories,
-          title: '卡路里',
+          title: lt('Calories', '卡路里'),
           value: '293',
           unit: 'kcal',
         ),
         KpiItem(
           assetIcon: AppMetricAssets.activeTime,
-          title: '活动时间',
+          title: lt('Active Time', '活动时间'),
           value: '28',
           unit: 'min',
         ),
@@ -272,20 +273,20 @@ class MockHealthDataSource implements HealthDataSource {
       trend: _mockHomeTrend(),
       analyses: [
         AnalysisData(
-          title: '卡路里分析',
+          title: lt('Calories Analysis', '卡路里分析'),
           assetIcon: AppMetricAssets.calories,
           value: '293',
           unit: 'kcal',
-          delta: '较昨日 +12%',
+          delta: lt('vs yesterday +12%', '较昨日 +12%'),
           color: AppColors.accentOrange,
           samples: const [0.30, 0.45, 0.38, 0.60, 0.55, 0.78, 0.92],
         ),
         AnalysisData(
-          title: '活动时间分析',
+          title: lt('Active Time Analysis', '活动时间分析'),
           assetIcon: AppMetricAssets.activeTime,
           value: '28',
           unit: 'min',
-          delta: '较昨日 +8%',
+          delta: lt('vs yesterday +8%', '较昨日 +8%'),
           color: AppColors.accentCyan,
           samples: const [0.40, 0.35, 0.55, 0.50, 0.70, 0.66, 0.88],
         ),
@@ -650,19 +651,19 @@ class SyncedHealthDataSource implements HealthDataSource {
       kpis: [
         KpiItem(
           assetIcon: AppMetricAssets.distance,
-          title: '距离',
+          title: lt('Distance', '距离'),
           value: _formatDecimal(latest.distanceKm),
           unit: 'km',
         ),
         KpiItem(
           assetIcon: AppMetricAssets.calories,
-          title: '卡路里',
+          title: lt('Calories', '卡路里'),
           value: _formatInt(latest.caloriesKcal.round()),
           unit: 'kcal',
         ),
         KpiItem(
           assetIcon: AppMetricAssets.activeTime,
-          title: '活动时间',
+          title: lt('Active Time', '活动时间'),
           value: _formatInt(latest.activeMinutes),
           unit: 'min',
         ),
@@ -670,7 +671,7 @@ class SyncedHealthDataSource implements HealthDataSource {
       trend: _homeTrendEndingToday(_sorted),
       analyses: [
         AnalysisData(
-          title: '卡路里分析',
+          title: lt('Calories Analysis', '卡路里分析'),
           assetIcon: AppMetricAssets.calories,
           value: _formatInt(latest.caloriesKcal.round()),
           unit: 'kcal',
@@ -679,7 +680,7 @@ class SyncedHealthDataSource implements HealthDataSource {
           samples: _normalizedSamples(recent.map((item) => item.caloriesKcal)),
         ),
         AnalysisData(
-          title: '活动时间分析',
+          title: lt('Active Time Analysis', '活动时间分析'),
           assetIcon: AppMetricAssets.activeTime,
           value: _formatInt(latest.activeMinutes),
           unit: 'min',
@@ -715,11 +716,11 @@ class SyncedHealthDataSource implements HealthDataSource {
       period: SportPeriod.day,
       dateTitle: _dateTitle(latest.date),
       progress: SportProgressData(
-        title: '今日步数',
+        title: lt('Today\'s Steps', '今日步数'),
         value: latest.steps,
         goal: 6000,
-        goalUnit: '步',
-        badgePrefix: '达成',
+        goalUnit: lt('steps', '步'),
+        badgePrefix: lt('Achieved', '达成'),
       ),
       metrics: _metricsFor(
         distanceKm: latest.distanceKm,
@@ -732,11 +733,17 @@ class SyncedHealthDataSource implements HealthDataSource {
       summary: SportSummaryData(
         icon: const AssetAppIcon(AppMetricAssets.todaySummary),
         color: AppColors.brandGreen,
-        title: '今日总结',
-        primary: '今日步数：',
-        highlight: '${_formatInt(latest.steps)} 步',
-        secondary: '距离、卡路里和活动时间已更新',
-        assetName: 'synced health data',
+        title: lt('Today\'s Summary', '今日总结'),
+        primary: lt('Today\'s steps:', '今日步数：'),
+        highlight: lt(
+          '${_formatInt(latest.steps)} steps',
+          '${_formatInt(latest.steps)} 步',
+        ),
+        secondary: lt(
+          'Distance, calories, and active time have been updated',
+          '距离、卡路里和活动时长已更新',
+        ),
+        assetName: lt('synced health data', '已同步健康数据'),
       ),
     );
   }
@@ -769,47 +776,54 @@ class SyncedHealthDataSource implements HealthDataSource {
       period: SportPeriod.week,
       dateTitle: '${_shortDate(weekStart)} - ${_shortDate(weekEnd)}',
       progress: SportProgressData(
-        title: '本周步数',
+        title: lt('This Week\'s Steps', '本周步数'),
         value: steps,
         goal: 42000,
-        goalUnit: '目标',
-        badgePrefix: '完成',
+        goalUnit: lt('Goal', '目标'),
+        badgePrefix: lt('Completed', '完成'),
       ),
       metrics: [
         SportMetricData(
           iconAsset: AppMetricAssets.dayAverage,
           color: AppColors.accentCyan,
-          title: '日均',
+          title: lt('Daily Avg', '日均步数'),
           value: _formatInt(
             elapsedDays <= 0 ? 0 : (steps / elapsedDays).round(),
           ),
-          unit: '步',
+          unit: lt('steps', '步'),
         ),
         SportMetricData(
           iconAsset: AppMetricAssets.activeDays,
           color: AppColors.accentOrange,
-          title: '活跃天数',
+          title: lt('Active Days', '活跃天数'),
           value: '$activeDays / 7',
-          unit: '天',
+          unit: lt('days', '天'),
         ),
         SportMetricData(
           iconAsset: AppMetricAssets.targetMet,
           color: AppColors.accentPurple,
-          title: '达标天数',
+          title: lt('Goal Days', '达标天数'),
           value: '$goalDays',
-          unit: '天',
+          unit: lt('days', '天'),
         ),
       ],
       weekly: weeklyTrend,
-      analyses: _periodAnalyses(currentWeekItems, previousWeekItems, '较上周'),
+      analyses: _periodAnalyses(
+        currentWeekItems,
+        previousWeekItems,
+        lt('vs last week', '较上周'),
+      ),
       summary: SportSummaryData(
         icon: const AssetAppIcon(AppMetricAssets.weekSummary),
         color: AppColors.brandGreen,
-        title: '周总结',
-        primary: '最高步数：',
+        title: lt('Weekly Summary', '本周总结'),
+        primary: lt('Highest steps:', '最高步数：'),
         highlight: _bestDayText(currentWeekItems),
-        secondary: '本周同步 $activeDays 天健康数据',
-        assetName: 'synced weekly health data',
+        secondary: lt(
+          'Synced $activeDays days of health data this week',
+          '本周已同步 $activeDays 天健康数据',
+        ),
+        assetName: lt('synced weekly health data', '已同步周健康数据'),
       ),
     );
   }
@@ -841,35 +855,35 @@ class SyncedHealthDataSource implements HealthDataSource {
 
     return SportPeriodData(
       period: SportPeriod.month,
-      dateTitle: '${anchor.year}年${anchor.month}月',
+      dateTitle: localizedMonthTitle(anchor),
       progress: SportProgressData(
-        title: '本月步数',
+        title: lt('This Month\'s Steps', '本月步数'),
         value: steps,
         goal: 180000,
-        goalUnit: '目标',
-        badgePrefix: '完成',
+        goalUnit: lt('Goal', '目标'),
+        badgePrefix: lt('Completed', '完成'),
       ),
       metrics: [
         SportMetricData(
           iconAsset: AppMetricAssets.monthDailyAverage,
           color: AppColors.brandGreen,
-          title: '日均',
+          title: lt('Daily Avg', '日均步数'),
           value: _formatInt(
             monthItems.isEmpty ? 0 : (steps / monthItems.length).round(),
           ),
-          unit: '步',
+          unit: lt('steps', '步'),
         ),
         SportMetricData(
           iconAsset: AppMetricAssets.monthTargetMet,
           color: AppColors.accentCyan,
-          title: '达标天数',
+          title: lt('Goal Days', '达标天数'),
           value: '$goalDays',
-          unit: '天',
+          unit: lt('days', '天'),
         ),
         SportMetricData(
           iconAsset: AppMetricAssets.monthTotalDistance,
           color: AppColors.accentPurple,
-          title: '总距离',
+          title: lt('Total Distance', '总距离'),
           value: _formatDecimal(
             monthItems.fold<double>(0, (sum, item) => sum + item.distanceKm),
           ),
@@ -880,15 +894,22 @@ class SyncedHealthDataSource implements HealthDataSource {
         for (final item in monthItems)
           MonthlyDayData(item.date.day, item.steps),
       ],
-      analyses: _periodAnalyses(monthItems, previousMonthItems, '较上月'),
+      analyses: _periodAnalyses(
+        monthItems,
+        previousMonthItems,
+        lt('vs last month', '较上月'),
+      ),
       summary: SportSummaryData(
         icon: const AssetAppIcon(AppMetricAssets.monthSummary),
         color: AppColors.brandGreen,
-        title: '月度总结',
-        primary: '最佳单日：',
+        title: lt('Monthly Summary', '本月总结'),
+        primary: lt('Best Day:', '最佳单日：'),
         highlight: _bestDayText(monthItems),
-        secondary: '本月已同步 ${monthItems.length} 天健康数据',
-        assetName: 'synced monthly health data',
+        secondary: lt(
+          'Synced ${monthItems.length} days of health data this month',
+          '本月已同步 ${monthItems.length} 天健康数据',
+        ),
+        assetName: lt('synced monthly health data', '已同步月健康数据'),
       ),
     );
   }
@@ -902,21 +923,21 @@ class SyncedHealthDataSource implements HealthDataSource {
       SportMetricData(
         iconAsset: AppMetricAssets.distance,
         color: AppColors.accentPurple,
-        title: '距离',
+        title: lt('Distance', '距离'),
         value: _formatDecimal(distanceKm),
         unit: 'km',
       ),
       SportMetricData(
         iconAsset: AppMetricAssets.calories,
         color: AppColors.accentOrange,
-        title: '卡路里',
+        title: lt('Calories', '卡路里'),
         value: _formatInt(caloriesKcal.round()),
         unit: 'kcal',
       ),
       SportMetricData(
         iconAsset: AppMetricAssets.activeTime,
         color: AppColors.accentCyan,
-        title: '活动时间',
+        title: lt('Active Time', '活动时间'),
         value: _formatInt(activeMinutes),
         unit: 'min',
       ),
@@ -941,7 +962,7 @@ class SyncedHealthDataSource implements HealthDataSource {
       SportAnalysisData(
         assetIcon: AppMetricAssets.calories,
         color: AppColors.accentOrange,
-        title: '卡路里分析',
+        title: lt('Calories Analysis', '卡路里分析'),
         value: _formatInt(latest.caloriesKcal.round()),
         unit: 'kcal',
         delta: _deltaVsYesterday(latest.caloriesKcal, previous?.caloriesKcal),
@@ -950,7 +971,7 @@ class SyncedHealthDataSource implements HealthDataSource {
       SportAnalysisData(
         assetIcon: AppMetricAssets.activeTime,
         color: AppColors.accentCyan,
-        title: '活动时间分析',
+        title: lt('Active Time Analysis', '活动时间分析'),
         value: _formatInt(latest.activeMinutes),
         unit: 'min',
         delta: _deltaVsYesterday(
@@ -988,7 +1009,7 @@ class SyncedHealthDataSource implements HealthDataSource {
       SportAnalysisData(
         assetIcon: AppMetricAssets.calories,
         color: AppColors.accentOrange,
-        title: '卡路里分析',
+        title: lt('Calories Analysis', '卡路里分析'),
         value: _formatInt(calories.round()),
         unit: 'kcal',
         delta: _deltaVsPrevious(compareLabel, calories, prevCalories),
@@ -997,7 +1018,7 @@ class SyncedHealthDataSource implements HealthDataSource {
       SportAnalysisData(
         assetIcon: AppMetricAssets.activeTime,
         color: AppColors.accentCyan,
-        title: '活动时间分析',
+        title: lt('Active Time Analysis', '活动时间分析'),
         value: _formatInt(minutes),
         unit: 'min',
         delta: _deltaVsPrevious(
@@ -1092,10 +1113,11 @@ String _formatDecimal(double value) {
 
 /// 生成「较昨日 ±X%」文案；昨日无数据时返回「较昨日 --」。
 String _deltaVsYesterday(double today, double? yesterday) {
-  if (yesterday == null || yesterday <= 0) return '较昨日 --';
+  final label = lt('vs yesterday', '较昨日');
+  if (yesterday == null || yesterday <= 0) return '$label --';
   final percent = ((today - yesterday) / yesterday * 100).round();
   final sign = percent >= 0 ? '+' : '';
-  return '较昨日 $sign$percent%';
+  return '$label $sign$percent%';
 }
 
 /// 生成「较上周/较上月 ±X%」文案；上一周期无数据时返回「$label --」。
@@ -1120,16 +1142,16 @@ String _formatInt(int value) {
 }
 
 String _weekdayLabel(DateTime date) {
-  const labels = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'];
-  return labels[date.weekday - 1];
+  const enLabels = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'];
+  const zhLabels = ['周一', '周二', '周三', '周四', '周五', '周六', '周日'];
+  return (isZhLocale ? zhLabels : enLabels)[date.weekday - 1];
 }
 
 String _dateTitle(DateTime date) {
-  const labels = ['周一', '周二', '周三', '周四', '周五', '周六', '周日'];
-  return '${date.month}月${date.day}日 ${labels[date.weekday - 1]}';
+  return localizedDayTitle(date);
 }
 
-String _shortDate(DateTime date) => '${date.month}月${date.day}日';
+String _shortDate(DateTime date) => localizedShortDate(date);
 
 DateTime _dateOnly(DateTime date) => DateTime(date.year, date.month, date.day);
 
@@ -1155,9 +1177,12 @@ double _numericHealthValue(HealthDataPoint point) {
 }
 
 String _bestDayText(List<HealthDailySummary> items) {
-  if (items.isEmpty) return '暂无数据';
+  if (items.isEmpty) return lt('No data', '暂无数据');
   final best = items.reduce((a, b) => a.steps >= b.steps ? a : b);
-  return '${_shortDate(best.date)} · ${_formatInt(best.steps)} 步';
+  return lt(
+    '${_shortDate(best.date)} · ${_formatInt(best.steps)} steps',
+    '${_shortDate(best.date)} · ${_formatInt(best.steps)} 步',
+  );
 }
 
 List<double> _normalizedSamples(Iterable<double> values) {

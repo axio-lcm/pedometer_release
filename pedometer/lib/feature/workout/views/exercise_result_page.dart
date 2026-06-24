@@ -86,7 +86,11 @@ class _ExerciseResultPageState extends State<ExerciseResultPage> {
 
   @override
   Widget build(BuildContext context) {
-    final data = _controller.data;
+    final data = _controller.data.copyWith(
+      sportType: WorkoutResource.localizedWorkoutTypeTitle(
+        _controller.data.sportType,
+      ),
+    );
     return Scaffold(
       backgroundColor: WorkoutResource.background,
       body: Stack(

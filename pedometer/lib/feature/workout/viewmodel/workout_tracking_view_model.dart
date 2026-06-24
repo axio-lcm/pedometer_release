@@ -6,8 +6,10 @@ import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:intl/intl.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:pedometer/common/config/app_colors.dart';
+import 'package:pedometer/common/config/localized_text.dart';
 import 'package:pedometer/common/mvvm/ibase_view_model.dart';
 import 'package:pedometer/common/service/motion_fitness_permission_service.dart';
 import 'package:pedometer/feature/workout/model/workout_calorie_policy.dart';
@@ -191,9 +193,12 @@ class WorkoutTrackingViewModel extends GetxController
   /// 当前运动类型（按标题匹配运动栏的户外 / 室内 / 健走 / 徒步），
   /// 匹配不到时回退到第一项。用于返回确认弹窗展示对应图标。
   WorkoutType get currentWorkoutType =>
-      WorkoutPageData.mock.workoutTypes.firstWhere(
+      WorkoutPageData.localized().workoutTypes.firstWhere(
         (t) => t.title == workoutTitle.value,
-        orElse: () => WorkoutPageData.mock.workoutTypes.first,
+        orElse: () => WorkoutPageData.mock.workoutTypes.firstWhere(
+          (t) => t.title == workoutTitle.value,
+          orElse: () => WorkoutPageData.localized().workoutTypes.first,
+        ),
       );
 
   /// 是否已开始且未结束（运动中或暂停中）——用于返回拦截提示。
@@ -274,8 +279,8 @@ class WorkoutTrackingViewModel extends GetxController
       if (previousTracks.isEmpty) {
         currentMusicIndex.value = -1;
         musicPlaying.value = false;
-        musicTitle.value = WorkoutText.trackingMusicTitle;
-        musicStatus.value = WorkoutText.trackingMusicIdle;
+        musicTitle.value = WorkoutResource.trackingMusicTitle;
+        musicStatus.value = WorkoutResource.trackingMusicIdle;
       }
     }
   }
@@ -340,8 +345,8 @@ class WorkoutTrackingViewModel extends GetxController
       hasMusic.value = false;
       musicPlaying.value = false;
       currentMusicIndex.value = -1;
-      musicTitle.value = WorkoutText.trackingMusicTitle;
-      musicStatus.value = WorkoutText.trackingMusicIdle;
+      musicTitle.value = WorkoutResource.trackingMusicTitle;
+      musicStatus.value = WorkoutResource.trackingMusicIdle;
       return;
     }
 
@@ -352,7 +357,7 @@ class WorkoutTrackingViewModel extends GetxController
     );
     musicTitle.value = _musicTracks[currentMusicIndex.value].name;
     if (wasCurrent && player != null && !player.playing) {
-      musicStatus.value = WorkoutText.trackingMusicPaused;
+      musicStatus.value = WorkoutResource.trackingMusicPaused;
     }
   }
 
@@ -594,14 +599,16 @@ class WorkoutTrackingViewModel extends GetxController
 
   @override
   void init() {
+    musicTitle.value = WorkoutResource.trackingMusicTitle;
+    musicStatus.value = WorkoutResource.trackingMusicIdle;
     _startMotionPaceIfNeeded();
     final args = Get.arguments;
     if (args is WorkoutType) {
       workoutTitle.value = args.title;
-      isIndoor.value = args.title == WorkoutText.indoorRun;
+      isIndoor.value = _isIndoorTitle(args.title);
     } else if (args is String && args.trim().isNotEmpty) {
       workoutTitle.value = args;
-      isIndoor.value = args == WorkoutText.indoorRun;
+      isIndoor.value = _isIndoorTitle(args);
     }
     _syncGoalFromWorkout();
   }
@@ -697,30 +704,48 @@ class WorkoutTrackingViewModel extends GetxController
   ExerciseResultData toResultData() {
     return ExerciseResultData(
       sportType: workoutTitle.value,
-      dateText: ExerciseResultData.mock.dateText,
+      dateText: _formatResultDate(DateTime.now()),
       distance: distanceKmText,
-      distanceUnit: WorkoutText.distanceUnit,
+      distanceUnit: WorkoutResource.distanceUnit,
       metrics: [
         ExerciseResultMetric(
           icon: Icons.schedule_rounded,
           color: AppColors.brandGreen,
-          label: WorkoutText.metricDuration,
+          label: WorkoutResource.metricDuration,
           value: durationText,
         ),
         ExerciseResultMetric(
           icon: Icons.local_fire_department_rounded,
           color: AppColors.accentOrange,
-          label: WorkoutText.metricCalorieKcal,
+          label: WorkoutResource.metricCalorieKcal,
           value: caloriesText,
         ),
         ExerciseResultMetric(
           icon: Icons.speed_rounded,
           color: AppColors.accentCyan,
-          label: WorkoutText.metricPaceMinKm,
+          label: WorkoutResource.metricPaceMinKm,
           value: averagePaceText,
         ),
       ],
     );
+  }
+
+  String _formatResultDate(DateTime value) {
+    if (!isZhLocale) {
+      return DateFormat('MMM d, yyyy HH:mm', 'en_US').format(value);
+    }
+    final month = value.month.toString().padLeft(2, '0');
+    final day = value.day.toString().padLeft(2, '0');
+    final hour = value.hour.toString().padLeft(2, '0');
+    final minute = value.minute.toString().padLeft(2, '0');
+    return '${value.year}年$month月$day日 $hour:$minute';
+  }
+
+  bool _isIndoorTitle(String title) {
+    return title == WorkoutResource.indoorRun ||
+        title == WorkoutText.indoorRun ||
+        title == '室内' ||
+        title == '室内跑步';
   }
 }
 

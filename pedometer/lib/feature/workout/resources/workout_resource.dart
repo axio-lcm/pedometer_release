@@ -38,6 +38,8 @@ class WorkoutResource {
       _string('goal_calorie', WorkoutText.goalCalorie);
   static String get freeTraining =>
       _string('free_training', WorkoutText.freeTraining);
+  static String get freeTrainingOn =>
+      _string('free_training_on', WorkoutText.freeTrainingOn);
   static String get noGoal => _string('no_goal', WorkoutText.noGoal);
   static String get beginnerRunner =>
       _string('beginner_runner', WorkoutText.beginnerRunner);
@@ -158,6 +160,30 @@ class WorkoutResource {
     ).replaceAll('{{value}}', value);
   }
 
+  static String localizedWorkoutTypeTitle(String title) {
+    if (title == outdoorRun ||
+        title == WorkoutText.outdoorRun ||
+        title == '户外' ||
+        title == '户外跑步') {
+      return outdoorRun;
+    }
+    if (title == indoorRun ||
+        title == WorkoutText.indoorRun ||
+        title == '室内' ||
+        title == '室内跑步') {
+      return indoorRun;
+    }
+    if (title == fitnessWalk ||
+        title == WorkoutText.fitnessWalk ||
+        title == '健走') {
+      return fitnessWalk;
+    }
+    if (title == hiking || title == WorkoutText.hiking || title == '徒步') {
+      return hiking;
+    }
+    return title;
+  }
+
   static String _string(String key, String fallback) {
     return ResourceLoader.string('workout', key, fallback: fallback);
   }
@@ -167,78 +193,82 @@ class WorkoutResource {
 class WorkoutText {
   WorkoutText._();
 
-  static const heroTitle = '准备开始今天的训练';
-  static const heroSubtitle = '连接 GPS / 开启记录';
-  static const startWorkout = '开始运动';
-  static const outdoorRun = '户外';
-  static const indoorRun = '室内';
-  static const fitnessWalk = '健走';
-  static const hiking = '徒步';
-  static const goalKm = '公里数';
-  static const distanceUnit = '公里';
-  static const goalDuration = '时长';
-  static const durationUnit = '分钟';
-  static const goalCalorie = '消耗';
-  static const freeTraining = '自由训练';
-  static const noGoal = '不设定目标';
-  static const freeTrainingOn = '已开启';
-  static const beginnerRunner = '初级跑者';
-  static const persistent = '坚持不懈';
-  static const hundredKm = '百公里';
-  static const trackingEndHint = '长按结束';
-  static const trackingMusicTitle = '运动音乐';
-  static const trackingMusicStatus = '播放中';
-  static const trackingMusicPaused = '已暂停';
-  static const trackingMusicIdle = '未导入音乐';
-  static const trackingDistanceLabel = '累计距离（公里）';
-  static const trackingTargetTemplate = '目标 {{value}} 公里';
-  static const trackingStartHint = '开始';
-  static const metricDistance = '距离';
-  static const metricDuration = '时长';
-  static const metricPace = '配速';
-  static const metricCalorieKcal = '消耗 (kcal)';
-  static const metricPaceMinKm = '配速 (min/km)';
-  static const goalAchievementTitle = '运动目标与成就';
-  static const edit = '编辑';
-  static const goalAchievementHint = '达成目标后自动点亮成就徽章';
-  static const achievementBadge = '成就徽章';
-  static const viewMore = '查看更多';
-  static const editGoalTitle = '编辑运动目标';
-  static const editGoalSubtitle = '设定目标，激励自己，每天进步一点点';
-  static const targetDistance = '目标距离';
-  static const targetDistanceSuggestion = '建议 3.00 - 20.00 公里';
-  static const targetDuration = '目标时长';
-  static const targetDurationSuggestion = '建议 10 - 300 分钟';
-  static const targetCalorie = '目标消耗';
-  static const targetCalorieSuggestion = '建议 100 - 2000 kcal';
-  static const saveGoal = '保存目标';
-  static const restoreDefault = '恢复默认';
-  static const freeTrainingTip = '开启后将不设定任何目标';
-  static const goalSuggestionTitle = '目标建议';
-  static const suggestionDistance = '距离：初学者建议 3-5 公里，进阶者 5-10 公里';
-  static const suggestionDuration = '时长：建议 30-60 分钟，有助于提升心肺能力';
-  static const suggestionCalorie = '消耗：建议 300-600 kcal，保持健康体重';
-  static const resultCompleteTitle = '运动完成！';
-  static const resultCompleteSubtitle = '太棒了！今天又是坚持运动的一天';
-  static const resultDone = '完成';
-  static const resultShare = '分享';
-  static const resultDate = '2024年5月20日 19:30';
-  static const resultSteps = '步数 (步)';
-  static const resultAvgSpeed = '平均速度 (km/h)';
-  static const resultElevation = '累计爬升 (m)';
-  static const exitConfirmTitle = '确认结束本次运动？';
-  static const exitConfirmMessage = '运动尚未结束，返回将不会保存本次运动记录。';
-  static const exitConfirmBack = '确认返回';
-  static const exitConfirmContinue = '继续运动';
-  static const trackingImportMusic = '导入音乐';
-  static const trackingRoute = '运动轨迹';
-  static const routeHistoryTitle = '历史轨迹';
-  static const routeHistoryDetailTitle = '轨迹详情';
-  static const routeHistoryCurrent = '本次轨迹';
-  static const routeHistoryRecording = '记录中';
-  static const routeHistoryEmpty = '暂无轨迹数据';
-  static const musicListTitle = '音乐列表';
-  static const musicListEmpty = '暂无音乐，请先导入音乐文件';
+  static const heroTitle = 'Ready for today\'s workout';
+  static const heroSubtitle = 'Connect GPS / Start tracking';
+  static const startWorkout = 'Start Workout';
+  static const outdoorRun = 'Outdoor';
+  static const indoorRun = 'Indoor';
+  static const fitnessWalk = 'Fitness Walk';
+  static const hiking = 'Hiking';
+  static const goalKm = 'Distance';
+  static const distanceUnit = 'km';
+  static const goalDuration = 'Duration';
+  static const durationUnit = 'min';
+  static const goalCalorie = 'Calories';
+  static const freeTraining = 'Free Training';
+  static const noGoal = 'No goal';
+  static const freeTrainingOn = 'Enabled';
+  static const beginnerRunner = 'Beginner';
+  static const persistent = 'Persistent';
+  static const hundredKm = '100 km';
+  static const trackingEndHint = 'Hold to end';
+  static const trackingMusicTitle = 'Workout Music';
+  static const trackingMusicStatus = 'Playing';
+  static const trackingMusicPaused = 'Paused';
+  static const trackingMusicIdle = 'No music imported';
+  static const trackingDistanceLabel = 'Distance (km)';
+  static const trackingTargetTemplate = 'Goal {{value}} km';
+  static const trackingStartHint = 'Start';
+  static const metricDistance = 'Distance';
+  static const metricDuration = 'Duration';
+  static const metricPace = 'Pace';
+  static const metricCalorieKcal = 'Calories (kcal)';
+  static const metricPaceMinKm = 'Pace (min/km)';
+  static const goalAchievementTitle = 'Goals & Achievements';
+  static const edit = 'Edit';
+  static const goalAchievementHint =
+      'Achievement badges light up when you reach goals';
+  static const achievementBadge = 'Badges';
+  static const viewMore = 'View More';
+  static const editGoalTitle = 'Edit Workout Goal';
+  static const editGoalSubtitle = 'Set goals to keep yourself moving every day';
+  static const targetDistance = 'Target Distance';
+  static const targetDistanceSuggestion = 'Recommended 3.00 - 20.00 km';
+  static const targetDuration = 'Target Duration';
+  static const targetDurationSuggestion = 'Recommended 10 - 300 min';
+  static const targetCalorie = 'Target Calories';
+  static const targetCalorieSuggestion = 'Recommended 100 - 2000 kcal';
+  static const saveGoal = 'Save Goal';
+  static const restoreDefault = 'Restore Default';
+  static const freeTrainingTip = 'No goal will be set when enabled';
+  static const goalSuggestionTitle = 'Goal Suggestions';
+  static const suggestionDistance =
+      'Distance: beginners 3-5 km, advanced 5-10 km';
+  static const suggestionDuration = 'Duration: 30-60 min helps improve cardio';
+  static const suggestionCalorie =
+      'Calories: 300-600 kcal helps maintain fitness';
+  static const resultCompleteTitle = 'Workout Complete!';
+  static const resultCompleteSubtitle = 'Great job keeping active today';
+  static const resultDone = 'Done';
+  static const resultShare = 'Share';
+  static const resultDate = 'May 20, 2024 19:30';
+  static const resultSteps = 'Steps';
+  static const resultAvgSpeed = 'Avg speed (km/h)';
+  static const resultElevation = 'Elevation gain (m)';
+  static const exitConfirmTitle = 'End this workout?';
+  static const exitConfirmMessage =
+      'This workout is still active. Going back will not save it.';
+  static const exitConfirmBack = 'Go Back';
+  static const exitConfirmContinue = 'Continue';
+  static const trackingImportMusic = 'Import Music';
+  static const trackingRoute = 'Route';
+  static const routeHistoryTitle = 'Workout History';
+  static const routeHistoryDetailTitle = 'Workout Details';
+  static const routeHistoryCurrent = 'Current Route';
+  static const routeHistoryRecording = 'Recording';
+  static const routeHistoryEmpty = 'No workout data';
+  static const musicListTitle = 'Music List';
+  static const musicListEmpty = 'No music yet. Import music files first.';
 }
 
 /// 运动页模块路由定义（对齐 HomeRouteTable 写法）。

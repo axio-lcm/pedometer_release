@@ -3,6 +3,7 @@ import 'package:pedometer/common/component/asset_metric_icon.dart';
 import 'package:pedometer/common/component/glass_card.dart';
 import 'package:pedometer/common/config/app_colors.dart';
 import 'package:pedometer/common/config/app_dimens.dart';
+import 'package:pedometer/common/config/localized_text.dart';
 import 'package:pedometer/feature/home/model/sync_data_detail_model.dart';
 
 class SyncStatusHero extends StatelessWidget {
@@ -108,7 +109,7 @@ class _SourceColumn extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        const SectionHeader(title: '数据来源'),
+        SectionHeader(title: lt('Data Sources', '数据来源')),
         SizedBox(height: AppSpacing.lg),
         for (var i = 0; i < sources.length; i++) ...[
           DataSourceRow(
@@ -217,7 +218,7 @@ class DataSourceViewButton extends StatelessWidget {
           border: Border.all(color: AppColors.strokeCard),
         ),
         child: Text(
-          '查看',
+          lt('View', '查看'),
           maxLines: 1,
           style: TextStyle(
             color: AppColors.textPrimary,
@@ -316,9 +317,9 @@ class DataTypeCard extends StatelessWidget {
       child: Column(
         children: [
           SectionHeader(
-            title: '数据类型',
+            title: lt('Data Types', '数据类型'),
             trailing: _HeaderAction(
-              label: '近 7 天数据',
+              label: lt('Last 7 Days', '近 7 天数据'),
               icon: Icons.keyboard_arrow_down_rounded,
               enclosedIcon: true,
             ),
@@ -448,9 +449,9 @@ class SyncHistoryCard extends StatelessWidget {
       child: Column(
         children: [
           SectionHeader(
-            title: '同步历史',
+            title: lt('Sync History', '同步历史'),
             trailing: _HeaderAction(
-              label: '查看全部',
+              label: lt('View All', '查看全部'),
               icon: Icons.chevron_right_rounded,
               enclosedIcon: true,
               onTap: onViewAll,
@@ -461,7 +462,7 @@ class SyncHistoryCard extends StatelessWidget {
             Align(
               alignment: AlignmentDirectional.centerStart,
               child: Text(
-                '暂无同步记录',
+                lt('No sync records', '暂无同步记录'),
                 style: TextStyle(color: AppColors.textSecondary, fontSize: 15),
               ),
             )
@@ -599,7 +600,7 @@ class SyncHistoryListCard extends StatelessWidget {
             Padding(
               padding: EdgeInsets.symmetric(vertical: AppSpacing.xl),
               child: Text(
-                '暂无同步记录',
+                lt('No sync records', '暂无同步记录'),
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   color: AppColors.textSecondary,

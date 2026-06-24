@@ -2,8 +2,10 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:pedometer/common/config/app_icon_source.dart';
+import 'package:pedometer/common/config/localized_text.dart';
 import 'package:pedometer/common/config/app_metric_assets.dart';
 import 'package:pedometer/common/mvvm/ibase_view_model.dart';
+import 'package:pedometer/common/storage/language_service.dart';
 import 'package:pedometer/feature/home/model/health_repository.dart';
 import 'package:pedometer/feature/home/model/health_sync_models.dart';
 import 'package:pedometer/feature/home/model/health_sync_source_policy.dart';
@@ -23,6 +25,7 @@ class SyncDataDetailViewModel extends GetxController implements IBaseViewModel {
 
   /// 连接状态变更计数，用于驱动 [platformSources] 在保存设置后刷新展示。
   final _connectionRevision = 0.obs;
+  Worker? _languageWorker;
 
   List<SyncDataSource> get platformSources {
     // 读取以建立 Obx 依赖：连接状态变化时重新计算来源状态文案。
@@ -43,11 +46,11 @@ class SyncDataDetailViewModel extends GetxController implements IBaseViewModel {
     final healthSource = HealthSyncSourcePolicy.sourceForTitle(source.title);
     if (healthSource == null) return source.status;
     return switch (HealthSyncRuntime.connectionStatusOf(healthSource)) {
-      HealthAuthStatus.authorized => '已连接',
-      HealthAuthStatus.denied => '未连接',
-      HealthAuthStatus.unavailable => '设备不可用',
-      HealthAuthStatus.unsupported => '不支持',
-      HealthAuthStatus.unknown => '未连接',
+      HealthAuthStatus.authorized => lt('Connected', '已连接'),
+      HealthAuthStatus.denied => lt('Disconnected', '未连接'),
+      HealthAuthStatus.unavailable => lt('Unavailable', '设备不可用'),
+      HealthAuthStatus.unsupported => lt('Unsupported', '不支持'),
+      HealthAuthStatus.unknown => lt('Disconnected', '未连接'),
     };
   }
 
@@ -57,6 +60,12 @@ class SyncDataDetailViewModel extends GetxController implements IBaseViewModel {
     HealthSyncRuntime.revision.addListener(_onRuntimeDataChanged);
     HealthSyncRuntime.connectionRevision.addListener(_onConnectionChanged);
     HealthSyncHistory.revision.addListener(_onRuntimeDataChanged);
+    if (Get.isRegistered<LanguageService>()) {
+      _languageWorker = ever<int>(
+        Get.find<LanguageService>().localeRevision,
+        (_) => _onRuntimeDataChanged(),
+      );
+    }
     init();
   }
 
@@ -79,6 +88,7 @@ class SyncDataDetailViewModel extends GetxController implements IBaseViewModel {
     HealthSyncRuntime.revision.removeListener(_onRuntimeDataChanged);
     HealthSyncRuntime.connectionRevision.removeListener(_onConnectionChanged);
     HealthSyncHistory.revision.removeListener(_onRuntimeDataChanged);
+    _languageWorker?.dispose();
   }
 
   @override
@@ -111,36 +121,51 @@ class SyncDataDetailViewModel extends GetxController implements IBaseViewModel {
     final dataTypes = _dataTypesFor(recent7Summary);
     return SyncDataDetailData(
       statusTitle: summary.source == HealthSyncSource.motionSensor
-          ? '运动数据已更新'
-          : '同步成功',
-      lastSyncText: '更新时间：${_timeText(updatedAt)}',
+          ? lt('Activity Data Updated', '运动数据已更新')
+          : lt('Sync Successful', '同步成功'),
+      lastSyncText: lt(
+        'Updated: ${_timeText(updatedAt)}',
+        '更新时间：${_timeText(updatedAt)}',
+      ),
       sources: _sourcesForPlatform(),
       overviewMetrics: [
-        SyncMetric(value: _formatInt(recent7Summary.steps), label: '近7天步数'),
+        SyncMetric(
+          value: _formatInt(recent7Summary.steps),
+          label: lt('Last 7 Days Steps', '近7天步数'),
+        ),
         SyncMetric(
           value: _formatInt(recent7Summary.caloriesKcal.round()),
-          label: '近7天卡路里（kcal）',
+          label: lt('Last 7 Days Calories (kcal)', '近7天卡路里（kcal）'),
         ),
         SyncMetric(
           value: _formatInt(recent7Summary.activeMinutes),
-          label: '近7天活动时间（min）',
+          label: lt('Last 7 Days Active Time (min)', '近7天活动时间（min）'),
         ),
       ],
       dataTypes: dataTypes,
       histories: _historyRecords(limit: 3),
-      safetyText: '您的健康与运动数据仅在授权后读取，并用于本机运动统计展示。',
+      safetyText: lt(
+        'Your health and activity data is read only after authorization and used for local stats.',
+        '您的健康与运动数据仅在授权后读取，并用于本机运动统计展示。',
+      ),
     );
   }
 
   static SyncDataDetailData _emptyData() {
     return SyncDataDetailData(
-      statusTitle: '暂无同步数据',
-      lastSyncText: '最后同步：暂无',
+      statusTitle: lt('No Sync Data', '暂无同步数据'),
+      lastSyncText: lt('Last sync: None', '最后同步：暂无'),
       sources: _baseSourcesFor(defaultTargetPlatform),
-      overviewMetrics: const [
-        SyncMetric(value: '0', label: '近7天步数'),
-        SyncMetric(value: '0', label: '近7天卡路里（kcal）'),
-        SyncMetric(value: '0', label: '近7天活动时间（min）'),
+      overviewMetrics: [
+        SyncMetric(value: '0', label: lt('Last 7 Days Steps', '近7天步数')),
+        SyncMetric(
+          value: '0',
+          label: lt('Last 7 Days Calories (kcal)', '近7天卡路里（kcal）'),
+        ),
+        SyncMetric(
+          value: '0',
+          label: lt('Last 7 Days Active Time (min)', '近7天活动时间（min）'),
+        ),
       ],
       dataTypes: _dataTypesFor(
         HealthDailySummary(
@@ -153,7 +178,10 @@ class SyncDataDetailViewModel extends GetxController implements IBaseViewModel {
         ),
       ),
       histories: _historyRecords(limit: 3),
-      safetyText: '授权后会在这里展示你的健康与运动数据。',
+      safetyText: lt(
+        'Your health and activity data will appear here after authorization.',
+        '授权后会在这里展示你的健康与运动数据。',
+      ),
     );
   }
 
@@ -162,7 +190,7 @@ class SyncDataDetailViewModel extends GetxController implements IBaseViewModel {
       for (final source in HealthSyncSourcePolicy.sourcesFor(platform))
         SyncDataSource(
           title: HealthSyncSourcePolicy.titleFor(source),
-          status: '未连接',
+          status: lt('Disconnected', '未连接'),
           icon: source == HealthSyncSource.appleHealth
               ? Icons.favorite_rounded
               : Icons.link_rounded,
@@ -215,25 +243,28 @@ class SyncDataDetailViewModel extends GetxController implements IBaseViewModel {
       SyncDataType(
         icon: const AssetAppIcon(AppMetricAssets.syncSteps),
         iconColor: const Color(0xFF24F04E),
-        title: '步数',
-        value: '${_formatInt(summary.steps)} 步',
+        title: lt('Steps', '步数'),
+        value: lt(
+          '${_formatInt(summary.steps)} steps',
+          '${_formatInt(summary.steps)} 步',
+        ),
       ),
       SyncDataType(
         icon: const AssetAppIcon(AppMetricAssets.syncCalories),
         iconColor: const Color(0xFFFF9F12),
-        title: '卡路里',
+        title: lt('Calories', '卡路里'),
         value: '${_formatInt(summary.caloriesKcal.round())} kcal',
       ),
       SyncDataType(
         icon: const AssetAppIcon(AppMetricAssets.syncActiveTime),
         iconColor: const Color(0xFF0CD9FF),
-        title: '活动时间',
+        title: lt('Active Time', '活动时间'),
         value: '${_formatInt(summary.activeMinutes)} min',
       ),
       SyncDataType(
         icon: const AssetAppIcon(AppMetricAssets.syncDistance),
         iconColor: const Color(0xFF43F56B),
-        title: '距离',
+        title: lt('Distance', '距离'),
         value: '${_formatDistance(summary.distanceKm)} km',
       ),
     ];
@@ -248,8 +279,11 @@ class SyncDataDetailViewModel extends GetxController implements IBaseViewModel {
         SyncHistoryRecord(
           id: entry.id,
           time: _timeText(entry.time),
-          mode: entry.mode,
-          result: '同步 ${entry.itemCount} 项数据',
+          mode: _localizedMode(entry.mode),
+          result: lt(
+            'Synced ${entry.itemCount} items',
+            '同步 ${entry.itemCount} 项数据',
+          ),
         ),
     ];
   }
@@ -258,11 +292,21 @@ class SyncDataDetailViewModel extends GetxController implements IBaseViewModel {
     final now = DateTime.now();
     final prefix =
         date.year == now.year && date.month == now.month && date.day == now.day
-        ? '今天'
+        ? lt('Today', '今天')
         : '${date.month}/${date.day}';
     final hour = date.hour.toString().padLeft(2, '0');
     final minute = date.minute.toString().padLeft(2, '0');
     return '$prefix $hour:$minute';
+  }
+
+  static String _localizedMode(String mode) {
+    if (mode == '手动同步' || mode == 'Manual Sync') {
+      return lt('Manual Sync', '手动同步');
+    }
+    if (mode == '自动同步' || mode == 'Auto Sync') {
+      return lt('Auto Sync', '自动同步');
+    }
+    return mode;
   }
 
   static String _formatDistance(double value) {

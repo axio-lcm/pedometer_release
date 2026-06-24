@@ -8,6 +8,7 @@ import 'package:pedometer/common/component/glass_card.dart';
 import 'package:pedometer/common/config/app_colors.dart';
 import 'package:pedometer/common/config/app_dimens.dart';
 import 'package:pedometer/common/config/app_icon_source.dart';
+import 'package:pedometer/common/config/localized_text.dart';
 import 'package:pedometer/feature/home/components/walking_scene_placeholder.dart';
 import 'package:pedometer/feature/home/model/sport_detail_model.dart';
 
@@ -504,7 +505,10 @@ class _HourlyStepTrendCardState extends State<HourlyStepTrendCard> {
     final selectedItem = selectedIndex < 0 ? null : widget.data[selectedIndex];
     final tooltipText = selectedItem == null
         ? null
-        : '${selectedItem.label} · ${NumberFormat.decimalPattern().format(selectedItem.steps)} 步';
+        : lt(
+            '${selectedItem.label} · ${NumberFormat.decimalPattern().format(selectedItem.steps)} steps',
+            '${selectedItem.label} · ${NumberFormat.decimalPattern().format(selectedItem.steps)} 步',
+          );
     return GlassCard(
       radius: AppRadius.xl,
       padding: EdgeInsets.fromLTRB(
@@ -516,7 +520,7 @@ class _HourlyStepTrendCardState extends State<HourlyStepTrendCard> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _CardTitle('小时步数趋势'),
+          _CardTitle(lt('Hourly Steps Trend', '小时步数趋势')),
           SizedBox(height: AppSpacing.md),
           SizedBox(
             height: 150,
@@ -803,8 +807,9 @@ class WeeklyTrendCard extends StatefulWidget {
 
   /// 今天对应的星期标签，与柱图 label 保持一致（MON…SUN）。
   static String get _todayLabel {
-    const labels = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'];
-    return labels[DateTime.now().weekday - 1];
+    const enLabels = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'];
+    const zhLabels = ['周一', '周二', '周三', '周四', '周五', '周六', '周日'];
+    return (isZhLocale ? zhLabels : enLabels)[DateTime.now().weekday - 1];
   }
 
   /// 千分位格式化步数，如 8200 -> 8,200。
@@ -855,7 +860,10 @@ class _WeeklyTrendCardState extends State<WeeklyTrendCard> {
     final selectedItem = selectedIndex < 0 ? null : widget.data[selectedIndex];
     final tooltipText = selectedItem == null
         ? null
-        : '${selectedItem.label} · ${WeeklyTrendCard._formatSteps(selectedItem.steps)} 步';
+        : lt(
+            '${selectedItem.label} · ${WeeklyTrendCard._formatSteps(selectedItem.steps)} steps',
+            '${selectedItem.label} · ${WeeklyTrendCard._formatSteps(selectedItem.steps)} 步',
+          );
     final yAxisScale = _yAxisScale;
     return GlassCard(
       radius: AppRadius.xl,
@@ -868,7 +876,7 @@ class _WeeklyTrendCardState extends State<WeeklyTrendCard> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _CardTitle('本周趋势'),
+          _CardTitle(lt('Weekly Trend', '每周趋势')),
           SizedBox(height: AppSpacing.md),
           SizedBox(
             height: 170,
@@ -1207,7 +1215,7 @@ class SportSegmentListCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _CardTitle('活动时段'),
+          _CardTitle(lt('Active Periods', '活跃时段')),
           SizedBox(height: AppSpacing.sm),
           for (var i = 0; i < segments.length; i++) ...[
             _SegmentRow(data: segments[i]),
@@ -1485,15 +1493,17 @@ class _MonthlyHeatCalendarCardState extends State<MonthlyHeatCalendarCard> {
         children: [
           Row(
             children: [
-              Expanded(child: _CardTitle('月度热力')),
+              Expanded(child: _CardTitle(lt('Monthly Heatmap', '月度热力图'))),
               if (selectedDay != null)
                 Flexible(
                   child: FittedBox(
                     fit: BoxFit.scaleDown,
                     alignment: Alignment.centerRight,
                     child: Text(
-                      '${selectedMonth.month}月$selectedDay日 · '
-                      '${_formatSteps(selectedSteps)} 步',
+                      lt(
+                        '${_monthName(selectedMonth.month)} $selectedDay · ${_formatSteps(selectedSteps)} steps',
+                        '${_monthName(selectedMonth.month)}$selectedDay日 · ${_formatSteps(selectedSteps)} 步',
+                      ),
                       style: TextStyle(
                         color: AppColors.brandGreen,
                         fontSize: 14,
@@ -1507,15 +1517,10 @@ class _MonthlyHeatCalendarCardState extends State<MonthlyHeatCalendarCard> {
           SizedBox(height: AppSpacing.md),
           Row(
             children: [
-              for (final label in const [
-                '周一',
-                '周二',
-                '周三',
-                '周四',
-                '周五',
-                '周六',
-                '周日',
-              ])
+              for (final label
+                  in isZhLocale
+                      ? const ['一', '二', '三', '四', '五', '六', '日']
+                      : const ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'])
                 Expanded(
                   child: Center(
                     child: FittedBox(
@@ -1587,7 +1592,7 @@ class _MonthlyHeatCalendarCardState extends State<MonthlyHeatCalendarCard> {
             children: [
               Flexible(
                 child: Text(
-                  '步数较少',
+                  lt('Fewer steps', '步数少'),
                   style: TextStyle(
                     color: AppColors.textSecondary,
                     fontSize: 12,
@@ -1609,7 +1614,7 @@ class _MonthlyHeatCalendarCardState extends State<MonthlyHeatCalendarCard> {
               SizedBox(width: AppSpacing.sm),
               Flexible(
                 child: Text(
-                  '步数较多',
+                  lt('More steps', '步数多'),
                   style: TextStyle(
                     color: AppColors.textSecondary,
                     fontSize: 12,
@@ -1811,9 +1816,9 @@ class SummaryCard extends StatelessWidget {
                         TextSpan(text: data.secondary.split('\n').first)
                       else
                         TextSpan(
-                          text: data.secondary.startsWith('本')
-                              ? '\n${data.secondary}'
-                              : data.secondary,
+                          text: data.secondary.contains('\n')
+                              ? data.secondary
+                              : '\n${data.secondary}',
                         ),
                     ],
                   ),
@@ -1917,19 +1922,19 @@ class SportPeriodTabBar extends StatelessWidget {
       child: Row(
         children: [
           _PeriodTabButton(
-            label: '日',
+            label: lt('Day', '日'),
             value: SportPeriod.day,
             current: current,
             onChanged: onChanged,
           ),
           _PeriodTabButton(
-            label: '周',
+            label: lt('Week', '周'),
             value: SportPeriod.week,
             current: current,
             onChanged: onChanged,
           ),
           _PeriodTabButton(
-            label: '月',
+            label: lt('Month', '月'),
             value: SportPeriod.month,
             current: current,
             onChanged: onChanged,
@@ -2046,4 +2051,23 @@ Color _heatColor(int steps) {
   if (steps < 6500) return AppColors.brandGreen.withValues(alpha: 0.62);
   if (steps < 7600) return AppColors.brandGreen.withValues(alpha: 0.82);
   return AppColors.brandGreenLight.withValues(alpha: 0.92);
+}
+
+String _monthName(int month) {
+  if (isZhLocale) return '$month月';
+  const names = [
+    'Jan',
+    'Feb',
+    'Mar',
+    'Apr',
+    'May',
+    'Jun',
+    'Jul',
+    'Aug',
+    'Sep',
+    'Oct',
+    'Nov',
+    'Dec',
+  ];
+  return names[(month - 1).clamp(0, names.length - 1)];
 }

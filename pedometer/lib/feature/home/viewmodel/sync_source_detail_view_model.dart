@@ -4,7 +4,9 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:health/health.dart';
 import 'package:get/get.dart';
+import 'package:pedometer/common/config/localized_text.dart';
 import 'package:pedometer/common/mvvm/ibase_view_model.dart';
+import 'package:pedometer/common/storage/language_service.dart';
 import 'package:pedometer/feature/home/model/health_repository.dart';
 import 'package:pedometer/feature/home/model/health_sync_models.dart';
 import 'package:pedometer/feature/home/model/health_sync_source_policy.dart';
@@ -48,6 +50,7 @@ class SyncSourceDetailViewModel extends GetxController
   final syncSucceeded = false.obs;
   final permissionStatus = RxnString();
   final authStatus = HealthAuthStatus.unknown.obs;
+  Worker? _languageWorker;
 
   /// 是否已确认连接（授权）。仅 [HealthAuthStatus.authorized] 才算已连接，
   /// iOS 上「未确认」不会被误判为已连接。
@@ -56,7 +59,7 @@ class SyncSourceDetailViewModel extends GetxController
   bool get isManualSyncSelected {
     final options = data.value.modeOptions;
     if (options.isEmpty) return false;
-    return options[selectedModeIndex.value].title == '手动同步';
+    return selectedModeIndex.value == 1;
   }
 
   List<ManualSyncSelectionItem> get manualItems {
@@ -75,6 +78,12 @@ class SyncSourceDetailViewModel extends GetxController
   @override
   void onInit() {
     super.onInit();
+    if (Get.isRegistered<LanguageService>()) {
+      _languageWorker = ever<int>(
+        Get.find<LanguageService>().localeRevision,
+        (_) => refreshLocalizedData(),
+      );
+    }
     init();
   }
 
@@ -92,6 +101,7 @@ class SyncSourceDetailViewModel extends GetxController
 
   @override
   void onClose() {
+    _languageWorker?.dispose();
     unInit();
     super.onClose();
   }
@@ -124,13 +134,52 @@ class SyncSourceDetailViewModel extends GetxController
         : _authStatusText(restored, source.title);
   }
 
+  void refreshLocalizedData() {
+    final source = data.value.source;
+    final selectedIndex = selectedModeIndex.value;
+    final selections = manualSelections.toList();
+    final nextData = SyncSourceDetailData.forSource(source);
+    data.value = nextData;
+    selectedModeIndex.value = nextData.modeOptions.isEmpty
+        ? 0
+        : selectedIndex.clamp(0, nextData.modeOptions.length - 1).toInt();
+    if (nextData.manualItems.isEmpty) {
+      manualSelections.clear();
+    } else {
+      manualSelections.assignAll([
+        for (var i = 0; i < nextData.manualItems.length; i++)
+          i < selections.length
+              ? selections[i]
+              : nextData.manualItems[i].selected,
+      ]);
+    }
+    permissionStatus.value = authStatus.value == HealthAuthStatus.unknown
+        ? null
+        : _authStatusText(authStatus.value, source.title);
+  }
+
   String _authStatusText(HealthAuthStatus status, String title) {
     return switch (status) {
-      HealthAuthStatus.authorized => '已授权 $title 健康数据',
-      HealthAuthStatus.denied => '$title 未授权，请在系统「健康」中允许读取',
-      HealthAuthStatus.unavailable => '$title 当前设备不可用',
-      HealthAuthStatus.unsupported => '当前平台不支持 $title',
-      HealthAuthStatus.unknown => '$title 授权状态待确认，同步后可验证是否读取到数据',
+      HealthAuthStatus.authorized => lt(
+        '$title health data authorized',
+        '已授权 $title 健康数据',
+      ),
+      HealthAuthStatus.denied => lt(
+        '$title is not authorized. Please allow access in the system Health settings.',
+        '$title 未授权，请在系统「健康」中允许读取',
+      ),
+      HealthAuthStatus.unavailable => lt(
+        '$title is unavailable on this device',
+        '$title 当前设备不可用',
+      ),
+      HealthAuthStatus.unsupported => lt(
+        '$title is not supported on this platform',
+        '当前平台不支持 $title',
+      ),
+      HealthAuthStatus.unknown => lt(
+        '$title authorization is pending. Sync to verify data access.',
+        '$title 授权状态待确认，同步后可验证是否读取到数据',
+      ),
     };
   }
 
@@ -155,7 +204,10 @@ class SyncSourceDetailViewModel extends GetxController
 
     if (!HealthSyncSourcePolicy.isSupported(source, platform)) {
       _applyAuthStatus(source, HealthAuthStatus.unsupported, title);
-      _setSyncResult('当前平台不支持 $title', false);
+      _setSyncResult(
+        lt('$title is not supported on this platform', '当前平台不支持 $title'),
+        false,
+      );
       return;
     }
 
@@ -167,13 +219,19 @@ class SyncSourceDetailViewModel extends GetxController
       final available = await service.isAvailable(source: source);
       if (!available) {
         _applyAuthStatus(source, HealthAuthStatus.unavailable, title);
-        _setSyncResult('$title 当前设备不可用', false);
+        _setSyncResult(
+          lt('$title is unavailable on this device', '$title 当前设备不可用'),
+          false,
+        );
         return;
       }
 
       // 步骤一：先完整跑完权限申请，等待用户在系统弹窗中操作完成。
       // （iOS 上无论允许/拒绝都返回 true，不能作为是否授权的判断依据。）
-      syncMessage.value = '$title 权限申请中…';
+      syncMessage.value = lt(
+        'Requesting $title permission...',
+        '$title 权限申请中...',
+      );
       final requested = await service.requestAuthorization(
         source: source,
         types: types,
@@ -181,12 +239,15 @@ class SyncSourceDetailViewModel extends GetxController
       if (!requested) {
         // Android 明确拒绝（iOS 不会进入此分支）。
         _applyAuthStatus(source, HealthAuthStatus.denied, title);
-        _setSyncResult('$title 未完成授权', false);
+        _setSyncResult(
+          lt('$title authorization was not completed', '$title 未完成授权'),
+          false,
+        );
         return;
       }
 
       // 步骤二：权限就绪后再同步数据（不重复申请；读取带重试以规避 iOS 授权延迟）。
-      syncMessage.value = '$title 同步中…';
+      syncMessage.value = lt('Syncing $title...', '$title 同步中...');
       final now = DateTime.now();
       final token = ++_syncToken;
       final stopwatch = Stopwatch()..start();
@@ -206,7 +267,13 @@ class SyncSourceDetailViewModel extends GetxController
       if (!result.source.hasData) {
         // 同步不到数据：默认视为未授权 / 未连接。
         _applyAuthStatus(source, HealthAuthStatus.denied, title);
-        _setSyncResult('$title 未读取到健康数据，请在系统「健康」中允许读取后重试', false);
+        _setSyncResult(
+          lt(
+            'No health data was read from $title. Allow access in the system Health settings and try again.',
+            '$title 未读取到健康数据，请在系统「健康」中允许读取后重试',
+          ),
+          false,
+        );
         return;
       }
 
@@ -215,12 +282,8 @@ class SyncSourceDetailViewModel extends GetxController
       HealthSyncRuntime.replaceRealDataSource(result.source);
       stopwatch.stop();
       // 记录一条同步历史，供同步详情/历史列表/历史详情展示本次保存的数据。
-      _recordHistory(
-        source: source,
-        types: types,
-        elapsed: stopwatch.elapsed,
-      );
-      _setSyncResult('$title 同步成功', true);
+      _recordHistory(source: source, types: types, elapsed: stopwatch.elapsed);
+      _setSyncResult(lt('$title sync successful', '$title 同步成功'), true);
 
       // 第二阶段：后台逐天去重步数（仅 Apple Health 步数需要多源去重），
       // 完成后静默替换数据源刷新展示，不阻塞界面、不影响「同步中」状态。
@@ -235,9 +298,21 @@ class SyncSourceDetailViewModel extends GetxController
         );
       }
     } on TimeoutException {
-      _setSyncResult('$title 同步超时，请稍后重试', false);
+      _setSyncResult(
+        lt(
+          '$title sync timed out. Please try again later.',
+          '$title 同步超时，请稍后重试',
+        ),
+        false,
+      );
     } catch (error) {
-      _setSyncResult('$title 同步失败：${_syncErrorText(error)}', false);
+      _setSyncResult(
+        lt(
+          '$title sync failed: ${_syncErrorText(error)}',
+          '$title 同步失败：${_syncErrorText(error)}',
+        ),
+        false,
+      );
     } finally {
       syncing.value = false;
     }
@@ -265,7 +340,9 @@ class SyncSourceDetailViewModel extends GetxController
         id: '${source.name}-${now.microsecondsSinceEpoch}',
         time: now,
         source: source,
-        mode: isManualSyncSelected ? '手动同步' : '自动同步',
+        mode: isManualSyncSelected
+            ? lt('Manual Sync', '手动同步')
+            : lt('Auto Sync', '自动同步'),
         itemCount: types.length,
         snapshot: snapshot,
         elapsed: elapsed,
@@ -336,12 +413,16 @@ class SyncSourceDetailViewModel extends GetxController
     for (final item in manualItems) {
       if (!item.selected) continue;
       switch (item.title) {
+        case 'Steps':
         case '步数':
           selected.add(HealthSyncDataType.steps);
+        case 'Distance':
         case '距离':
           selected.add(HealthSyncDataType.distance);
+        case 'Calories':
         case '卡路里':
           selected.add(HealthSyncDataType.calories);
+        case 'Active Time':
         case '活动时间':
           selected.add(HealthSyncDataType.activeMinutes);
       }

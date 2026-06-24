@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import 'package:pedometer/common/component/glass_card.dart';
 import 'package:pedometer/common/config/app_colors.dart';
 import 'package:pedometer/common/config/app_dimens.dart';
+import 'package:pedometer/common/config/localized_text.dart';
 import 'package:pedometer/feature/home/model/home_model.dart';
 import 'package:pedometer/feature/home/resources/home_resource.dart';
 
@@ -57,7 +58,10 @@ class _TrendChartCardState extends State<TrendChartCard> {
         : widget.points[selectedIndex];
     final tooltipText = selectedPoint == null
         ? null
-        : '${selectedPoint.label} · ${NumberFormat.decimalPattern().format(selectedPoint.value.round())} 步';
+        : lt(
+            '${selectedPoint.label} · ${NumberFormat.decimalPattern().format(selectedPoint.value.round())} steps',
+            '${selectedPoint.label} · ${NumberFormat.decimalPattern().format(selectedPoint.value.round())} 步',
+          );
     // 卡片只保留纵向内边距；横向内边距单独加在标题与图表「视觉层」上，
     // 让交互层（Listener）铺满整张卡片宽度——这样左右两侧的卡片留白也成为可点区域，
     // 点最右侧留白即可定位到最后一个坐标点（与点左侧刻度区定位到第一个点对称）。

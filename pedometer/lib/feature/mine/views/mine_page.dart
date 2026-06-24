@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:pedometer/common/config/app_colors.dart';
 import 'package:pedometer/common/config/app_dimens.dart';
+import 'package:pedometer/common/storage/language_service.dart';
 import 'package:pedometer/feature/mine/components/mine_components.dart';
 import 'package:pedometer/feature/mine/model/mine_model.dart';
 import 'package:pedometer/feature/mine/resources/mine_resource.dart';
@@ -11,14 +12,12 @@ import 'package:pedometer/feature/mine/viewmodel/mine_view_model.dart';
 ///
 /// 由 MainPage 的底部三栏导航宿主，选中态为「我的」，故本页不自带底部导航。
 class MinePage extends GetView<MineViewModel> {
-  final MinePageData data;
+  final MinePageData? data;
 
-  const MinePage({super.key, this.data = MinePageData.mock});
+  const MinePage({super.key, this.data});
 
   @override
   Widget build(BuildContext context) {
-    controller.useData(data);
-
     return Scaffold(
       backgroundColor: MineResource.background,
       body: Stack(
@@ -35,7 +34,10 @@ class MinePage extends GetView<MineViewModel> {
                 120,
               ),
               child: Obx(() {
-                final data = controller.data.value;
+                if (Get.isRegistered<LanguageService>()) {
+                  Get.find<LanguageService>().localeRevision.value;
+                }
+                final data = this.data ?? MinePageData.localized();
                 return Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [

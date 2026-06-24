@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:intl/intl.dart';
 import 'package:pedometer/common/component/app_top_navigation_bar.dart';
 import 'package:pedometer/common/component/asset_metric_icon.dart';
 import 'package:pedometer/common/component/glass_card.dart';
@@ -21,7 +22,7 @@ class WorkoutRouteListPage extends StatelessWidget {
   }
 
   void _openDetail(WorkoutRouteHistoryRecord record) {
-    if (record.sportType == WorkoutText.indoorRun) return;
+    if (_isIndoorRecord(record)) return;
     Get.toNamed(WorkoutRouteHistoryPage.routeName, arguments: record);
   }
 
@@ -82,7 +83,7 @@ class _RouteListContent extends StatelessWidget {
         for (var i = 0; i < records.length; i++) ...[
           _RouteListItem(
             record: records[i],
-            onTap: records[i].sportType == WorkoutText.indoorRun
+            onTap: _isIndoorRecord(records[i])
                 ? null
                 : () => onRouteTap(records[i]),
           ),
@@ -102,6 +103,9 @@ class _RouteListItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final workoutType = _workoutTypeFor(record.sportType);
+    final sportType = WorkoutResource.localizedWorkoutTypeTitle(
+      record.sportType,
+    );
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: onTap,
@@ -120,7 +124,7 @@ class _RouteListItem extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        record.sportType,
+                        sportType,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
@@ -181,6 +185,9 @@ class _RouteListItem extends StatelessWidget {
   }
 
   String _formatEndedAt(DateTime value) {
+    if (Get.locale?.languageCode != 'zh') {
+      return DateFormat('MMM d, yyyy HH:mm', 'en_US').format(value);
+    }
     final month = value.month.toString().padLeft(2, '0');
     final day = value.day.toString().padLeft(2, '0');
     final hour = value.hour.toString().padLeft(2, '0');
@@ -189,11 +196,22 @@ class _RouteListItem extends StatelessWidget {
   }
 
   WorkoutType _workoutTypeFor(String title) {
-    return WorkoutPageData.mock.workoutTypes.firstWhere(
+    return WorkoutPageData.localized().workoutTypes.firstWhere(
       (type) => type.title == title,
-      orElse: () => WorkoutPageData.mock.workoutTypes.first,
+      orElse: () => WorkoutPageData.mock.workoutTypes.firstWhere(
+        (type) => type.title == title,
+        orElse: () => WorkoutPageData.localized().workoutTypes.first,
+      ),
     );
   }
+}
+
+bool _isIndoorRecord(WorkoutRouteHistoryRecord record) {
+  final title = record.sportType;
+  return title == WorkoutResource.indoorRun ||
+      title == WorkoutText.indoorRun ||
+      title == '室内' ||
+      title == '室内跑步';
 }
 
 class _RouteWorkoutTypeIcon extends StatelessWidget {

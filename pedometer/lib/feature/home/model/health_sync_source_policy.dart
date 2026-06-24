@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:pedometer/common/config/localized_text.dart';
 import 'package:pedometer/feature/home/model/health_sync_models.dart';
 
 /// 按平台决定可用的健康数据来源，并在展示标题与插件来源枚举之间转换。
@@ -36,7 +37,7 @@ class HealthSyncSourcePolicy {
     return switch (source) {
       HealthSyncSource.appleHealth => appleHealthTitle,
       HealthSyncSource.healthConnect => healthConnectTitle,
-      HealthSyncSource.motionSensor => '运动传感器',
+      HealthSyncSource.motionSensor => lt('Motion Sensor', '运动传感器'),
     };
   }
 

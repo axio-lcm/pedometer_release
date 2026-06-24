@@ -10,21 +10,34 @@ class ResourceLoader {
   static final Map<String, Map<String, String>> _colors = {};
   static final Map<String, Map<String, String>> _strings = {};
   static bool _initialized = false;
+  static String _languageCode = 'en';
 
   static const _modules = <(String module, String assetDir)>[
     ('common', 'lib/common/resources'),
     ('home', 'lib/feature/home/resources'),
+    ('mine', 'lib/feature/mine/resources'),
     ('workout', 'lib/feature/workout/resources'),
     ('phone', 'lib/products/phone/resources'),
   ];
 
-  static Future<void> init() async {
+  static String get languageCode => _languageCode;
+
+  static Future<void> init({String languageCode = 'en'}) async {
     if (_initialized) return;
+    _languageCode = _normalizeLanguageCode(languageCode);
     for (final (module, assetDir) in _modules) {
       _colors[module] = await _loadJsonMap('$assetDir/color.json');
-      _strings[module] = await _loadJsonMap('$assetDir/string.json');
     }
+    await _loadStringsForLanguage(_languageCode);
     _initialized = true;
+  }
+
+  static Future<void> setLanguageCode(String languageCode) async {
+    _ensureInit();
+    final nextLanguage = _normalizeLanguageCode(languageCode);
+    if (_languageCode == nextLanguage) return;
+    _languageCode = nextLanguage;
+    await _loadStringsForLanguage(_languageCode);
   }
 
   /// 仅供测试：用内存数据直接装载，跳过 rootBundle。
@@ -51,6 +64,24 @@ class ResourceLoader {
     } catch (_) {
       return {};
     }
+  }
+
+  static Future<void> _loadStringsForLanguage(String languageCode) async {
+    for (final (module, assetDir) in _modules) {
+      final localized = await _loadJsonMap(
+        '$assetDir/string_$languageCode.json',
+      );
+      if (localized.isNotEmpty) {
+        _strings[module] = localized;
+        continue;
+      }
+      _strings[module] = await _loadJsonMap('$assetDir/string.json');
+    }
+  }
+
+  static String _normalizeLanguageCode(String languageCode) {
+    final code = languageCode.toLowerCase();
+    return code.startsWith('zh') ? 'zh' : 'en';
   }
 
   static Color color(

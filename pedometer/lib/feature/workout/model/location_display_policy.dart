@@ -1,3 +1,5 @@
+import 'package:pedometer/common/config/localized_text.dart';
+
 /// 定位点的“可显示性”分级。
 ///
 /// 注意：这与 [LocationStabilityFilter]（轨迹质量 / 抖动抑制）是两个不同的职责。
@@ -41,10 +43,10 @@ class LocationDisplayPolicy {
 
   LocationDisplayDecision evaluate({required double accuracyMeters}) {
     if (accuracyMeters <= 0 || accuracyMeters > usableAccuracyMeters) {
-      return const LocationDisplayDecision(
+      return LocationDisplayDecision(
         quality: LocationFixQuality.unusable,
         showOnMap: false,
-        statusLabel: '等待定位信号',
+        statusLabel: lt('Waiting for GPS signal', '等待定位信号'),
       );
     }
 
@@ -52,14 +54,20 @@ class LocationDisplayPolicy {
       return LocationDisplayDecision(
         quality: LocationFixQuality.weak,
         showOnMap: true,
-        statusLabel: '定位信号较弱 · ${accuracyMeters.toStringAsFixed(0)} 米',
+        statusLabel: lt(
+          'Weak GPS signal · ${accuracyMeters.toStringAsFixed(0)} m',
+          '定位信号较弱 · ${accuracyMeters.toStringAsFixed(0)} 米',
+        ),
       );
     }
 
     return LocationDisplayDecision(
       quality: LocationFixQuality.precise,
       showOnMap: true,
-      statusLabel: '定位精度 ${accuracyMeters.toStringAsFixed(0)} 米',
+      statusLabel: lt(
+        'GPS accuracy ${accuracyMeters.toStringAsFixed(0)} m',
+        '定位精度 ${accuracyMeters.toStringAsFixed(0)} 米',
+      ),
     );
   }
 }

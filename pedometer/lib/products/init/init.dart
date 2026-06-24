@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:pedometer/common/config/resource_loader.dart';
+import 'package:get/get.dart';
+import 'package:pedometer/common/storage/language_service.dart';
+import 'package:pedometer/common/tools/language_util.dart';
 import 'package:pedometer/products/init/app.dart';
 
 /// 应用冷启动初始化（main 入口）。
@@ -16,7 +19,13 @@ class AppStartup {
   static Future<void> bootstrap() async {
     if (_bootstrapped) return;
     WidgetsFlutterBinding.ensureInitialized();
-    await ResourceLoader.init();
+    final languageService = LanguageService();
+    await languageService.init();
+    Get.put(languageService);
+    await ResourceLoader.init(
+      languageCode: languageService.resourceLanguageCode,
+    );
+    await LanguageUtil.applyStoredPreference();
     _bootstrapped = true;
   }
 }

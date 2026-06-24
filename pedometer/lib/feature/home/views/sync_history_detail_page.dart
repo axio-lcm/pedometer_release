@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:pedometer/common/component/app_top_navigation_bar.dart';
 import 'package:pedometer/common/config/app_colors.dart';
 import 'package:pedometer/common/config/app_dimens.dart';
+import 'package:pedometer/common/config/localized_text.dart';
 import 'package:pedometer/feature/home/components/sync_data_detail_components.dart';
 import 'package:pedometer/feature/home/components/sync_history_detail_components.dart';
 import 'package:pedometer/feature/home/resources/home_resource.dart';
@@ -35,7 +36,10 @@ class SyncHistoryDetailPage extends GetView<SyncHistoryDetailViewModel> {
                 return Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    AppTopNavigationBar(title: '同步历史详情', onBack: _back),
+                    AppTopNavigationBar(
+                      title: lt('Sync History Details', '同步历史详情'),
+                      onBack: _back,
+                    ),
                     SyncHistoryStatusHero(data: data),
                     CurrentSyncDataCard(items: data.syncedItems),
                     SizedBox(height: AppSpacing.lg),

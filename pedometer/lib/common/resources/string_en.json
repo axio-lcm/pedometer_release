@@ -1,0 +1,6 @@
+{
+  "app_name": "Pedometer",
+  "loading": "Loading...",
+  "error": "Failed to load",
+  "coming_soon": "{{label}}: coming soon"
+}
