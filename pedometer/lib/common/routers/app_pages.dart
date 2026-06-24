@@ -19,6 +19,8 @@ import 'package:pedometer/feature/workout/viewmodel/workout_view_model.dart';
 import 'package:pedometer/feature/workout/views/edit_sport_goal_page.dart';
 import 'package:pedometer/feature/workout/views/exercise_result_page.dart';
 import 'package:pedometer/feature/workout/views/workout_music_list_page.dart';
+import 'package:pedometer/feature/workout/views/workout_route_history_page.dart';
+import 'package:pedometer/feature/workout/views/workout_route_list_page.dart';
 import 'package:pedometer/feature/workout/views/workout_tracking_page.dart';
 import 'package:pedometer/feature/home/viewmodel/home_view_model.dart';
 import 'package:pedometer/feature/home/viewmodel/sport_detail_view_model.dart';
@@ -105,6 +107,14 @@ class AppPages {
     GetPage(
       name: WorkoutRouteTable.pathMusicList,
       page: () => const WorkoutMusicListPage(),
+    ),
+    GetPage(
+      name: WorkoutRouteTable.pathRouteHistory,
+      page: () => const WorkoutRouteListPage(),
+    ),
+    GetPage(
+      name: WorkoutRouteTable.pathRouteHistoryDetail,
+      page: () => const WorkoutRouteHistoryPage(),
     ),
   ];
 

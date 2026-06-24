@@ -134,6 +134,18 @@ class WorkoutResource {
       _string('tracking_import_music', WorkoutText.trackingImportMusic);
   static String get trackingRoute =>
       _string('tracking_route', WorkoutText.trackingRoute);
+  static String get routeHistoryTitle =>
+      _string('route_history_title', WorkoutText.routeHistoryTitle);
+  static String get routeHistoryDetailTitle => _string(
+    'route_history_detail_title',
+    WorkoutText.routeHistoryDetailTitle,
+  );
+  static String get routeHistoryCurrent =>
+      _string('route_history_current', WorkoutText.routeHistoryCurrent);
+  static String get routeHistoryRecording =>
+      _string('route_history_recording', WorkoutText.routeHistoryRecording);
+  static String get routeHistoryEmpty =>
+      _string('route_history_empty', WorkoutText.routeHistoryEmpty);
   static String get musicListTitle =>
       _string('music_list_title', WorkoutText.musicListTitle);
   static String get musicListEmpty =>
@@ -220,6 +232,11 @@ class WorkoutText {
   static const exitConfirmContinue = '继续运动';
   static const trackingImportMusic = '导入音乐';
   static const trackingRoute = '运动轨迹';
+  static const routeHistoryTitle = '历史轨迹';
+  static const routeHistoryDetailTitle = '轨迹详情';
+  static const routeHistoryCurrent = '本次轨迹';
+  static const routeHistoryRecording = '记录中';
+  static const routeHistoryEmpty = '暂无轨迹数据';
   static const musicListTitle = '音乐列表';
   static const musicListEmpty = '暂无音乐，请先导入音乐文件';
 }
@@ -232,4 +249,6 @@ class WorkoutRouteTable {
   static const String pathTracking = '/workout/tracking';
   static const String pathResult = '/workout/result';
   static const String pathMusicList = '/workout/music-list';
+  static const String pathRouteHistory = '/workout/route-history';
+  static const String pathRouteHistoryDetail = '/workout/route-history/detail';
 }

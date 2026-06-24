@@ -51,6 +51,11 @@
   "suggestion_calorie": "消耗：建议 300-600 kcal，保持健康体重",
   "tracking_import_music": "导入音乐",
   "tracking_route": "运动轨迹",
+  "route_history_title": "历史运动",
+  "route_history_detail_title": "运动详情",
+  "route_history_current": "本次轨迹",
+  "route_history_recording": "记录中",
+  "route_history_empty": "暂无运动数据",
   "music_list_title": "音乐列表",
   "music_list_empty": "暂无音乐，请先导入音乐文件"
 }

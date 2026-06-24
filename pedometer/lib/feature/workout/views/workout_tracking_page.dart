@@ -116,6 +116,7 @@ class _WorkoutTrackingPageState extends State<WorkoutTrackingPage> {
 
   void _handleMoreAction() {
     _dismissMoreMenu();
+    Get.toNamed(WorkoutRouteTable.pathRouteHistory);
   }
 
   Future<void> _importMusic() async {
