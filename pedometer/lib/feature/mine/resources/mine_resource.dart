@@ -76,6 +76,8 @@ class MineResource {
       _string('suggestion_field_required', MineText.suggestionFieldRequired);
   static String get suggestionInvalidEmail =>
       _string('suggestion_invalid_email', MineText.suggestionInvalidEmail);
+  static String get suggestionSendFailed =>
+      _string('suggestion_send_failed', MineText.suggestionSendFailed);
   static String get userAgreement =>
       _string('user_agreement', MineText.userAgreement);
   static String get privacyPolicy =>
@@ -139,6 +141,7 @@ class MineText {
   static const suggestionSuccess = 'Thanks for your feedback!';
   static const suggestionFieldRequired = 'Please fill in all fields';
   static const suggestionInvalidEmail = 'Please enter a valid email';
+  static const suggestionSendFailed = 'Failed to send, please try again';
   static const userAgreement = 'User Agreement';
   static const privacyPolicy = 'Privacy Policy';
   static const aboutUs = 'About Us';

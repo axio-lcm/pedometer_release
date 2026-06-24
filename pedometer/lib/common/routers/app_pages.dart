@@ -13,6 +13,7 @@ import 'package:pedometer/feature/home/viewmodel/sync_history_list_view_model.da
 import 'package:pedometer/feature/home/viewmodel/sync_source_detail_view_model.dart';
 import 'package:pedometer/feature/mine/viewmodel/language_view_model.dart';
 import 'package:pedometer/feature/mine/viewmodel/mine_view_model.dart';
+import 'package:pedometer/feature/mine/viewmodel/suggestion_view_model.dart';
 import 'package:pedometer/feature/mine/views/language_page.dart';
 import 'package:pedometer/feature/mine/views/suggestion_page.dart';
 import 'package:pedometer/feature/workout/resources/workout_resource.dart';
@@ -130,6 +131,9 @@ class AppPages {
     GetPage(
       name: SuggestionPage.routeName,
       page: () => const SuggestionPage(),
+      binding: BindingsBuilder(() {
+        Get.lazyPut<SuggestionViewModel>(() => SuggestionViewModel());
+      }),
     ),
   ];
 

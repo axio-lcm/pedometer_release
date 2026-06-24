@@ -37,6 +37,7 @@
   "suggestion_success": "Thanks for your feedback!",
   "suggestion_field_required": "Please fill in all fields",
   "suggestion_invalid_email": "Please enter a valid email",
+  "suggestion_send_failed": "Failed to send, please try again",
   "user_agreement": "User Agreement",
   "privacy_policy": "Privacy Policy",
   "about_us": "About Us",

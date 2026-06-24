@@ -54,6 +54,18 @@ dependencies:
   just_audio: ^0.10.5
   # 应用内评价（iOS SKStoreReviewController）
   in_app_review: ^2.0.12
+  # 网络请求
+  dio: ^5.9.2
+  # 请求参数 AES 加密
+  encrypt: ^5.0.3
+  # 网络连接类型（公共 Header netType）
+  connectivity_plus: ^7.1.1
+  # 设备信息（公共 Header deviceModel / OS）
+  device_info_plus: ^12.4.0
+  # 应用包信息（公共 Header appId / appVersion）
+  package_info_plus: ^9.0.1
+  # 设备唯一标识（userId）生成
+  uuid: ^4.5.3
 
 dev_dependencies:
   flutter_test:

@@ -4,11 +4,12 @@ import 'package:pedometer/common/component/app_top_navigation_bar.dart';
 import 'package:pedometer/common/config/app_colors.dart';
 import 'package:pedometer/common/config/app_dimens.dart';
 import 'package:pedometer/feature/mine/resources/mine_resource.dart';
+import 'package:pedometer/feature/mine/viewmodel/suggestion_view_model.dart';
 
 /// 建议 / 反馈页：低分评价或「建议」入口跳转到此。
 ///
-/// UI 复刻自 al_led_banner 的 SuggestionPage：邮箱 / 主题 / 内容三段式标签输入
-/// + 底部固定提交按钮；这里换用 pedometer 的设计令牌（AppColors / AppSpacing）。
+/// UI 复刻自 al_led_banner 的 SuggestionPage（邮箱 / 主题 / 内容三段式 + 底部按钮），
+/// 表单与提交逻辑交给 [SuggestionViewModel]，提交走同一套加密反馈接口。
 class SuggestionPage extends StatefulWidget {
   static const String routeName = '/mine/suggestion';
 
@@ -19,10 +20,7 @@ class SuggestionPage extends StatefulWidget {
 }
 
 class _SuggestionPageState extends State<SuggestionPage> {
-  final TextEditingController _emailController = TextEditingController();
-  final TextEditingController _subjectController = TextEditingController();
-  final TextEditingController _messageController = TextEditingController();
-
+  final SuggestionViewModel _vm = Get.find<SuggestionViewModel>();
   final FocusNode _emailFocusNode = FocusNode();
 
   /// 邮箱校验错误文案；为 null 表示无错误（空或合法）。
@@ -38,24 +36,7 @@ class _SuggestionPageState extends State<SuggestionPage> {
   void dispose() {
     _emailFocusNode.removeListener(_onEmailFocusChange);
     _emailFocusNode.dispose();
-    _emailController.dispose();
-    _subjectController.dispose();
-    _messageController.dispose();
     super.dispose();
-  }
-
-  /// 失焦时校验邮箱：非空且不是合法邮箱才提示（空值的必填交给提交校验）。
-  /// 重新聚焦编辑时先清掉旧提示，避免边改边报错。
-  void _onEmailFocusChange() {
-    if (_emailFocusNode.hasFocus) {
-      if (_emailError != null) setState(() => _emailError = null);
-      return;
-    }
-    final email = _emailController.text.trim();
-    final next = (email.isEmpty || GetUtils.isEmail(email))
-        ? null
-        : MineResource.suggestionInvalidEmail;
-    if (next != _emailError) setState(() => _emailError = next);
   }
 
   void _back() {
@@ -64,35 +45,27 @@ class _SuggestionPageState extends State<SuggestionPage> {
     }
   }
 
-  void _submit() {
-    final email = _emailController.text.trim();
-    final subject = _subjectController.text.trim();
-    final message = _messageController.text.trim();
+  /// 收起键盘：页面 resizeToAvoidBottomInset 为 false，需主动提供收起入口。
+  void _dismissKeyboard() => FocusScope.of(context).unfocus();
 
-    if (email.isEmpty || subject.isEmpty || message.isEmpty) {
-      _toast(MineResource.suggestionFieldRequired);
+  /// 失焦时校验邮箱：非空且不是合法邮箱才提示（空值的必填交给提交校验）。
+  /// 重新聚焦编辑时先清掉旧提示，避免边改边报错。
+  void _onEmailFocusChange() {
+    if (_emailFocusNode.hasFocus) {
+      if (_emailError != null) setState(() => _emailError = null);
       return;
     }
-    if (!GetUtils.isEmail(email)) {
-      _toast(MineResource.suggestionInvalidEmail);
-      return;
-    }
-    FocusScope.of(context).unfocus();
-
-    // TODO(反馈投递): 目前仅本地确认。接入后端 / 邮件后，将 email/subject/message 发往反馈接口。
-    _toast(MineResource.suggestionSuccess);
-    _back();
+    final email = _vm.emailController.text.trim();
+    final next = (email.isEmpty || GetUtils.isEmail(email))
+        ? null
+        : MineResource.suggestionInvalidEmail;
+    if (next != _emailError) setState(() => _emailError = next);
   }
 
-  void _toast(String message) {
-    Get.snackbar(
-      MineResource.suggestionTitle,
-      message,
-      snackPosition: SnackPosition.BOTTOM,
-      margin: EdgeInsets.all(AppSpacing.lg),
-      backgroundColor: AppColors.surfaceCardTop,
-      colorText: AppColors.textPrimary,
-    );
+  Future<void> _submit() async {
+    FocusScope.of(context).unfocus();
+    final ok = await _vm.submit();
+    if (ok && mounted) _back();
   }
 
   @override
@@ -103,78 +76,89 @@ class _SuggestionPageState extends State<SuggestionPage> {
     return Scaffold(
       backgroundColor: MineResource.background,
       resizeToAvoidBottomInset: false,
-      body: Stack(
-        children: [
-          const Positioned.fill(child: _SuggestionBackground()),
-          SafeArea(
-            bottom: false,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Padding(
-                  padding: EdgeInsets.fromLTRB(
-                    AppSpacing.lg,
-                    AppSpacing.xs,
-                    AppSpacing.lg,
-                    0,
-                  ),
-                  child: AppTopNavigationBar(
-                    title: MineResource.suggestionTitle,
-                    onBack: _back,
-                  ),
-                ),
-                Expanded(
-                  child: SingleChildScrollView(
+      body: GestureDetector(
+        behavior: HitTestBehavior.translucent,
+        onTap: _dismissKeyboard,
+        child: Stack(
+          children: [
+            const Positioned.fill(child: _SuggestionBackground()),
+            SafeArea(
+              bottom: false,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Padding(
                     padding: EdgeInsets.fromLTRB(
                       AppSpacing.lg,
+                      AppSpacing.xs,
                       AppSpacing.lg,
-                      AppSpacing.lg,
-                      AppSpacing.lg,
+                      0,
                     ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        _LabeledField(
-                          label: MineResource.suggestionEmailLabel,
-                          hint: MineResource.suggestionEmailHint,
-                          controller: _emailController,
-                          focusNode: _emailFocusNode,
-                          keyboardType: TextInputType.emailAddress,
-                          errorText: _emailError,
-                        ),
-                        SizedBox(height: AppSpacing.lg),
-                        _LabeledField(
-                          label: MineResource.suggestionSubjectLabel,
-                          hint: MineResource.suggestionSubjectHint,
-                          controller: _subjectController,
-                        ),
-                        SizedBox(height: AppSpacing.lg),
-                        _LabeledField(
-                          label: MineResource.suggestionMessageLabel,
-                          hint: MineResource.suggestionMessageHint,
-                          controller: _messageController,
-                          minHeight: messageHeight,
-                          maxLines: null,
-                          keyboardType: TextInputType.multiline,
-                          textInputAction: TextInputAction.newline,
-                        ),
-                      ],
+                    child: AppTopNavigationBar(
+                      title: MineResource.suggestionTitle,
+                      onBack: _back,
                     ),
                   ),
-                ),
-                Padding(
-                  padding: EdgeInsets.fromLTRB(
-                    AppSpacing.lg,
-                    0,
-                    AppSpacing.lg,
-                    bottomInset + AppSpacing.lg,
+                  Expanded(
+                    child: SingleChildScrollView(
+                      keyboardDismissBehavior:
+                          ScrollViewKeyboardDismissBehavior.onDrag,
+                      padding: EdgeInsets.fromLTRB(
+                        AppSpacing.lg,
+                        AppSpacing.lg,
+                        AppSpacing.lg,
+                        AppSpacing.lg,
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          _LabeledField(
+                            label: MineResource.suggestionEmailLabel,
+                            hint: MineResource.suggestionEmailHint,
+                            controller: _vm.emailController,
+                            focusNode: _emailFocusNode,
+                            keyboardType: TextInputType.emailAddress,
+                            errorText: _emailError,
+                          ),
+                          SizedBox(height: AppSpacing.lg),
+                          _LabeledField(
+                            label: MineResource.suggestionSubjectLabel,
+                            hint: MineResource.suggestionSubjectHint,
+                            controller: _vm.subjectController,
+                          ),
+                          SizedBox(height: AppSpacing.lg),
+                          _LabeledField(
+                            label: MineResource.suggestionMessageLabel,
+                            hint: MineResource.suggestionMessageHint,
+                            controller: _vm.messageController,
+                            minHeight: messageHeight,
+                            maxLines: null,
+                            keyboardType: TextInputType.multiline,
+                            textInputAction: TextInputAction.newline,
+                          ),
+                        ],
+                      ),
+                    ),
                   ),
-                  child: _SubmitButton(onTap: _submit),
-                ),
-              ],
+                  Padding(
+                    padding: EdgeInsets.fromLTRB(
+                      AppSpacing.lg,
+                      0,
+                      AppSpacing.lg,
+                      bottomInset + AppSpacing.lg,
+                    ),
+                    child: Obx(
+                      () => _SubmitButton(
+                        loading: _vm.submitting.value,
+                        onTap: _vm.submitting.value ? null : _submit,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -298,31 +282,46 @@ class _LabeledField extends StatelessWidget {
 }
 
 class _SubmitButton extends StatelessWidget {
-  final VoidCallback onTap;
+  final bool loading;
+  final VoidCallback? onTap;
 
-  const _SubmitButton({required this.onTap});
+  const _SubmitButton({required this.loading, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: onTap,
-      child: Container(
-        height: 52,
-        alignment: Alignment.center,
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(AppRadius.full),
-          gradient: LinearGradient(
-            colors: [AppColors.brandGreenLight, AppColors.brandGreen],
+      child: Opacity(
+        opacity: loading ? 0.6 : 1,
+        child: Container(
+          height: 52,
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(AppRadius.full),
+            gradient: LinearGradient(
+              colors: [AppColors.brandGreenLight, AppColors.brandGreen],
+            ),
           ),
-        ),
-        child: Text(
-          MineResource.suggestionSend,
-          style: TextStyle(
-            color: AppColors.bgPrimary,
-            fontSize: 17,
-            fontWeight: FontWeight.w700,
-          ),
+          child: loading
+              ? SizedBox(
+                  width: 22,
+                  height: 22,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    valueColor: AlwaysStoppedAnimation<Color>(
+                      AppColors.bgPrimary,
+                    ),
+                  ),
+                )
+              : Text(
+                  MineResource.suggestionSend,
+                  style: TextStyle(
+                    color: AppColors.bgPrimary,
+                    fontSize: 17,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
         ),
       ),
     );
