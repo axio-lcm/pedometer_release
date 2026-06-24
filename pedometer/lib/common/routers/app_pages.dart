@@ -14,6 +14,7 @@ import 'package:pedometer/feature/home/viewmodel/sync_source_detail_view_model.d
 import 'package:pedometer/feature/mine/viewmodel/language_view_model.dart';
 import 'package:pedometer/feature/mine/viewmodel/mine_view_model.dart';
 import 'package:pedometer/feature/mine/views/language_page.dart';
+import 'package:pedometer/feature/mine/views/suggestion_page.dart';
 import 'package:pedometer/feature/workout/resources/workout_resource.dart';
 import 'package:pedometer/feature/workout/viewmodel/edit_sport_goal_view_model.dart';
 import 'package:pedometer/feature/workout/viewmodel/exercise_result_view_model.dart';
@@ -125,6 +126,10 @@ class AppPages {
       binding: BindingsBuilder(() {
         Get.lazyPut<LanguageViewModel>(() => LanguageViewModel());
       }),
+    ),
+    GetPage(
+      name: SuggestionPage.routeName,
+      page: () => const SuggestionPage(),
     ),
   ];
 

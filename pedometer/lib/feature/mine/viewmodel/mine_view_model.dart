@@ -2,9 +2,11 @@ import 'package:flutter/widgets.dart';
 import 'package:get/get.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:pedometer/common/mvvm/ibase_view_model.dart';
+import 'package:pedometer/feature/mine/components/mine_rate_dialog.dart';
 import 'package:pedometer/feature/mine/model/mine_model.dart';
 import 'package:pedometer/feature/mine/resources/mine_resource.dart';
 import 'package:pedometer/feature/mine/views/language_page.dart';
+import 'package:pedometer/feature/mine/views/suggestion_page.dart';
 
 /// 我的页 view model：个人数据与入口点击意图。
 class MineViewModel extends GetxController implements IBaseViewModel {
@@ -39,6 +41,16 @@ class MineViewModel extends GetxController implements IBaseViewModel {
     if (entry.title == MineResource.shareApp ||
         entry.title == MineText.shareApp) {
       shareApp(origin: origin);
+      return;
+    }
+    if (entry.title == MineResource.rateUs ||
+        entry.title == MineText.rateUs) {
+      showMineRateDialog();
+      return;
+    }
+    if (entry.title == MineResource.suggestion ||
+        entry.title == MineText.suggestion) {
+      Get.toNamed(SuggestionPage.routeName);
       return;
     }
   }

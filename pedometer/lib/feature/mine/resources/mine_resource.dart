@@ -48,6 +48,34 @@ class MineResource {
       _string('share_app_subject', MineText.shareAppSubject);
   static String get rateUs => _string('rate_us', MineText.rateUs);
   static String get suggestion => _string('suggestion', MineText.suggestion);
+  static String get rateDialogTitle =>
+      _string('rate_dialog_title', MineText.rateDialogTitle);
+  static String get rateDialogMessage =>
+      _string('rate_dialog_message', MineText.rateDialogMessage);
+  static String get rateDialogSubmit =>
+      _string('rate_dialog_submit', MineText.rateDialogSubmit);
+  static String get suggestionTitle =>
+      _string('suggestion_title', MineText.suggestionTitle);
+  static String get suggestionEmailLabel =>
+      _string('suggestion_email_label', MineText.suggestionEmailLabel);
+  static String get suggestionEmailHint =>
+      _string('suggestion_email_hint', MineText.suggestionEmailHint);
+  static String get suggestionSubjectLabel =>
+      _string('suggestion_subject_label', MineText.suggestionSubjectLabel);
+  static String get suggestionSubjectHint =>
+      _string('suggestion_subject_hint', MineText.suggestionSubjectHint);
+  static String get suggestionMessageLabel =>
+      _string('suggestion_message_label', MineText.suggestionMessageLabel);
+  static String get suggestionMessageHint =>
+      _string('suggestion_message_hint', MineText.suggestionMessageHint);
+  static String get suggestionSend =>
+      _string('suggestion_send', MineText.suggestionSend);
+  static String get suggestionSuccess =>
+      _string('suggestion_success', MineText.suggestionSuccess);
+  static String get suggestionFieldRequired =>
+      _string('suggestion_field_required', MineText.suggestionFieldRequired);
+  static String get suggestionInvalidEmail =>
+      _string('suggestion_invalid_email', MineText.suggestionInvalidEmail);
   static String get userAgreement =>
       _string('user_agreement', MineText.userAgreement);
   static String get privacyPolicy =>
@@ -61,6 +89,9 @@ class MineResource {
 
   static const membershipCrownIcon = 'assets/membership_crown.svg';
   static const membershipArrowIcon = 'assets/membership_arrow.svg';
+  static const rateIllustration = 'assets/rate_illustration.png';
+  static const rateStarFilled = 'assets/rate_star_filled.png';
+  static const rateStarEmpty = 'assets/rate_star_empty.png';
 }
 
 /// 我的页模块 const 文案。供 const mock / 默认数据使用；动态读取请走 [MineResource]。
@@ -92,6 +123,22 @@ class MineText {
       'I am using this pedometer app to track steps and workouts every day. Join me!';
   static const rateUs = 'Rate Us';
   static const suggestion = 'Suggestion';
+  static const rateDialogTitle = 'Enjoying the app?';
+  static const rateDialogMessage =
+      'Your rating is our biggest motivation. Tap the stars to rate us.';
+  static const rateDialogSubmit = 'Submit';
+  static const suggestionTitle = 'Suggestion';
+  static const suggestionEmailLabel = 'Email';
+  static const suggestionEmailHint = 'Enter your email';
+  static const suggestionSubjectLabel = 'Subject';
+  static const suggestionSubjectHint = 'Enter a subject';
+  static const suggestionMessageLabel = 'Details';
+  static const suggestionMessageHint =
+      'Describe your suggestion or the issue you ran into';
+  static const suggestionSend = 'Send';
+  static const suggestionSuccess = 'Thanks for your feedback!';
+  static const suggestionFieldRequired = 'Please fill in all fields';
+  static const suggestionInvalidEmail = 'Please enter a valid email';
   static const userAgreement = 'User Agreement';
   static const privacyPolicy = 'Privacy Policy';
   static const aboutUs = 'About Us';
