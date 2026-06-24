@@ -7,6 +7,8 @@
   "bmi_normal": "Normal",
   "age": "Age",
   "age_unit": "yrs",
+  "body_data": "Body Data",
+  "edit_body_data": "Edit",
   "subscribe_title": "Membership",
   "subscribe_subtitle": "Unlock all premium features",
   "theme_setting": "Theme",

@@ -21,6 +21,9 @@ class MineResource {
   static String get bmiNormal => _string('bmi_normal', MineText.bmiNormal);
   static String get age => _string('age', MineText.age);
   static String get ageUnit => _string('age_unit', MineText.ageUnit);
+  static String get bodyData => _string('body_data', MineText.bodyData);
+  static String get editBodyData =>
+      _string('edit_body_data', MineText.editBodyData);
   static String get subscribeTitle =>
       _string('subscribe_title', MineText.subscribeTitle);
   static String get subscribeSubtitle =>
@@ -71,6 +74,8 @@ class MineText {
   static const bmiNormal = 'Normal';
   static const age = 'Age';
   static const ageUnit = 'yrs';
+  static const bodyData = 'Body Data';
+  static const editBodyData = 'Edit';
   static const subscribeTitle = 'Membership';
   static const subscribeSubtitle = 'Unlock all premium features';
   static const themeSetting = 'Theme';

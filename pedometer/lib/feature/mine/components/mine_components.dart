@@ -16,14 +16,79 @@ class BodyStatsCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return GlassCard(
       radius: AppRadius.xxl,
-      padding: EdgeInsets.symmetric(
-        horizontal: AppSpacing.md,
-        vertical: AppSpacing.xxl,
+      padding: EdgeInsets.fromLTRB(
+        AppSpacing.xl,
+        AppSpacing.lg,
+        AppSpacing.xl,
+        AppSpacing.xl,
+      ),
+      child: Column(
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  MineResource.bodyData,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    color: AppColors.textPrimary,
+                    fontSize: 18,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+              const _BodyEditButton(),
+            ],
+          ),
+          SizedBox(height: AppSpacing.xl),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              for (var i = 0; i < stats.length; i++) ...[
+                Expanded(child: BodyStatItem(stat: stats[i])),
+                if (i != stats.length - 1)
+                  SizedBox(
+                    height: 126,
+                    child: VerticalDivider(width: 1, color: AppColors.divider),
+                  ),
+              ],
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _BodyEditButton extends StatelessWidget {
+  const _BodyEditButton();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 32,
+      padding: EdgeInsets.symmetric(horizontal: AppSpacing.md),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(AppRadius.sm),
+        color: AppColors.brandGreenDark.withValues(alpha: 0.28),
+        border: Border.all(color: AppColors.strokeGreen),
       ),
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
         children: [
-          for (final stat in stats) Expanded(child: BodyStatItem(stat: stat)),
+          Icon(Icons.edit_outlined, color: AppColors.brandGreen, size: 15),
+          SizedBox(width: AppSpacing.xxs),
+          Text(
+            MineResource.editBodyData,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(
+              color: AppColors.brandGreen,
+              fontSize: 13,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
         ],
       ),
     );

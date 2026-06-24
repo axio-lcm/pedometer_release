@@ -7,6 +7,8 @@
   "bmi_normal": "正常",
   "age": "年龄",
   "age_unit": "岁",
+  "body_data": "身体数据",
+  "edit_body_data": "编辑",
   "subscribe_title": "订阅会员",
   "subscribe_subtitle": "解锁全部高级功能",
   "theme_setting": "主题设置",
