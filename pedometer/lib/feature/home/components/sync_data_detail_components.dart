@@ -318,11 +318,7 @@ class DataTypeCard extends StatelessWidget {
         children: [
           SectionHeader(
             title: lt('Data Types', '数据类型'),
-            trailing: _HeaderAction(
-              label: lt('Last 7 Days', '近 7 天数据'),
-              icon: Icons.keyboard_arrow_down_rounded,
-              enclosedIcon: true,
-            ),
+            trailing: _HeaderAction(label: lt('Last 7 Days', '近 7 天数据')),
           ),
           SizedBox(height: AppSpacing.xl),
           for (var i = 0; i < items.length; i++)
@@ -687,20 +683,23 @@ class SuccessCheckIcon extends StatelessWidget {
 
 class _HeaderAction extends StatelessWidget {
   final String label;
-  final IconData icon;
+  final IconData? icon;
   final bool enclosedIcon;
   final VoidCallback? onTap;
 
   const _HeaderAction({
     required this.label,
-    required this.icon,
+    this.icon,
     this.enclosedIcon = false,
     this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
-    final iconWidget = enclosedIcon
+    final icon = this.icon;
+    final iconWidget = icon == null
+        ? null
+        : enclosedIcon
         ? Container(
             width: 28,
             height: 28,
@@ -730,8 +729,7 @@ class _HeaderAction extends StatelessWidget {
             ),
           ),
         ),
-        SizedBox(width: AppSpacing.xs),
-        iconWidget,
+        if (iconWidget != null) ...[SizedBox(width: AppSpacing.xs), iconWidget],
       ],
     );
 
