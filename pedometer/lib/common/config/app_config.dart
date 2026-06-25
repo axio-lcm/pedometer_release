@@ -4,12 +4,15 @@
 /// 以复用同一套后端接口；bundleId 为本应用自身的包名。
 abstract final class Constants {
   static const String appName = 'Pedometer';
-  static const String bundleId = '6779515132';
 
-  /// 请求参数 AES-256-CBC 加密密钥与偏移量（与服务端约定，须与 al_led_banner 一致）。
+  /// 后端识别用的数字 App Store ID（已在 al.asmyapp.com 白名单注册）。
+  /// 作为请求头 `appId` 发送，服务端据此校验来源 app。
+  static const String appleId = '6779515132';
+
+  /// 请求参数 AES-256-CBC 加密密钥与偏移量（与服务端约定）。
   static const String aesKey = 'alhNenJDsXYyQUVOxwGB4Sg8cKUdC7sq';
   static const String aesIV = 'UgyIR0mHd2fYYZHe';
-  static const String sct = 'UgyIR0mHd2fYYZHe';
+  static const String sct = 'FBwFFqartUL0wTQi';
 }
 
 /// 后端接口地址。
