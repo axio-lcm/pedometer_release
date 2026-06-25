@@ -34,63 +34,74 @@ class SyncSourceDetailPage extends GetView<SyncSourceDetailViewModel> {
           const Positioned.fill(child: _SyncSourceDetailBackground()),
           SafeArea(
             bottom: false,
-            child: SingleChildScrollView(
-              padding: EdgeInsets.fromLTRB(
-                AppSpacing.lg,
-                AppSpacing.xs,
-                AppSpacing.lg,
-                AppSpacing.xxl,
-              ),
-              child: Obx(() {
-                final data = controller.data.value;
-                final message = controller.syncMessage.value;
-                final authStatus = controller.authStatus.value;
-                return Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    AppTopNavigationBar(
-                      title: data.source.title,
+            child: Column(
+              children: [
+                Padding(
+                  padding: EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+                  child: Obx(
+                    () => AppTopNavigationBar(
+                      title: controller.data.value.source.title,
                       onBack: _back,
                     ),
-                    SizedBox(height: AppSpacing.md),
-                    _SourceConnectionCard(data: data, status: authStatus),
-                    SizedBox(height: AppSpacing.lg),
-                    _PermissionCard(
-                      items: data.permissions,
-                      statusText: controller.permissionStatus.value,
-                      authorized: controller.isConnected,
+                  ),
+                ),
+                Expanded(
+                  child: SingleChildScrollView(
+                    padding: EdgeInsets.fromLTRB(
+                      AppSpacing.lg,
+                      AppSpacing.xs,
+                      AppSpacing.lg,
+                      AppSpacing.xxl,
                     ),
-                    SizedBox(height: AppSpacing.lg),
-                    _SyncModeCard(
-                      options: data.modeOptions,
-                      selectedIndex: controller.selectedModeIndex.value,
-                      onChanged: controller.selectSyncMode,
-                    ),
-                    if (controller.isManualSyncSelected) ...[
-                      SizedBox(height: AppSpacing.lg),
-                      _ManualSelectionCard(
-                        items: controller.manualItems,
-                        onItemTap: controller.toggleManualSelection,
-                      ),
-                    ],
-                    SizedBox(height: AppSpacing.xl),
-                    if (message != null) ...[
-                      _SyncResultBanner(
-                        message: message,
-                        succeeded: controller.syncSucceeded.value,
-                      ),
-                      SizedBox(height: AppSpacing.md),
-                    ],
-                    _SourceActionBar(
-                      syncing: controller.syncing.value,
-                      onSave: controller.syncHealthData,
-                    ),
-                    SizedBox(height: AppSpacing.lg),
-                    DataSecurityFooter(text: data.safetyText),
-                    SizedBox(height: AppSpacing.xxl),
-                  ],
-                );
-              }),
+                    child: Obx(() {
+                      final data = controller.data.value;
+                      final message = controller.syncMessage.value;
+                      final authStatus = controller.authStatus.value;
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          SizedBox(height: AppSpacing.md),
+                          _SourceConnectionCard(data: data, status: authStatus),
+                          SizedBox(height: AppSpacing.lg),
+                          _PermissionCard(
+                            items: data.permissions,
+                            statusText: controller.permissionStatus.value,
+                            authorized: controller.isConnected,
+                          ),
+                          SizedBox(height: AppSpacing.lg),
+                          _SyncModeCard(
+                            options: data.modeOptions,
+                            selectedIndex: controller.selectedModeIndex.value,
+                            onChanged: controller.selectSyncMode,
+                          ),
+                          if (controller.isManualSyncSelected) ...[
+                            SizedBox(height: AppSpacing.lg),
+                            _ManualSelectionCard(
+                              items: controller.manualItems,
+                              onItemTap: controller.toggleManualSelection,
+                            ),
+                          ],
+                          SizedBox(height: AppSpacing.xl),
+                          if (message != null) ...[
+                            _SyncResultBanner(
+                              message: message,
+                              succeeded: controller.syncSucceeded.value,
+                            ),
+                            SizedBox(height: AppSpacing.md),
+                          ],
+                          _SourceActionBar(
+                            syncing: controller.syncing.value,
+                            onSave: controller.syncHealthData,
+                          ),
+                          SizedBox(height: AppSpacing.lg),
+                          DataSecurityFooter(text: data.safetyText),
+                          SizedBox(height: AppSpacing.xxl),
+                        ],
+                      );
+                    }),
+                  ),
+                ),
+              ],
             ),
           ),
         ],

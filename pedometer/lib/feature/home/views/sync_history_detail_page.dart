@@ -24,34 +24,43 @@ class SyncHistoryDetailPage extends GetView<SyncHistoryDetailViewModel> {
           const Positioned.fill(child: _SyncHistoryDetailBackground()),
           SafeArea(
             bottom: false,
-            child: SingleChildScrollView(
-              padding: EdgeInsets.fromLTRB(
-                AppSpacing.lg,
-                AppSpacing.xs,
-                AppSpacing.lg,
-                AppSpacing.xxl,
-              ),
-              child: Obx(() {
-                final data = controller.data.value;
-                return Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    AppTopNavigationBar(
-                      title: lt('Sync History Details', '同步历史详情'),
-                      onBack: _back,
+            child: Column(
+              children: [
+                Padding(
+                  padding: EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+                  child: AppTopNavigationBar(
+                    title: lt('Sync History Details', '同步历史详情'),
+                    onBack: _back,
+                  ),
+                ),
+                Expanded(
+                  child: SingleChildScrollView(
+                    padding: EdgeInsets.fromLTRB(
+                      AppSpacing.lg,
+                      AppSpacing.xs,
+                      AppSpacing.lg,
+                      AppSpacing.xxl,
                     ),
-                    SyncHistoryStatusHero(data: data),
-                    CurrentSyncDataCard(items: data.syncedItems),
-                    SizedBox(height: AppSpacing.lg),
-                    SourceAndMethodCard(sources: data.sources),
-                    SizedBox(height: AppSpacing.lg),
-                    SyncInfoCard(items: data.infoItems),
-                    SizedBox(height: AppSpacing.xl),
-                    DataSecurityFooter(text: data.safetyText),
-                    SizedBox(height: AppSpacing.xxxl),
-                  ],
-                );
-              }),
+                    child: Obx(() {
+                      final data = controller.data.value;
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          SyncHistoryStatusHero(data: data),
+                          CurrentSyncDataCard(items: data.syncedItems),
+                          SizedBox(height: AppSpacing.lg),
+                          SourceAndMethodCard(sources: data.sources),
+                          SizedBox(height: AppSpacing.lg),
+                          SyncInfoCard(items: data.infoItems),
+                          SizedBox(height: AppSpacing.xl),
+                          DataSecurityFooter(text: data.safetyText),
+                          SizedBox(height: AppSpacing.xxxl),
+                        ],
+                      );
+                    }),
+                  ),
+                ),
+              ],
             ),
           ),
         ],

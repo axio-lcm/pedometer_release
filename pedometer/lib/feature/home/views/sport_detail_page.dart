@@ -23,17 +23,11 @@ class SportDetailPage extends GetView<SportDetailViewModel> {
           const Positioned.fill(child: _SportDetailBackground()),
           SafeArea(
             bottom: false,
-            child: SingleChildScrollView(
-              padding: EdgeInsets.fromLTRB(
-                AppSpacing.lg,
-                AppSpacing.xs,
-                AppSpacing.lg,
-                112,
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Obx(
+            child: Column(
+              children: [
+                Padding(
+                  padding: EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+                  child: Obx(
                     () => AppTopNavigationBar(
                       title: controller.title,
                       onTitlePrev: controller.isWeek
@@ -51,17 +45,34 @@ class SportDetailPage extends GetView<SportDetailViewModel> {
                       },
                     ),
                   ),
-                  SizedBox(height: AppSpacing.sm),
-                  Obx(() => SportHeroSection(data: controller.data.value)),
-                  SizedBox(height: AppSpacing.md),
-                  Obx(
-                    () => _PeriodSpecificContent(
-                      data: controller.data.value,
-                      onMonthChanged: controller.changeMonth,
+                ),
+                Expanded(
+                  child: SingleChildScrollView(
+                    padding: EdgeInsets.fromLTRB(
+                      AppSpacing.lg,
+                      AppSpacing.xs,
+                      AppSpacing.lg,
+                      112,
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        SizedBox(height: AppSpacing.sm),
+                        Obx(
+                          () => SportHeroSection(data: controller.data.value),
+                        ),
+                        SizedBox(height: AppSpacing.md),
+                        Obx(
+                          () => _PeriodSpecificContent(
+                            data: controller.data.value,
+                            onMonthChanged: controller.changeMonth,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
           Positioned(

@@ -23,31 +23,40 @@ class SyncHistoryListPage extends GetView<SyncHistoryListViewModel> {
           const Positioned.fill(child: _SyncHistoryListBackground()),
           SafeArea(
             bottom: false,
-            child: SingleChildScrollView(
-              padding: EdgeInsets.fromLTRB(
-                AppSpacing.lg,
-                AppSpacing.xs,
-                AppSpacing.lg,
-                AppSpacing.xxl,
-              ),
-              child: Obx(() {
-                final data = controller.data.value;
-                return Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    AppTopNavigationBar(
-                      title: lt('Sync History', '同步历史'),
-                      onBack: _back,
+            child: Column(
+              children: [
+                Padding(
+                  padding: EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+                  child: AppTopNavigationBar(
+                    title: lt('Sync History', '同步历史'),
+                    onBack: _back,
+                  ),
+                ),
+                Expanded(
+                  child: SingleChildScrollView(
+                    padding: EdgeInsets.fromLTRB(
+                      AppSpacing.lg,
+                      AppSpacing.xs,
+                      AppSpacing.lg,
+                      AppSpacing.xxl,
                     ),
-                    SizedBox(height: AppSpacing.md),
-                    SyncHistoryListCard(
-                      records: data.records,
-                      onRecordTap: controller.openRecord,
-                    ),
-                    SizedBox(height: AppSpacing.xxl),
-                  ],
-                );
-              }),
+                    child: Obx(() {
+                      final data = controller.data.value;
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          SizedBox(height: AppSpacing.md),
+                          SyncHistoryListCard(
+                            records: data.records,
+                            onRecordTap: controller.openRecord,
+                          ),
+                          SizedBox(height: AppSpacing.xxl),
+                        ],
+                      );
+                    }),
+                  ),
+                ),
+              ],
             ),
           ),
         ],
