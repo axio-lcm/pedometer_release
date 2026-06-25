@@ -14,6 +14,7 @@
   "lt_sync_successful": "Синхронизация выполнена",
   "lt_connected": "Подключено",
   "lt_disconnected": "Отключено",
+  "lt_not_authorized": "Не авторизовано",
   "lt_unavailable": "Недоступно",
   "lt_unsupported": "Не поддерживается",
   "lt_not_supported_on_this_platform": "Не поддерживается на этой платформе",

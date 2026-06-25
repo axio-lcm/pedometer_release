@@ -14,6 +14,7 @@
   "lt_sync_successful": "Senkronizasyon başarılı",
   "lt_connected": "Bağlandı",
   "lt_disconnected": "Bağlantı kesildi",
+  "lt_not_authorized": "Yetkilendirilmedi",
   "lt_unavailable": "Kullanılamıyor",
   "lt_unsupported": "Desteklenmiyor",
   "lt_not_supported_on_this_platform": "Bu platformda desteklenmiyor",

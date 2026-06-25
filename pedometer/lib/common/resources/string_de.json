@@ -14,6 +14,7 @@
   "lt_sync_successful": "Synchronisierung erfolgreich",
   "lt_connected": "Verbunden",
   "lt_disconnected": "Getrennt",
+  "lt_not_authorized": "Nicht autorisiert",
   "lt_unavailable": "Nicht verfügbar",
   "lt_unsupported": "Nicht unterstützt",
   "lt_not_supported_on_this_platform": "Auf dieser Plattform nicht unterstützt",

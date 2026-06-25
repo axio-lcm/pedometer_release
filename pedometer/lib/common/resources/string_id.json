@@ -14,6 +14,7 @@
   "lt_sync_successful": "Sync Successful",
   "lt_connected": "Connected",
   "lt_disconnected": "Disconnected",
+  "lt_not_authorized": "Tidak diizinkan",
   "lt_unavailable": "Unavailable",
   "lt_unsupported": "Unsupported",
   "lt_not_supported_on_this_platform": "Not supported on this platform",

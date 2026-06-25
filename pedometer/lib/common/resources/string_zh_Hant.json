@@ -14,6 +14,7 @@
   "lt_sync_successful": "同步成功",
   "lt_connected": "已連接",
   "lt_disconnected": "未連接",
+  "lt_not_authorized": "未授權",
   "lt_unavailable": "裝置不可用",
   "lt_unsupported": "不支援",
   "lt_not_supported_on_this_platform": "目前平台不支援",

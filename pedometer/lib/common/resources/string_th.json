@@ -14,6 +14,7 @@
   "lt_sync_successful": "ซิงค์สำเร็จ",
   "lt_connected": "เชื่อมต่อแล้ว",
   "lt_disconnected": "ตัดการเชื่อมต่อแล้ว",
+  "lt_not_authorized": "ยังไม่ได้รับอนุญาต",
   "lt_unavailable": "ไม่พร้อมใช้งาน",
   "lt_unsupported": "ไม่รองรับ",
   "lt_not_supported_on_this_platform": "ไม่รองรับบนแพลตฟอร์มนี้",

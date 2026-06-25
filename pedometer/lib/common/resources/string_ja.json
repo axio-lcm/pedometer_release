@@ -14,6 +14,7 @@
   "lt_sync_successful": "同期成功",
   "lt_connected": "接続済み",
   "lt_disconnected": "未接続",
+  "lt_not_authorized": "未認証",
   "lt_unavailable": "利用不可",
   "lt_unsupported": "未対応",
   "lt_not_supported_on_this_platform": "このプラットフォームでは未対応です",

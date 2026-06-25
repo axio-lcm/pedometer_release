@@ -185,8 +185,8 @@ class _SourceConnectionCard extends StatelessWidget {
     final title = data.source.title;
     final connected = status == HealthAuthStatus.authorized;
     final titleText = connected
-        ? lt('$title Connected', '已连接 $title')
-        : lt('$title Disconnected', '未连接 $title');
+        ? lt('Connected', '已连接')
+        : lt('Disconnected', '未连接');
     final (statusIcon, statusColor, statusLabel) = _statusDisplay(title);
 
     return GlassCard(
@@ -230,16 +230,6 @@ class _SourceConnectionCard extends StatelessWidget {
                     ),
                   ],
                 ),
-                SizedBox(height: AppSpacing.sm),
-                Text(
-                  lt('Manage sync permissions and sync mode', '管理同步权限与同步方式'),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    color: AppColors.textSecondary,
-                    fontSize: 13,
-                  ),
-                ),
               ],
             ),
           ),
@@ -276,7 +266,7 @@ class _SourceConnectionCard extends StatelessWidget {
       HealthAuthStatus.unknown => (
         Icons.help_outline_rounded,
         AppColors.textSecondary,
-        lt('Authorization pending. Sync to verify.', '授权状态待确认，请同步以验证'),
+        lt('Not authorized', '未授权'),
       ),
     };
   }

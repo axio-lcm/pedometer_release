@@ -14,6 +14,7 @@
   "lt_sync_successful": "Đồng bộ thành công",
   "lt_connected": "Đã kết nối",
   "lt_disconnected": "Đã ngắt kết nối",
+  "lt_not_authorized": "Chưa được cấp quyền",
   "lt_unavailable": "Không khả dụng",
   "lt_unsupported": "Không được hỗ trợ",
   "lt_not_supported_on_this_platform": "Không được hỗ trợ trên nền tảng này",
