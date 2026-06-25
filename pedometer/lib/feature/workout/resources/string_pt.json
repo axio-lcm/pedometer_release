@@ -69,5 +69,12 @@
   "route_history_recording": "Gravando",
   "route_history_empty": "Sem dados de treino",
   "music_list_title": "Lista de músicas",
-  "music_list_empty": "Nenhuma música ainda. Importe arquivos primeiro."
+  "music_list_empty": "Nenhuma música ainda. Importe arquivos primeiro.",
+  "location_permission_title": "Permissão de localização necessária",
+  "location_service_disabled_msg": "Os serviços de localização estão desativados. Ative-os para registrar sua rota.",
+  "location_denied_msg": "É necessária a permissão de localização para registrar sua rota.",
+  "location_denied_forever_msg": "Acesso à localização negado. Permita nas Configurações.",
+  "location_open_service_action": "Ativar localização",
+  "location_open_settings_action": "Abrir configurações",
+  "location_retry_action": "Tentar novamente"
 }

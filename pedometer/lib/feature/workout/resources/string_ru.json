@@ -69,5 +69,12 @@
   "route_history_recording": "Запись",
   "route_history_empty": "Нет данных",
   "music_list_title": "Список музыки",
-  "music_list_empty": "Музыки пока нет. Сначала импортируйте файлы."
+  "music_list_empty": "Музыки пока нет. Сначала импортируйте файлы.",
+  "location_permission_title": "Требуется доступ к геолокации",
+  "location_service_disabled_msg": "Службы геолокации выключены. Включите их, чтобы записывать маршрут.",
+  "location_denied_msg": "Для записи маршрута требуется доступ к геолокации.",
+  "location_denied_forever_msg": "Доступ к геолокации запрещён. Разрешите его в настройках.",
+  "location_open_service_action": "Включить геолокацию",
+  "location_open_settings_action": "Открыть настройки",
+  "location_retry_action": "Повторить"
 }

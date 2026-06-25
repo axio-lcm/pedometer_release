@@ -69,5 +69,12 @@
   "route_history_recording": "Kaydediliyor",
   "route_history_empty": "Antrenman verisi yok",
   "music_list_title": "Müzik listesi",
-  "music_list_empty": "Henüz müzik yok. Önce dosya içe aktar."
+  "music_list_empty": "Henüz müzik yok. Önce dosya içe aktar.",
+  "location_permission_title": "Konum izni gerekli",
+  "location_service_disabled_msg": "Konum servisleri kapalı. Rotanı kaydetmek için aç.",
+  "location_denied_msg": "Rotanı kaydetmek için konum izni gerekli.",
+  "location_denied_forever_msg": "Konum erişimi reddedildi. Ayarlar’dan izin ver.",
+  "location_open_service_action": "Konumu aç",
+  "location_open_settings_action": "Ayarları aç",
+  "location_retry_action": "Yeniden dene"
 }

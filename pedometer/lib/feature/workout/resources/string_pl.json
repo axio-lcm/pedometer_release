@@ -69,5 +69,12 @@
   "route_history_recording": "Nagrywanie",
   "route_history_empty": "Brak danych",
   "music_list_title": "Lista muzyki",
-  "music_list_empty": "Brak muzyki. Najpierw zaimportuj pliki."
+  "music_list_empty": "Brak muzyki. Najpierw zaimportuj pliki.",
+  "location_permission_title": "Wymagane uprawnienie do lokalizacji",
+  "location_service_disabled_msg": "Usługi lokalizacji są wyłączone. Włącz je, aby rejestrować trasę.",
+  "location_denied_msg": "Do rejestrowania trasy wymagane jest uprawnienie do lokalizacji.",
+  "location_denied_forever_msg": "Dostęp do lokalizacji odrzucony. Zezwól w Ustawieniach.",
+  "location_open_service_action": "Włącz lokalizację",
+  "location_open_settings_action": "Otwórz ustawienia",
+  "location_retry_action": "Ponów"
 }

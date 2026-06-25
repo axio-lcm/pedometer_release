@@ -69,5 +69,12 @@
   "route_history_recording": "Grabando",
   "route_history_empty": "Sin datos de ejercicio",
   "music_list_title": "Lista de música",
-  "music_list_empty": "Aún no hay música. Importa archivos primero."
+  "music_list_empty": "Aún no hay música. Importa archivos primero.",
+  "location_permission_title": "Se necesita permiso de ubicación",
+  "location_service_disabled_msg": "Los servicios de ubicación están desactivados. Actívalos para registrar tu ruta.",
+  "location_denied_msg": "Se necesita permiso de ubicación para registrar tu ruta.",
+  "location_denied_forever_msg": "Acceso a la ubicación denegado. Permítelo en Ajustes.",
+  "location_open_service_action": "Activar ubicación",
+  "location_open_settings_action": "Abrir ajustes",
+  "location_retry_action": "Reintentar"
 }

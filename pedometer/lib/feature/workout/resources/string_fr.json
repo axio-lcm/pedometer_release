@@ -69,5 +69,12 @@
   "route_history_recording": "Enregistrement",
   "route_history_empty": "Aucune donnée",
   "music_list_title": "Liste de musique",
-  "music_list_empty": "Aucune musique. Importez d'abord des fichiers."
+  "music_list_empty": "Aucune musique. Importez d'abord des fichiers.",
+  "location_permission_title": "Autorisation de localisation requise",
+  "location_service_disabled_msg": "Les services de localisation sont désactivés. Activez-les pour enregistrer votre parcours.",
+  "location_denied_msg": "L’autorisation de localisation est requise pour enregistrer votre parcours.",
+  "location_denied_forever_msg": "L’accès à la localisation est refusé. Autorisez-le dans les Réglages.",
+  "location_open_service_action": "Activer la localisation",
+  "location_open_settings_action": "Ouvrir les réglages",
+  "location_retry_action": "Réessayer"
 }

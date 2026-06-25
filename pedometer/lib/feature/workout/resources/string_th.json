@@ -69,5 +69,12 @@
   "route_history_recording": "กำลังบันทึก",
   "route_history_empty": "ไม่มีข้อมูล",
   "music_list_title": "รายการเพลง",
-  "music_list_empty": "ยังไม่มีเพลง โปรดนำเข้าไฟล์เพลงก่อน"
+  "music_list_empty": "ยังไม่มีเพลง โปรดนำเข้าไฟล์เพลงก่อน",
+  "location_permission_title": "ต้องการสิทธิ์ตำแหน่ง",
+  "location_service_disabled_msg": "บริการตำแหน่งปิดอยู่ เปิดเพื่อบันทึกเส้นทางของคุณ",
+  "location_denied_msg": "ต้องมีสิทธิ์ตำแหน่งเพื่อบันทึกเส้นทางของคุณ",
+  "location_denied_forever_msg": "การเข้าถึงตำแหน่งถูกปฏิเสธ โปรดอนุญาตในการตั้งค่า",
+  "location_open_service_action": "เปิดบริการตำแหน่ง",
+  "location_open_settings_action": "เปิดการตั้งค่า",
+  "location_retry_action": "ลองอีกครั้ง"
 }

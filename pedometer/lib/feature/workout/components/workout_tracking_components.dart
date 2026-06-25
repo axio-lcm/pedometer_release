@@ -233,7 +233,8 @@ class WorkoutMapView extends StatefulWidget {
   State<WorkoutMapView> createState() => _WorkoutMapViewState();
 }
 
-class _WorkoutMapViewState extends State<WorkoutMapView> {
+class _WorkoutMapViewState extends State<WorkoutMapView>
+    with WidgetsBindingObserver {
   static const _defaultCameraPosition = CameraPosition(
     target: LatLng(31.2304, 121.4737),
     zoom: WorkoutMapZoomPolicy.defaultZoom,
@@ -260,6 +261,9 @@ class _WorkoutMapViewState extends State<WorkoutMapView> {
   LatLng? _currentPosition;
   double _currentZoom = WorkoutMapZoomPolicy.defaultZoom;
   bool _locationAuthorized = false;
+  // 定位授权 UI 状态：默认 authorized，避免首帧检查前闪现占位层；
+  // 首次检查后若被拒绝/服务未开则切换，驱动地图上的引导占位。
+  WorkoutLocationAuth _locationAuth = WorkoutLocationAuth.authorized;
   bool? _positionStreamUsesTrackingSettings;
   bool _cameraMoving = false;
   DateTime? _lastCameraMoveAt;
@@ -271,6 +275,7 @@ class _WorkoutMapViewState extends State<WorkoutMapView> {
   void initState() {
     super.initState();
     if (!_isWidgetTest) {
+      WidgetsBinding.instance.addObserver(this);
       _statusWorker = ever<WorkoutStatus>(
         _controller.status,
         _handleWorkoutStatusChanged,
@@ -311,11 +316,21 @@ class _WorkoutMapViewState extends State<WorkoutMapView> {
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _positionSubscription?.cancel();
     _compassSubscription?.cancel();
     _statusWorker?.dispose();
     _mapController?.dispose();
     super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    // 用户去系统设置开启权限/定位服务后回到前台，自动重新检查并恢复定位。
+    if (state == AppLifecycleState.resumed &&
+        _locationAuth != WorkoutLocationAuth.authorized) {
+      unawaited(_prepareLocation());
+    }
   }
 
   @override
@@ -373,15 +388,43 @@ class _WorkoutMapViewState extends State<WorkoutMapView> {
             );
           }),
         ),
+        if (_locationAuth != WorkoutLocationAuth.authorized)
+          Positioned.fill(
+            child: _LocationPermissionOverlay(
+              auth: _locationAuth,
+              onAction: _handlePermissionAction,
+            ),
+          ),
       ],
     );
   }
 
+  Future<void> _handlePermissionAction() async {
+    switch (_locationAuth) {
+      case WorkoutLocationAuth.serviceDisabled:
+        await _locationService.openLocationSettings();
+        // 回前台时由 didChangeAppLifecycleState 自动重检。
+      case WorkoutLocationAuth.deniedForever:
+        await _locationService.openAppSettings();
+      case WorkoutLocationAuth.denied:
+        await _prepareLocation(); // 仍可弹窗，直接重新请求。
+      case WorkoutLocationAuth.authorized:
+        break;
+    }
+  }
+
   Future<void> _prepareLocation() async {
     try {
-      final authorized = await _locationService.ensureAuthorized();
+      final auth = await _locationService.ensureAuthorized();
       if (!mounted) return;
-      if (!authorized) return;
+      if (auth != WorkoutLocationAuth.authorized) {
+        // 未授权：展示对应引导占位，不启动定位流。
+        if (_locationAuth != auth) setState(() => _locationAuth = auth);
+        return;
+      }
+      if (_locationAuth != WorkoutLocationAuth.authorized) {
+        setState(() => _locationAuth = WorkoutLocationAuth.authorized);
+      }
 
       _locationAuthorized = true;
       await _seedLastKnownPosition();
@@ -795,6 +838,111 @@ class _WorkoutMapFallback extends StatelessWidget {
         ),
       ),
       child: CustomPaint(painter: _MapPlaceholderPainter()),
+    );
+  }
+}
+
+/// 定位权限未授予时盖在地图上的引导层：按授权状态给出文案与对应操作。
+class _LocationPermissionOverlay extends StatelessWidget {
+  final WorkoutLocationAuth auth;
+  final Future<void> Function() onAction;
+
+  const _LocationPermissionOverlay({required this.auth, required this.onAction});
+
+  @override
+  Widget build(BuildContext context) {
+    final (message, actionLabel) = switch (auth) {
+      WorkoutLocationAuth.serviceDisabled => (
+        WorkoutResource.locationServiceDisabledMessage,
+        WorkoutResource.locationOpenServiceAction,
+      ),
+      WorkoutLocationAuth.deniedForever => (
+        WorkoutResource.locationDeniedForeverMessage,
+        WorkoutResource.locationOpenSettingsAction,
+      ),
+      // denied 及兜底：可重试。
+      _ => (
+        WorkoutResource.locationDeniedMessage,
+        WorkoutResource.locationRetryAction,
+      ),
+    };
+
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [
+            AppColors.bgPrimary.withValues(alpha: 0.92),
+            AppColors.bgPrimary.withValues(alpha: 0.96),
+          ],
+        ),
+      ),
+      child: Center(
+        child: Padding(
+          padding: EdgeInsets.symmetric(horizontal: AppSpacing.xl),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                Icons.location_off_rounded,
+                color: AppColors.brandGreen,
+                size: 44,
+              ),
+              SizedBox(height: AppSpacing.md),
+              Text(
+                WorkoutResource.locationPermissionTitle,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: AppColors.textPrimary,
+                  fontSize: 18,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              SizedBox(height: AppSpacing.sm),
+              Text(
+                message,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: AppColors.textSecondary,
+                  fontSize: 14,
+                  height: 1.45,
+                ),
+              ),
+              SizedBox(height: AppSpacing.lg),
+              GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onTap: () => unawaited(onAction()),
+                child: Container(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: AppSpacing.xl,
+                    vertical: AppSpacing.sm + 2,
+                  ),
+                  decoration: BoxDecoration(
+                    color: AppColors.brandGreen,
+                    borderRadius: BorderRadius.circular(AppRadius.full),
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppColors.brandGreen.withValues(alpha: 0.28),
+                        blurRadius: 18,
+                        offset: const Offset(0, 6),
+                      ),
+                    ],
+                  ),
+                  child: Text(
+                    actionLabel,
+                    style: TextStyle(
+                      color: AppColors.bgPrimary,
+                      fontSize: 15,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }

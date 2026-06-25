@@ -10,6 +10,7 @@ import 'package:pedometer/common/config/app_dimens.dart';
 import 'package:pedometer/feature/workout/components/workout_tracking_components.dart';
 import 'package:pedometer/feature/workout/model/workout_model.dart';
 import 'package:pedometer/feature/workout/resources/workout_resource.dart';
+import 'package:pedometer/feature/workout/service/workout_location_service.dart';
 import 'package:pedometer/feature/workout/viewmodel/workout_tracking_view_model.dart';
 import 'package:pedometer/feature/workout/views/exercise_result_page.dart';
 
@@ -158,10 +159,40 @@ class _WorkoutTrackingPageState extends State<WorkoutTrackingPage> {
     if (_controlsLocked) return;
     if (_countdownLabel != null) return;
     if (controller.status.value == WorkoutStatus.ready) {
-      _startCountdown();
+      _checkPermissionAndStart();
       return;
     }
     controller.togglePrimary();
+  }
+
+  Future<void> _checkPermissionAndStart() async {
+    final auth = await WorkoutLocationService().ensureAuthorized();
+    if (!mounted) return;
+    if (auth == WorkoutLocationAuth.authorized) {
+      _startCountdown();
+      return;
+    }
+    Get.dialog<void>(
+      _StartPermissionDialog(
+        auth: auth,
+        onAction: () => _handleStartPermissionAction(auth),
+      ),
+    );
+  }
+
+  Future<void> _handleStartPermissionAction(WorkoutLocationAuth auth) async {
+    Get.back<void>();
+    final service = WorkoutLocationService();
+    switch (auth) {
+      case WorkoutLocationAuth.serviceDisabled:
+        await service.openLocationSettings();
+      case WorkoutLocationAuth.deniedForever:
+        await service.openAppSettings();
+      case WorkoutLocationAuth.denied:
+        await _checkPermissionAndStart();
+      case WorkoutLocationAuth.authorized:
+        break;
+    }
   }
 
   void _startCountdown() {
@@ -462,6 +493,106 @@ class _DialogButton extends StatelessWidget {
             fontSize: 15,
             fontWeight: FontWeight.w600,
           ),
+        ),
+      ),
+    );
+  }
+}
+
+/// 定位权限引导弹窗：按授权状态给出文案与对应操作。
+class _StartPermissionDialog extends StatelessWidget {
+  final WorkoutLocationAuth auth;
+  final VoidCallback onAction;
+
+  const _StartPermissionDialog({required this.auth, required this.onAction});
+
+  @override
+  Widget build(BuildContext context) {
+    final message = switch (auth) {
+      WorkoutLocationAuth.serviceDisabled =>
+        WorkoutResource.locationServiceDisabledMessage,
+      WorkoutLocationAuth.deniedForever =>
+        WorkoutResource.locationDeniedForeverMessage,
+      _ => WorkoutResource.locationDeniedMessage,
+    };
+
+    return Dialog(
+      backgroundColor: Colors.transparent,
+      elevation: 0,
+      insetPadding: EdgeInsets.symmetric(horizontal: AppSpacing.xxxl),
+      child: Container(
+        padding: EdgeInsets.all(AppSpacing.xxl),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(AppRadius.xl),
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              Color.alphaBlend(AppColors.surfaceCardTop, AppColors.bgPrimary),
+              Color.alphaBlend(
+                AppColors.surfaceCardBottom,
+                AppColors.bgPrimary,
+              ),
+            ],
+          ),
+          border: Border.all(color: AppColors.strokeCard, width: 1),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.45),
+              blurRadius: 28,
+              offset: const Offset(0, 10),
+            ),
+          ],
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              Icons.location_off_rounded,
+              color: AppColors.brandGreen,
+              size: 44,
+            ),
+            SizedBox(height: AppSpacing.lg),
+            Text(
+              WorkoutResource.locationPermissionTitle,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: AppColors.textPrimary,
+                fontSize: 17,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            SizedBox(height: AppSpacing.sm),
+            Text(
+              message,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: AppColors.textSecondary,
+                fontSize: 13,
+                height: 1.5,
+              ),
+            ),
+            SizedBox(height: AppSpacing.xl),
+            Row(
+              children: [
+                Expanded(
+                  child: _DialogButton(
+                    label: WorkoutResource.locationPermissionCancel,
+                    filled: false,
+                    onTap: () => Get.back<void>(),
+                  ),
+                ),
+                SizedBox(width: AppSpacing.md),
+                Expanded(
+                  child: _DialogButton(
+                    label: WorkoutResource.locationPermissionGoSettings,
+                    filled: true,
+                    onTap: onAction,
+                  ),
+                ),
+              ],
+            ),
+          ],
         ),
       ),
     );

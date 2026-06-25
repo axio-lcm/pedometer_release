@@ -152,6 +152,36 @@ class WorkoutResource {
       _string('music_list_title', WorkoutText.musicListTitle);
   static String get musicListEmpty =>
       _string('music_list_empty', WorkoutText.musicListEmpty);
+  static String get locationPermissionTitle => _string(
+    'location_permission_title',
+    WorkoutText.locationPermissionTitle,
+  );
+  static String get locationServiceDisabledMessage => _string(
+    'location_service_disabled_msg',
+    WorkoutText.locationServiceDisabledMessage,
+  );
+  static String get locationDeniedMessage =>
+      _string('location_denied_msg', WorkoutText.locationDeniedMessage);
+  static String get locationDeniedForeverMessage => _string(
+    'location_denied_forever_msg',
+    WorkoutText.locationDeniedForeverMessage,
+  );
+  static String get locationOpenServiceAction => _string(
+    'location_open_service_action',
+    WorkoutText.locationOpenServiceAction,
+  );
+  static String get locationOpenSettingsAction => _string(
+    'location_open_settings_action',
+    WorkoutText.locationOpenSettingsAction,
+  );
+  static String get locationRetryAction =>
+      _string('location_retry_action', WorkoutText.locationRetryAction);
+  static String get locationPermissionCancel =>
+      _string('location_permission_cancel', WorkoutText.locationPermissionCancel);
+  static String get locationPermissionGoSettings => _string(
+    'location_permission_go_settings',
+    WorkoutText.locationPermissionGoSettings,
+  );
 
   static String trackingTarget(String value) {
     return _string(
@@ -269,6 +299,18 @@ class WorkoutText {
   static const routeHistoryEmpty = 'No workout data';
   static const musicListTitle = 'Music List';
   static const musicListEmpty = 'No music yet. Import music files first.';
+  static const locationPermissionTitle = 'Location permission needed';
+  static const locationServiceDisabledMessage =
+      'Location services are off. Turn them on to record your route.';
+  static const locationDeniedMessage =
+      'Location permission is required to record your route.';
+  static const locationDeniedForeverMessage =
+      'Location access is denied. Allow it in system Settings.';
+  static const locationOpenServiceAction = 'Turn on Location';
+  static const locationOpenSettingsAction = 'Open Settings';
+  static const locationRetryAction = 'Retry';
+  static const locationPermissionCancel = '取消';
+  static const locationPermissionGoSettings = '去设置';
 }
 
 /// 运动页模块路由定义（对齐 HomeRouteTable 写法）。

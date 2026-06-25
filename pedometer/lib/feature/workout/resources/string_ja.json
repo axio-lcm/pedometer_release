@@ -69,5 +69,12 @@
   "route_history_recording": "記録中",
   "route_history_empty": "ワークアウトデータがありません",
   "music_list_title": "音楽リスト",
-  "music_list_empty": "音楽がありません。先に音楽ファイルを読み込んでください。"
+  "music_list_empty": "音楽がありません。先に音楽ファイルを読み込んでください。",
+  "location_permission_title": "位置情報の許可が必要です",
+  "location_service_disabled_msg": "位置情報サービスがオフです。オンにするとルートを記録できます。",
+  "location_denied_msg": "ルートを記録するには位置情報の許可が必要です。",
+  "location_denied_forever_msg": "位置情報が拒否されています。設定で許可してください。",
+  "location_open_service_action": "位置情報をオンにする",
+  "location_open_settings_action": "設定を開く",
+  "location_retry_action": "再試行"
 }

@@ -69,5 +69,12 @@
   "route_history_recording": "Recording",
   "route_history_empty": "No workout data",
   "music_list_title": "Music List",
-  "music_list_empty": "No music yet. Import music files first."
+  "music_list_empty": "No music yet. Import music files first.",
+  "location_permission_title": "Location permission needed",
+  "location_service_disabled_msg": "Location services are off. Turn them on to record your route.",
+  "location_denied_msg": "Location permission is required to record your route.",
+  "location_denied_forever_msg": "Location access is denied. Allow it in system Settings.",
+  "location_open_service_action": "Turn on Location",
+  "location_open_settings_action": "Open Settings",
+  "location_retry_action": "Retry"
 }

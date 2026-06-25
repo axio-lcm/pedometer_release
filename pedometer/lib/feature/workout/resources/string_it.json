@@ -69,5 +69,12 @@
   "route_history_recording": "Registrazione",
   "route_history_empty": "Nessun dato",
   "music_list_title": "Elenco musica",
-  "music_list_empty": "Nessuna musica. Importa prima dei file."
+  "music_list_empty": "Nessuna musica. Importa prima dei file.",
+  "location_permission_title": "Autorizzazione alla posizione necessaria",
+  "location_service_disabled_msg": "I servizi di localizzazione sono disattivati. Attivali per registrare il percorso.",
+  "location_denied_msg": "È necessaria l’autorizzazione alla posizione per registrare il percorso.",
+  "location_denied_forever_msg": "Accesso alla posizione negato. Consentilo nelle Impostazioni.",
+  "location_open_service_action": "Attiva la posizione",
+  "location_open_settings_action": "Apri Impostazioni",
+  "location_retry_action": "Riprova"
 }

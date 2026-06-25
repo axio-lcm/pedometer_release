@@ -69,5 +69,12 @@
   "route_history_recording": "Жазылуда",
   "route_history_empty": "Деректер жоқ",
   "music_list_title": "Музыка тізімі",
-  "music_list_empty": "Әзірге музыка жоқ. Алдымен файлдарды импорттаңыз."
+  "music_list_empty": "Әзірге музыка жоқ. Алдымен файлдарды импорттаңыз.",
+  "location_permission_title": "Орналасу рұқсаты қажет",
+  "location_service_disabled_msg": "Орналасу қызметтері өшірулі. Маршрутты жазу үшін қосыңыз.",
+  "location_denied_msg": "Маршрутты жазу үшін орналасу рұқсаты қажет.",
+  "location_denied_forever_msg": "Орналасуға қол жеткізу тыйым салынған. Параметрлерден рұқсат етіңіз.",
+  "location_open_service_action": "Орналасуды қосу",
+  "location_open_settings_action": "Параметрлерді ашу",
+  "location_retry_action": "Қайталау"
 }

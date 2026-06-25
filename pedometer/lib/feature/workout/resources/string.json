@@ -69,5 +69,12 @@
   "route_history_recording": "记录中",
   "route_history_empty": "暂无运动数据",
   "music_list_title": "音乐列表",
-  "music_list_empty": "暂无音乐，请先导入音乐文件"
+  "music_list_empty": "暂无音乐，请先导入音乐文件",
+  "location_permission_title": "需要定位权限",
+  "location_service_disabled_msg": "定位服务未开启，开启后才能记录运动轨迹",
+  "location_denied_msg": "需要定位权限才能记录运动轨迹",
+  "location_denied_forever_msg": "定位权限已被拒绝，请在系统设置中允许",
+  "location_open_service_action": "打开定位服务",
+  "location_open_settings_action": "去设置",
+  "location_retry_action": "重试"
 }

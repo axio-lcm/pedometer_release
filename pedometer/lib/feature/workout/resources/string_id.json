@@ -69,5 +69,12 @@
   "route_history_recording": "Merekam",
   "route_history_empty": "Tidak ada data",
   "music_list_title": "Daftar musik",
-  "music_list_empty": "Belum ada musik. Impor file dulu."
+  "music_list_empty": "Belum ada musik. Impor file dulu.",
+  "location_permission_title": "Izin lokasi diperlukan",
+  "location_service_disabled_msg": "Layanan lokasi nonaktif. Aktifkan untuk merekam rute Anda.",
+  "location_denied_msg": "Izin lokasi diperlukan untuk merekam rute Anda.",
+  "location_denied_forever_msg": "Akses lokasi ditolak. Izinkan di Pengaturan.",
+  "location_open_service_action": "Aktifkan lokasi",
+  "location_open_settings_action": "Buka Pengaturan",
+  "location_retry_action": "Coba lagi"
 }

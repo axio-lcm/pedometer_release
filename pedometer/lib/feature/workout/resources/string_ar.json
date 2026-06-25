@@ -69,5 +69,12 @@
   "route_history_recording": "جارٍ التسجيل",
   "route_history_empty": "لا توجد بيانات",
   "music_list_title": "قائمة الموسيقى",
-  "music_list_empty": "لا توجد موسيقى بعد. استورد الملفات أولاً."
+  "music_list_empty": "لا توجد موسيقى بعد. استورد الملفات أولاً.",
+  "location_permission_title": "مطلوب إذن الموقع",
+  "location_service_disabled_msg": "خدمات الموقع متوقفة. شغّلها لتسجيل مسارك.",
+  "location_denied_msg": "يلزم إذن الموقع لتسجيل مسارك.",
+  "location_denied_forever_msg": "تم رفض الوصول إلى الموقع. اسمح به من الإعدادات.",
+  "location_open_service_action": "تشغيل خدمات الموقع",
+  "location_open_settings_action": "فتح الإعدادات",
+  "location_retry_action": "إعادة المحاولة"
 }
