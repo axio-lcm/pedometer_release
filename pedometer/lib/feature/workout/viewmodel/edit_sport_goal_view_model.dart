@@ -21,10 +21,12 @@ class EditSportGoalViewModel extends GetxController implements IBaseViewModel {
   static const int caloriesMax = 2000;
   static const int caloriesStep = 50;
 
-  static const List<String> suggestions = [
-    WorkoutText.suggestionDistance,
-    WorkoutText.suggestionDuration,
-    WorkoutText.suggestionCalorie,
+  /// 运行时本地化建议文案：随语言切换读取对应译文。
+  /// 不可声明为 const，否则只会取到 [WorkoutText] 的英文兜底常量。
+  static List<String> get suggestions => [
+    WorkoutResource.suggestionDistance,
+    WorkoutResource.suggestionDuration,
+    WorkoutResource.suggestionCalorie,
   ];
 
   final RxDouble distance = defaultDistance.obs;

@@ -135,7 +135,7 @@ class EditSportGoalPage extends GetView<EditSportGoalViewModel> {
                           ),
                         ),
                         SizedBox(height: AppSpacing.lg),
-                        const GoalSuggestionCard(
+                        GoalSuggestionCard(
                           suggestions: EditSportGoalViewModel.suggestions,
                         ),
                         SizedBox(height: AppSpacing.xl),
