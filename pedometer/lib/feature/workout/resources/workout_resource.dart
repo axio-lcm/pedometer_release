@@ -233,11 +233,11 @@ class WorkoutText {
   static const editGoalTitle = 'Edit Workout Goal';
   static const editGoalSubtitle = 'Set goals to keep yourself moving every day';
   static const targetDistance = 'Distance';
-  static const targetDistanceSuggestion = 'Recommended 3.00 - 20.00 km';
+  static const targetDistanceSuggestion = '3.00 - 20.00 km';
   static const targetDuration = 'Duration';
-  static const targetDurationSuggestion = 'Recommended 10 - 300 min';
+  static const targetDurationSuggestion = '10 - 300 min';
   static const targetCalorie = 'Calories';
-  static const targetCalorieSuggestion = 'Recommended 100 - 2000 kcal';
+  static const targetCalorieSuggestion = '100 - 2000 kcal';
   static const saveGoal = 'Save Goal';
   static const restoreDefault = 'Restore Default';
   static const freeTrainingTip = 'No goal will be set when enabled';
