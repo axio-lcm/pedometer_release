@@ -1,10 +1,8 @@
 import 'package:flutter/widgets.dart';
 import 'package:get/get.dart';
 import 'package:pedometer/common/mvvm/ibase_view_model.dart';
-import 'package:pedometer/common/network/api_feedback.dart';
 import 'package:pedometer/common/network/api_runner.dart';
 import 'package:pedometer/feature/mine/api/feedback_api.dart';
-import 'package:pedometer/feature/mine/resources/mine_resource.dart';
 
 /// 建议 / 反馈页 view model：表单输入与提交意图。
 class SuggestionViewModel extends GetxController implements IBaseViewModel {
@@ -31,19 +29,14 @@ class SuggestionViewModel extends GetxController implements IBaseViewModel {
   }
 
   /// 提交反馈：校验 → 加密上报。返回是否成功（成功后由页面负责返回）。
+  /// 不弹任何提示：校验不通过或上报失败均静默返回 false。
   Future<bool> submit() async {
     final email = emailController.text.trim();
     final title = subjectController.text.trim();
     final content = messageController.text.trim();
 
-    if (email.isEmpty || title.isEmpty || content.isEmpty) {
-      ApiFeedback.error(MineResource.suggestionFieldRequired);
-      return false;
-    }
-    if (!GetUtils.isEmail(email)) {
-      ApiFeedback.error(MineResource.suggestionInvalidEmail);
-      return false;
-    }
+    if (email.isEmpty || title.isEmpty || content.isEmpty) return false;
+    if (!GetUtils.isEmail(email)) return false;
     if (submitting.value) return false;
     submitting.value = true;
 
@@ -56,11 +49,10 @@ class SuggestionViewModel extends GetxController implements IBaseViewModel {
         );
         return true;
       },
-      fallback: MineResource.suggestionSendFailed,
+      showError: false,
     );
 
     submitting.value = false;
-    if (ok) ApiFeedback.success(MineResource.suggestionSuccess);
     return ok;
   }
 }
