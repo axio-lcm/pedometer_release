@@ -11,7 +11,7 @@ class EditSportGoalViewModel extends GetxController implements IBaseViewModel {
   static const int defaultCalories = 500;
 
   // 取值范围与步长
-  static const double distanceMin = 3.0;
+  static const double distanceMin = 1.0;
   static const double distanceMax = 20.0;
   static const double distanceStep = 0.5;
   static const int durationMin = 10;
