@@ -510,10 +510,7 @@ class _HourlyStepTrendCardState extends State<HourlyStepTrendCard> {
       if (item.steps > peak) peak = item.steps;
     }
     // 留约 15% 顶部余量，且不低于默认最小上限。
-    final target = math.max(
-      peak * 1.15,
-      HourlyStepTrendCard._minChartMaxY,
-    );
+    final target = math.max(peak * 1.15, HourlyStepTrendCard._minChartMaxY);
     final interval = _niceInterval(target / 5);
     final maxY = (target / interval).ceil() * interval;
     return (maxY: maxY, interval: interval);
@@ -848,9 +845,7 @@ class WeeklyTrendCard extends StatefulWidget {
 
   /// 今天对应的星期标签，与柱图 label 保持一致（MON…SUN）。
   static String get _todayLabel {
-    const enLabels = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'];
-    const zhLabels = ['周一', '周二', '周三', '周四', '周五', '周六', '周日'];
-    return (isZhLocale ? zhLabels : enLabels)[DateTime.now().weekday - 1];
+    return localizedWeekdayLabels()[DateTime.now().weekday - 1];
   }
 
   /// 千分位格式化步数，如 8200 -> 8,200。
@@ -1558,10 +1553,7 @@ class _MonthlyHeatCalendarCardState extends State<MonthlyHeatCalendarCard> {
           SizedBox(height: AppSpacing.md),
           Row(
             children: [
-              for (final label
-                  in isZhLocale
-                      ? const ['一', '二', '三', '四', '五', '六', '日']
-                      : const ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'])
+              for (final label in localizedWeekdayLabels(narrow: true))
                 Expanded(
                   child: Center(
                     child: FittedBox(
@@ -2095,20 +2087,5 @@ Color _heatColor(int steps) {
 }
 
 String _monthName(int month) {
-  if (isZhLocale) return '$month月';
-  const names = [
-    'Jan',
-    'Feb',
-    'Mar',
-    'Apr',
-    'May',
-    'Jun',
-    'Jul',
-    'Aug',
-    'Sep',
-    'Oct',
-    'Nov',
-    'Dec',
-  ];
-  return names[(month - 1).clamp(0, names.length - 1)];
+  return shortMonthName(month);
 }

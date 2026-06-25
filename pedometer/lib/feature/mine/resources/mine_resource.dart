@@ -41,6 +41,15 @@ class MineResource {
       _string('language_chinese', MineText.languageChinese);
   static String get languageChineseSubtitle =>
       _string('language_chinese_subtitle', MineText.languageChineseSubtitle);
+  static String get followSystem =>
+      _string('follow_system', MineText.followSystem);
+  static String get followSystemSubtitle =>
+      _string('follow_system_subtitle', MineText.followSystemSubtitle);
+  static String languageOptionSubtitle(String code, String fallback) {
+    final key = 'language_option_${code.toLowerCase().replaceAll('-', '_')}';
+    return _string(key, fallback);
+  }
+
   static String get shareApp => _string('share_app', MineText.shareApp);
   static String get shareAppContent =>
       _string('share_app_content', MineText.shareAppContent);
@@ -119,6 +128,8 @@ class MineText {
   static const languageEnglishSubtitle = 'Use English by default';
   static const languageChinese = '简体中文';
   static const languageChineseSubtitle = '使用中文显示';
+  static const followSystem = 'Follow system';
+  static const followSystemSubtitle = 'Use your device language';
   static const shareApp = 'Share App';
   static const shareAppSubject = 'A useful pedometer app';
   static const shareAppContent =

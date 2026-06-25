@@ -5,6 +5,7 @@ import 'package:pedometer/common/config/app_screen.dart';
 import 'package:pedometer/common/config/app_theme.dart';
 import 'package:pedometer/common/routers/app_pages.dart';
 import 'package:pedometer/common/storage/language_service.dart';
+import 'package:pedometer/feature/mine/model/language_catalog.dart';
 
 /// 根 Widget：深色主题 + 路由 + 国际化。
 class PedometerApp extends StatelessWidget {
@@ -24,13 +25,13 @@ class PedometerApp extends StatelessWidget {
           debugShowCheckedModeBanner: false,
           theme: AppTheme.theme,
           locale: languageService.locale,
-          fallbackLocale: const Locale('en', 'US'),
+          fallbackLocale: languageService.locale,
           localizationsDelegates: const [
             GlobalMaterialLocalizations.delegate,
             GlobalCupertinoLocalizations.delegate,
             GlobalWidgetsLocalizations.delegate,
           ],
-          supportedLocales: const [Locale('en', 'US'), Locale('zh', 'CN')],
+          supportedLocales: LanguageCatalog.supportedLocales,
           defaultTransition: Transition.rightToLeft,
           transitionDuration: const Duration(milliseconds: 180),
           initialRoute: AppPages.initial,

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/date_symbol_data_local.dart';
 import 'package:pedometer/common/config/resource_loader.dart';
 import 'package:get/get.dart';
 import 'package:pedometer/common/storage/language_service.dart';
@@ -19,6 +20,7 @@ class AppStartup {
   static Future<void> bootstrap() async {
     if (_bootstrapped) return;
     WidgetsFlutterBinding.ensureInitialized();
+    await initializeDateFormatting();
     final languageService = LanguageService();
     await languageService.init();
     Get.put(languageService);

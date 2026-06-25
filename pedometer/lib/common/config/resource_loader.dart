@@ -11,6 +11,7 @@ class ResourceLoader {
   static final Map<String, Map<String, String>> _strings = {};
   static bool _initialized = false;
   static String _languageCode = 'en';
+  static String _systemFallbackLanguageCode = 'en';
 
   static const _modules = <(String module, String assetDir)>[
     ('common', 'lib/common/resources'),
@@ -21,9 +22,11 @@ class ResourceLoader {
   ];
 
   static String get languageCode => _languageCode;
+  static String get systemFallbackLanguageCode => _systemFallbackLanguageCode;
 
   static Future<void> init({String languageCode = 'en'}) async {
     if (_initialized) return;
+    _systemFallbackLanguageCode = _resolveSystemLanguageCode();
     _languageCode = _normalizeLanguageCode(languageCode);
     for (final (module, assetDir) in _modules) {
       _colors[module] = await _loadJsonMap('$assetDir/color.json');
@@ -34,8 +37,12 @@ class ResourceLoader {
 
   static Future<void> setLanguageCode(String languageCode) async {
     _ensureInit();
+    _systemFallbackLanguageCode = _resolveSystemLanguageCode();
     final nextLanguage = _normalizeLanguageCode(languageCode);
-    if (_languageCode == nextLanguage) return;
+    if (_languageCode == nextLanguage) {
+      await _loadStringsForLanguage(_languageCode);
+      return;
+    }
     _languageCode = nextLanguage;
     await _loadStringsForLanguage(_languageCode);
   }
@@ -68,20 +75,102 @@ class ResourceLoader {
 
   static Future<void> _loadStringsForLanguage(String languageCode) async {
     for (final (module, assetDir) in _modules) {
-      final localized = await _loadJsonMap(
-        '$assetDir/string_$languageCode.json',
+      _strings[module] = await _resolveModuleStrings(
+        module,
+        assetDir,
+        languageCode,
       );
-      if (localized.isNotEmpty) {
-        _strings[module] = localized;
-        continue;
-      }
-      _strings[module] = await _loadJsonMap('$assetDir/string.json');
     }
   }
 
+  /// 取某模块某语言的译文：目标语言 → 系统语言 → 英文安全兜底 → 简体默认。
+  /// 简体中文沿用既有的 `string.json`，其余语言用 `string_<code>.json`。
+  static Future<Map<String, String>> _resolveModuleStrings(
+    String module,
+    String assetDir,
+    String code,
+  ) async {
+    final english = await _loadLanguageMap(assetDir, 'en');
+    final chain = <(String code, Map<String, String> strings)>[
+      ('zh_Hans', await _loadLanguageMap(assetDir, 'zh_Hans')),
+      ('en', english),
+      (
+        _systemFallbackLanguageCode,
+        await _loadLanguageMap(assetDir, _systemFallbackLanguageCode),
+      ),
+      (code, await _loadLanguageMap(assetDir, code)),
+    ];
+    final merged = <String, String>{};
+    for (final (fallbackCode, strings) in chain) {
+      merged.addAll(
+        _removeEnglishPlaceholders(module, fallbackCode, strings, english),
+      );
+    }
+    return merged;
+  }
+
+  static Future<Map<String, String>> _loadLanguageMap(
+    String assetDir,
+    String code,
+  ) {
+    final fileName = code == 'zh_Hans' ? 'string.json' : 'string_$code.json';
+    return _loadJsonMap('$assetDir/$fileName');
+  }
+
+  static Map<String, String> _removeEnglishPlaceholders(
+    String module,
+    String code,
+    Map<String, String> strings,
+    Map<String, String> english,
+  ) {
+    if (code == 'en' || code == 'zh_Hans' || strings.isEmpty) return strings;
+    final placeholderKeys = strings.keys.where((key) {
+      final value = strings[key];
+      final englishValue = english[key];
+      return value != null &&
+          value == englishValue &&
+          !_isLanguageNeutralKey(module, key) &&
+          RegExp('[A-Za-z]').hasMatch(value);
+    }).toList();
+    if (placeholderKeys.isEmpty) return strings;
+    return Map<String, String>.of(strings)
+      ..removeWhere((key, _) => placeholderKeys.contains(key));
+  }
+
+  static bool _isLanguageNeutralKey(String module, String key) {
+    return switch ((module, key)) {
+      ('common', 'app_name') => true,
+      ('mine', 'height_unit') => true,
+      ('mine', 'weight_unit') => true,
+      ('mine', 'bmi') => true,
+      ('mine', 'language_english') => true,
+      ('workout', 'distance_unit') => true,
+      ('workout', 'duration_unit') => true,
+      ('workout', 'hundred_km') => true,
+      ('workout', 'metric_calorie_kcal') => true,
+      ('workout', 'metric_pace_min_km') => true,
+      _ => false,
+    };
+  }
+
+  /// 入参一般已是解析后的资源码；这里仅兜底处理空值与旧版 `zh` 写法。
   static String _normalizeLanguageCode(String languageCode) {
-    final code = languageCode.toLowerCase();
-    return code.startsWith('zh') ? 'zh' : 'en';
+    final code = languageCode.trim();
+    if (code.isEmpty) return 'en';
+    if (code == 'zh' || code.toLowerCase() == 'zh_cn') return 'zh_Hans';
+    return code;
+  }
+
+  static String _resolveSystemLanguageCode() {
+    final system = WidgetsBinding.instance.platformDispatcher.locale;
+    final lang = system.languageCode;
+    if (lang == 'zh') {
+      if (system.scriptCode == 'Hant') return 'zh_Hant';
+      final region = system.countryCode;
+      if (region == 'TW' || region == 'HK' || region == 'MO') return 'zh_Hant';
+      return 'zh_Hans';
+    }
+    return lang.isEmpty ? 'en' : lang;
   }
 
   static Color color(

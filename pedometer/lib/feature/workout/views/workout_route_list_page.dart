@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:intl/intl.dart';
 import 'package:pedometer/common/component/app_top_navigation_bar.dart';
 import 'package:pedometer/common/component/asset_metric_icon.dart';
 import 'package:pedometer/common/component/glass_card.dart';
 import 'package:pedometer/common/config/app_colors.dart';
 import 'package:pedometer/common/config/app_dimens.dart';
+import 'package:pedometer/common/config/localized_text.dart';
 import 'package:pedometer/feature/workout/model/workout_model.dart';
 import 'package:pedometer/feature/workout/resources/workout_resource.dart';
 import 'package:pedometer/feature/workout/views/workout_route_history_page.dart';
@@ -185,14 +185,7 @@ class _RouteListItem extends StatelessWidget {
   }
 
   String _formatEndedAt(DateTime value) {
-    if (Get.locale?.languageCode != 'zh') {
-      return DateFormat('MMM d, yyyy HH:mm', 'en_US').format(value);
-    }
-    final month = value.month.toString().padLeft(2, '0');
-    final day = value.day.toString().padLeft(2, '0');
-    final hour = value.hour.toString().padLeft(2, '0');
-    final minute = value.minute.toString().padLeft(2, '0');
-    return '${value.year}年$month月$day日 $hour:$minute';
+    return localizedDateTime(value);
   }
 
   WorkoutType _workoutTypeFor(String title) {

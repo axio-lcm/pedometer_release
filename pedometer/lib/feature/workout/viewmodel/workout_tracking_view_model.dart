@@ -6,7 +6,6 @@ import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:intl/intl.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:pedometer/common/config/app_colors.dart';
 import 'package:pedometer/common/config/localized_text.dart';
@@ -731,14 +730,7 @@ class WorkoutTrackingViewModel extends GetxController
   }
 
   String _formatResultDate(DateTime value) {
-    if (!isZhLocale) {
-      return DateFormat('MMM d, yyyy HH:mm', 'en_US').format(value);
-    }
-    final month = value.month.toString().padLeft(2, '0');
-    final day = value.day.toString().padLeft(2, '0');
-    final hour = value.hour.toString().padLeft(2, '0');
-    final minute = value.minute.toString().padLeft(2, '0');
-    return '${value.year}年$month月$day日 $hour:$minute';
+    return localizedDateTime(value);
   }
 
   bool _isIndoorTitle(String title) {

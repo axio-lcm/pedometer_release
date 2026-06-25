@@ -21,14 +21,19 @@ class LanguagePage extends GetView<LanguageViewModel> {
 
   List<LanguageOption> get _options => [
     LanguageOption(
-      code: 'en',
-      title: MineResource.languageEnglish,
-      subtitle: MineResource.languageEnglishSubtitle,
+      code: 'sys',
+      title: MineResource.followSystem,
+      subtitle: MineResource.followSystemSubtitle,
     ),
-    LanguageOption(
-      code: 'zh',
-      title: MineResource.languageChinese,
-      subtitle: MineResource.languageChineseSubtitle,
+    ...LanguageCatalog.languages.map(
+      (option) => LanguageOption(
+        code: option.code,
+        title: option.title,
+        subtitle: MineResource.languageOptionSubtitle(
+          option.code,
+          option.subtitle,
+        ),
+      ),
     ),
   ];
 

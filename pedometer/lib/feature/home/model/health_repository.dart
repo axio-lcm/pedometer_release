@@ -1325,9 +1325,7 @@ String _formatInt(int value) {
 }
 
 String _weekdayLabel(DateTime date) {
-  const enLabels = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'];
-  const zhLabels = ['周一', '周二', '周三', '周四', '周五', '周六', '周日'];
-  return (isZhLocale ? zhLabels : enLabels)[date.weekday - 1];
+  return localizedWeekdayLabels()[date.weekday - 1];
 }
 
 String _dateTitle(DateTime date) {

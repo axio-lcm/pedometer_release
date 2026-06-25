@@ -227,9 +227,7 @@ class SportDetailFixtures {
     };
   }
 
-  static List<String> get _weekdayLabels => isZhLocale
-      ? const ['周一', '周二', '周三', '周四', '周五', '周六', '周日']
-      : const ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'];
+  static List<String> get _weekdayLabels => localizedWeekdayLabels();
 
   static SportPeriodData get day => SportPeriodData(
     period: SportPeriod.day,
