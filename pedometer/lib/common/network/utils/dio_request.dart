@@ -20,7 +20,7 @@ class DioRequest {
     _dio.interceptors.add(
       InterceptorsWrapper(
         onRequest: (options, handler) {
-          if (kDebugMode) {
+          if (kDebugMode && options.extra['logEnabled'] != false) {
             debugPrint(
               '[DIO][REQUEST] ${options.method} ${options.uri}\n'
               'headers: ${options.headers}\n'
@@ -31,7 +31,8 @@ class DioRequest {
           handler.next(options);
         },
         onResponse: (response, handler) {
-          if (kDebugMode) {
+          if (kDebugMode &&
+              response.requestOptions.extra['logEnabled'] != false) {
             debugPrint(
               '[DIO][RESPONSE] ${response.statusCode} '
               '${response.requestOptions.uri}\n'
@@ -41,7 +42,7 @@ class DioRequest {
           handler.next(response);
         },
         onError: (error, handler) {
-          if (kDebugMode) {
+          if (kDebugMode && error.requestOptions.extra['logEnabled'] != false) {
             debugPrint(
               '[DIO][ERROR] type=${error.type} '
               'url=${error.requestOptions.uri} message=${error.message}\n'
@@ -79,7 +80,11 @@ class DioRequest {
     Map<String, dynamic>? headers,
   }) {
     return _handleResponse(
-      _dio.get(url, queryParameters: params, options: Options(headers: headers)),
+      _dio.get(
+        url,
+        queryParameters: params,
+        options: Options(headers: headers),
+      ),
     );
   }
 
@@ -89,7 +94,11 @@ class DioRequest {
     Map<String, dynamic>? headers,
   }) {
     return _handleResponse(
-      _dio.post(url, data: data, options: Options(headers: headers)),
+      _dio.post(
+        url,
+        data: data,
+        options: Options(headers: headers),
+      ),
     );
   }
 
@@ -98,6 +107,7 @@ class DioRequest {
     String url, {
     Map<String, dynamic>? parameters,
     Map<String, dynamic>? headers,
+    bool logEnabled = true,
   }) async {
     try {
       final response = await _dio.post(
@@ -106,6 +116,7 @@ class DioRequest {
         options: Options(
           headers: headers ?? const {},
           responseType: ResponseType.json,
+          extra: {'logEnabled': logEnabled},
         ),
       );
 
@@ -117,7 +128,7 @@ class DioRequest {
         }
       }
     } catch (e) {
-      if (kDebugMode) {
+      if (kDebugMode && logEnabled) {
         debugPrint('[DIO][postJson] error: $e');
       }
     }

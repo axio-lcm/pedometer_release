@@ -11,6 +11,9 @@ import 'package:pedometer/feature/home/model/health_repository.dart';
 import 'package:pedometer/feature/home/model/health_sync_models.dart';
 import 'package:pedometer/feature/home/model/health_sync_source_policy.dart';
 import 'package:pedometer/feature/home/model/sync_data_detail_model.dart';
+import 'package:pedometer/feature/subscription/config/subscription_config.dart';
+import 'package:pedometer/feature/subscription/service/subscription_service.dart';
+import 'package:pedometer/feature/subscription/views/subscription_page.dart';
 
 /// 单个健康数据来源详情页 view model：同步设置、授权状态与手动同步流程。
 class SyncSourceDetailViewModel extends GetxController
@@ -199,6 +202,7 @@ class SyncSourceDetailViewModel extends GetxController
     if (syncing.value) return;
     final source = _currentHealthSource;
     if (source == null) return;
+    if (!await _ensureVipBeforeSync()) return;
 
     final title = data.value.source.title;
 
@@ -429,5 +433,17 @@ class SyncSourceDetailViewModel extends GetxController
       }
     }
     return selected.isEmpty ? const [HealthSyncDataType.steps] : selected;
+  }
+
+  Future<bool> _ensureVipBeforeSync() async {
+    if (!Get.isRegistered<SubscriptionService>()) return true;
+    final service = Get.find<SubscriptionService>();
+    if (service.isVip.value) return true;
+
+    await Get.toNamed(
+      SubscriptionPage.routeName,
+      arguments: SubscriptionSource.subscription,
+    );
+    return service.isVip.value;
   }
 }

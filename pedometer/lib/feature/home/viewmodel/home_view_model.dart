@@ -9,6 +9,7 @@ import 'package:pedometer/feature/home/model/health_repository.dart';
 import 'package:pedometer/feature/home/model/health_sync_models.dart';
 import 'package:pedometer/feature/home/model/home_model.dart';
 import 'package:pedometer/feature/home/model/sport_detail_model.dart';
+import 'package:pedometer/feature/subscription/service/subscription_service.dart';
 
 /// 首页 view model
 class HomeViewModel extends GetxController implements IBaseViewModel {
@@ -18,6 +19,7 @@ class HomeViewModel extends GetxController implements IBaseViewModel {
   int? _motionSensorSteps;
   List<int>? _motionHourlySteps;
   Worker? _languageWorker;
+  Worker? _subscriptionWorker;
 
   HomeViewModel({HealthRepository? repository})
     : repository = repository ?? HealthRepository.defaultRepository();
@@ -35,6 +37,14 @@ class HomeViewModel extends GetxController implements IBaseViewModel {
         Get.find<LanguageService>().localeRevision,
         (_) => _loadHealthData(),
       );
+    }
+    if (Get.isRegistered<SubscriptionService>()) {
+      _subscriptionWorker = ever<bool>(Get.find<SubscriptionService>().isVip, (
+        isVip,
+      ) {
+        _loadHealthData();
+        if (isVip) unawaited(_startMotionFitnessTracking());
+      });
     }
     init();
   }
@@ -55,6 +65,7 @@ class HomeViewModel extends GetxController implements IBaseViewModel {
   void onClose() {
     HealthSyncRuntime.revision.removeListener(_loadHealthData);
     _languageWorker?.dispose();
+    _subscriptionWorker?.dispose();
     unInit();
     super.onClose();
   }
@@ -64,10 +75,12 @@ class HomeViewModel extends GetxController implements IBaseViewModel {
     vo.trend.assignAll(snapshot.trend);
     vo.analyses.assignAll(snapshot.analyses);
     vo.dayOverview.value = repository.sportPeriodData(SportPeriod.day);
+    if (!_hasVipAccess) return;
     _applyMotionSensorDataIfNeeded();
   }
 
   Future<void> _startMotionFitnessTracking() async {
+    if (!_hasVipAccess) return;
     if (!_shouldUseMotionFitnessOnThisPlatform) return;
     if (HealthSyncRuntime.hasRealDataSource ||
         _motionStepSubscription != null) {
@@ -100,6 +113,7 @@ class HomeViewModel extends GetxController implements IBaseViewModel {
   }
 
   void _applyMotionSensorDataIfNeeded() {
+    if (!_hasVipAccess) return;
     if (HealthSyncRuntime.hasRealDataSource) return;
     final steps = _motionSensorSteps;
     if (steps == null) return;
@@ -172,6 +186,11 @@ class HomeViewModel extends GetxController implements IBaseViewModel {
 
   bool get _shouldUseMotionFitnessOnThisPlatform {
     return defaultTargetPlatform == TargetPlatform.iOS;
+  }
+
+  bool get _hasVipAccess {
+    if (!Get.isRegistered<SubscriptionService>()) return true;
+    return Get.find<SubscriptionService>().isVip.value;
   }
 }
 

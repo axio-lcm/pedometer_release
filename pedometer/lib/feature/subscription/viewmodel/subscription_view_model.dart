@@ -1,0 +1,114 @@
+import 'package:get/get.dart';
+import 'package:pp_inapp_purchase/inapp_purchase.dart';
+
+import 'package:pedometer/common/config/localized_text.dart';
+import 'package:pedometer/feature/subscription/config/subscription_config.dart';
+import 'package:pedometer/feature/subscription/service/subscription_service.dart';
+
+class SubscriptionViewModel extends GetxController {
+  final selectedIndex = 0.obs;
+  final plans = <SubscriptionProductPlan>[
+    SubscriptionProductPlan(
+      kind: SubscriptionPlanKind.weekly,
+      productId: SubscriptionConfig.inAppWeeklyId,
+      fallbackTitle: lt('Weekly Pro', '周会员'),
+      fallbackSubtitle: lt('3-day free trial', '免费试用 3 天'),
+      fallbackPrice: r'$9.99',
+    ),
+    SubscriptionProductPlan(
+      kind: SubscriptionPlanKind.yearly,
+      productId: SubscriptionConfig.inAppYearlyId,
+      fallbackTitle: lt('Yearly Pro', '年会员'),
+      fallbackSubtitle: lt('Best value', '年度会员'),
+      fallbackPrice: r'$39.99',
+    ),
+  ].obs;
+  final buttonText = lt('Subscribe', '订阅').obs;
+  final isEligibleForIntroOffer = false.obs;
+
+  SubscriptionSource source = SubscriptionSource.subscription;
+  Worker? _vipWorker;
+  bool _closed = false;
+
+  @override
+  void onInit() {
+    super.onInit();
+    final args = Get.arguments;
+    if (args is SubscriptionSource) source = args;
+    final service = Get.find<SubscriptionService>();
+    _vipWorker = ever<bool>(service.isVip, (isVip) {
+      if (isVip) _closePage();
+    });
+  }
+
+  @override
+  void onReady() {
+    super.onReady();
+    loadProducts();
+  }
+
+  @override
+  void onClose() {
+    _vipWorker?.dispose();
+    super.onClose();
+  }
+
+  Future<void> loadProducts() async {
+    final service = Get.find<SubscriptionService>();
+    await service.initInAppPurchase();
+    final updated = <SubscriptionProductPlan>[];
+    for (final plan in plans) {
+      final product = service.productOf(plan.productId);
+      final period = plan.kind == SubscriptionPlanKind.yearly
+          ? SubscriptionPeriodType.year
+          : SubscriptionPeriodType.week;
+      final title = await service.titleFor(plan.productId, period);
+      final subtitle = await service.subtitleFor(plan.productId, period);
+      updated.add(
+        SubscriptionProductPlan(
+          kind: plan.kind,
+          productId: plan.productId,
+          fallbackTitle: title.isEmpty ? plan.fallbackTitle : title,
+          fallbackSubtitle: subtitle.isEmpty ? plan.fallbackSubtitle : subtitle,
+          fallbackPrice: product?.displayPrice ?? plan.fallbackPrice,
+        ),
+      );
+    }
+    plans.assignAll(updated);
+    await _refreshSelectedProduct();
+  }
+
+  Future<void> select(int index) async {
+    selectedIndex.value = index;
+    await _refreshSelectedProduct();
+  }
+
+  Future<void> purchase() async {
+    final plan = plans[selectedIndex.value];
+    await Get.find<SubscriptionService>().purchase(plan.productId, source);
+    if (Get.find<SubscriptionService>().isVip.value) _closePage();
+  }
+
+  Future<void> restore() async {
+    await Get.find<SubscriptionService>().restore(source);
+    if (Get.find<SubscriptionService>().isVip.value) _closePage();
+  }
+
+  Future<void> _refreshSelectedProduct() async {
+    final plan = plans[selectedIndex.value];
+    final service = Get.find<SubscriptionService>();
+    isEligibleForIntroOffer.value = await service.isEligibleForIntroOffer(
+      plan.productId,
+    );
+    final text = await service.buttonText(plan.productId);
+    buttonText.value = text.isEmpty ? lt('Subscribe', '订阅') : text;
+  }
+
+  void _closePage() {
+    if (_closed) return;
+    _closed = true;
+    if (Get.key.currentState?.canPop() ?? false) {
+      Get.back(result: true);
+    }
+  }
+}

@@ -54,6 +54,10 @@ dependencies:
   just_audio: ^0.10.5
   # 应用内评价（iOS SKStoreReviewController）
   in_app_review: ^2.0.12
+  # Apple 内购订阅（复用 decibel-meter 的 StoreKit 封装）
+  pp_inapp_purchase: ^1.1.0
+  # Apple Search Ads 归因（复用 decibel-meter 归因上传逻辑）
+  pp_asa_attribution: ^1.0.2
   # 网络请求
   dio: ^5.9.2
   # 请求参数 AES 加密
@@ -84,3 +88,5 @@ flutter:
     - lib/products/phone/resources/
     - assets/
     - assets/images/
+    - assets/subscription/icon/
+    - assets/subscription/image/

@@ -3,6 +3,8 @@ import 'package:get/get.dart';
 import 'package:pedometer/common/config/app_colors.dart';
 import 'package:pedometer/common/config/app_dimens.dart';
 import 'package:pedometer/common/storage/language_service.dart';
+import 'package:pedometer/feature/subscription/config/subscription_config.dart';
+import 'package:pedometer/feature/subscription/views/subscription_page.dart';
 import 'package:pedometer/feature/mine/components/mine_components.dart';
 import 'package:pedometer/feature/mine/model/mine_model.dart';
 import 'package:pedometer/feature/mine/resources/mine_resource.dart';
@@ -43,7 +45,12 @@ class MinePage extends GetView<MineViewModel> {
                   children: [
                     BodyStatsCard(stats: data.bodyStats),
                     SizedBox(height: AppSpacing.xl),
-                    const MembershipSubscriptionCard(),
+                    MembershipSubscriptionCard(
+                      onTap: () => Get.toNamed(
+                        SubscriptionPage.routeName,
+                        arguments: SubscriptionSource.mine,
+                      ),
+                    ),
                     SizedBox(height: AppSpacing.xxl),
                     MineSettingsCard(
                       entries: data.entries,

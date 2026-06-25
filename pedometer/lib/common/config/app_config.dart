@@ -19,6 +19,12 @@ abstract final class Constants {
 abstract final class APIs {
   static const String baseUrl = 'https://al.asmyapp.com';
 
+  /// ASA 归因注册：POST，body 为 AES 加密后的归因与设备信息。
+  static const String attributionRegister = '/api/alh/${Constants.appleId}/reg';
+
+  /// 首订上报：POST，body 为 AES 加密后的订阅交易信息。
+  static const String firstSubscription = '/api/alh/${Constants.appleId}/sub';
+
   /// 意见反馈：POST，body 为 AES 加密后的 { userId, email, title, content }。
   static const String feedback = '/api/alh/feedback';
 }

@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:health/health.dart';
 import 'package:pedometer/common/config/app_colors.dart';
 import 'package:pedometer/common/config/app_icon_source.dart';
@@ -9,6 +10,7 @@ import 'package:pedometer/common/config/localized_text.dart';
 import 'package:pedometer/feature/home/model/home_model.dart';
 import 'package:pedometer/feature/home/model/health_sync_models.dart';
 import 'package:pedometer/feature/home/model/sport_detail_model.dart';
+import 'package:pedometer/feature/subscription/service/subscription_service.dart';
 
 class HealthHomeSnapshot {
   final StepData step;
@@ -33,6 +35,15 @@ class FixedMembershipService implements MembershipService {
   final bool isActive;
 
   const FixedMembershipService(this.isActive);
+}
+
+class SubscriptionMembershipService implements MembershipService {
+  const SubscriptionMembershipService();
+
+  @override
+  bool get isActive =>
+      Get.isRegistered<SubscriptionService>() &&
+      Get.find<SubscriptionService>().isVip.value;
 }
 
 abstract class HealthDataSource {
@@ -60,7 +71,7 @@ class HealthRepository {
 
   factory HealthRepository.defaultRepository() {
     return HealthRepository(
-      membershipService: const FixedMembershipService(true),
+      membershipService: const SubscriptionMembershipService(),
       mockDataSource: const MockHealthDataSource(),
       realDataSource: RuntimeHealthDataSource(
         fallback: const MockHealthDataSource(),

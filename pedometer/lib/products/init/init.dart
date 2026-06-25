@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:pedometer/common/config/resource_loader.dart';
+import 'package:pedometer/common/network/utils/headers_manager.dart';
 import 'package:get/get.dart';
 import 'package:pedometer/common/storage/language_service.dart';
 import 'package:pedometer/common/tools/language_util.dart';
+import 'package:pedometer/feature/subscription/service/subscription_service.dart';
 import 'package:pedometer/products/init/app.dart';
 
 /// 应用冷启动初始化（main 入口）。
@@ -28,6 +30,10 @@ class AppStartup {
       languageCode: languageService.resourceLanguageCode,
     );
     await LanguageUtil.applyStoredPreference();
+    await HeaderManager.instance.initialize();
+    final subscriptionService = SubscriptionService();
+    await subscriptionService.init();
+    Get.put(subscriptionService, permanent: true);
     _bootstrapped = true;
   }
 }

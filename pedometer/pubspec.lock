@@ -772,6 +772,22 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.9.1"
+  pp_asa_attribution:
+    dependency: "direct main"
+    description:
+      name: pp_asa_attribution
+      sha256: a935aa41393ca1ec5fc61e19f6ea87eee2dca46915452b5c4bcd9753b1fdae9e
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.0.2"
+  pp_inapp_purchase:
+    dependency: "direct main"
+    description:
+      name: pp_inapp_purchase
+      sha256: d2ebaa6b5af0c58d661b77f727cdb26da611247ac1026a0071c1bc8a3c288eda
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.1.0"
   pub_semver:
     dependency: transitive
     description:

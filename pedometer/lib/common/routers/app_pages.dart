@@ -16,6 +16,12 @@ import 'package:pedometer/feature/mine/viewmodel/mine_view_model.dart';
 import 'package:pedometer/feature/mine/viewmodel/suggestion_view_model.dart';
 import 'package:pedometer/feature/mine/views/language_page.dart';
 import 'package:pedometer/feature/mine/views/suggestion_page.dart';
+import 'package:pedometer/feature/subscription/viewmodel/onboarding_view_model.dart';
+import 'package:pedometer/feature/subscription/viewmodel/start_load_view_model.dart';
+import 'package:pedometer/feature/subscription/viewmodel/subscription_view_model.dart';
+import 'package:pedometer/feature/subscription/views/onboarding_page.dart';
+import 'package:pedometer/feature/subscription/views/start_load_page.dart';
+import 'package:pedometer/feature/subscription/views/subscription_page.dart';
 import 'package:pedometer/feature/workout/resources/workout_resource.dart';
 import 'package:pedometer/feature/workout/viewmodel/edit_sport_goal_view_model.dart';
 import 'package:pedometer/feature/workout/viewmodel/exercise_result_view_model.dart';
@@ -36,9 +42,33 @@ import 'package:pedometer/products/phone/views/main_page.dart';
 class AppPages {
   AppPages._();
 
-  static const String initial = MainPage.routeName;
+  static const String initial = StartLoadPage.routeName;
 
   static final List<GetPage> pages = [
+    GetPage(
+      name: StartLoadPage.routeName,
+      page: () => const StartLoadPage(),
+      transition: Transition.fadeIn,
+      binding: BindingsBuilder(() {
+        Get.lazyPut<StartLoadViewModel>(() => StartLoadViewModel());
+      }),
+    ),
+    GetPage(
+      name: OnboardingPage.routeName,
+      page: () => const OnboardingPage(),
+      transition: Transition.fadeIn,
+      binding: BindingsBuilder(() {
+        Get.lazyPut<OnboardingViewModel>(() => OnboardingViewModel());
+      }),
+    ),
+    GetPage(
+      name: SubscriptionPage.routeName,
+      page: () => const SubscriptionPage(),
+      transition: Transition.downToUp,
+      binding: BindingsBuilder(() {
+        Get.lazyPut<SubscriptionViewModel>(() => SubscriptionViewModel());
+      }),
+    ),
     GetPage(
       name: MainPage.routeName,
       page: () => const MainPage(),
