@@ -4,12 +4,12 @@
 /// 以复用同一套后端接口；bundleId 为本应用自身的包名。
 abstract final class Constants {
   static const String appName = 'Pedometer';
-  static const String bundleId = 'com.pedometer.step.counter.walking.tracker';
+  static const String bundleId = '6779515132';
 
   /// 请求参数 AES-256-CBC 加密密钥与偏移量（与服务端约定，须与 al_led_banner 一致）。
   static const String aesKey = 'alhNenJDsXYyQUVOxwGB4Sg8cKUdC7sq';
   static const String aesIV = 'UgyIR0mHd2fYYZHe';
-  static const String sct = 'FBwFFqartUL0wTQi';
+  static const String sct = 'UgyIR0mHd2fYYZHe';
 }
 
 /// 后端接口地址。
