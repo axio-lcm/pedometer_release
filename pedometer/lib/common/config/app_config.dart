@@ -7,15 +7,15 @@ abstract final class Constants {
   static const String bundleId = 'com.pedometer.step.counter.walking.tracker';
 
   /// 请求参数 AES-256-CBC 加密密钥与偏移量（与服务端约定，须与 al_led_banner 一致）。
-  static const String aesKey = 'tomata@ciVDXYvUOD5uMn9t5hogVQBVF';
-  static const String aesIV = 'avlamBpsrytoKn49';
-  static const String sct = 'avlamBpsrytoKn49';
+  static const String aesKey = 'alhNenJDsXYyQUVOxwGB4Sg8cKUdC7sq';
+  static const String aesIV = 'UgyIR0mHd2fYYZHe';
+  static const String sct = 'FBwFFqartUL0wTQi';
 }
 
 /// 后端接口地址。
 abstract final class APIs {
-  static const String baseUrl = 'https://tomata.mobiaura.com';
+  static const String baseUrl = 'https://al.asmyapp.com';
 
   /// 意见反馈：POST，body 为 AES 加密后的 { userId, email, title, content }。
-  static const String feedback = '/api/tomata/6502852054/feed1x';
+  static const String feedback = '/api/alh/feedback';
 }
