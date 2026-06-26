@@ -71,7 +71,12 @@ class _GuideOnboardingBody extends StatelessWidget {
               child: Align(
                 alignment: Alignment.bottomCenter,
                 child: Padding(
-                  padding: EdgeInsets.fromLTRB(24.w, 0, 24.w, 28.h),
+                  padding: EdgeInsets.fromLTRB(
+                    24.w,
+                    0,
+                    24.w,
+                    AppSpacing.xl + 36.h,
+                  ),
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -163,7 +168,7 @@ class _GuideTitle extends StatelessWidget {
       text: TextSpan(
         style: TextStyle(
           color: Colors.white,
-          fontSize: 28.sp,
+          fontSize: 22.sp,
           fontWeight: FontWeight.w900,
           height: 1.05,
         ),
@@ -321,7 +326,7 @@ class _GuideContinueButton extends StatelessWidget {
       onTap: onTap,
       child: Container(
         width: double.infinity,
-        height: 54.h,
+        height: 56.h,
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(AppRadius.full),
           gradient: const LinearGradient(

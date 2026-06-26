@@ -101,7 +101,7 @@ class _StartupLoadingContentState extends State<StartupLoadingContent>
                       AppSpacing.xxl,
                       0,
                       AppSpacing.xxl,
-                      48.h,
+                      AppSpacing.xl + 36.h,
                     ),
                     child: _StartupProgressBar(
                       progress: progress,
@@ -173,7 +173,7 @@ class _StartupProgressBar extends StatelessWidget {
   });
 
   static const _designWidth = 327.0;
-  static const _height = 50.0;
+  static const _height = 54.0;
 
   @override
   Widget build(BuildContext context) {
@@ -189,10 +189,13 @@ class _StartupProgressBar extends StatelessWidget {
           decoration: BoxDecoration(
             color: trackColor,
             borderRadius: BorderRadius.circular(AppRadius.full),
-            border: Border.all(
-              color: AppColors.brandGreen.withValues(alpha: 0.24),
-              width: 1,
-            ),
+            boxShadow: [
+              BoxShadow(
+                color: AppColors.brandGreen.withValues(alpha: 0.32),
+                blurRadius: 24.r,
+                offset: Offset(0, 8.h),
+              ),
+            ],
           ),
           child: ClipRRect(
             borderRadius: BorderRadius.circular(AppRadius.full),
