@@ -25,10 +25,12 @@ class SubscriptionViewModel extends GetxController {
   ].obs;
   final buttonText = lt('Subscribe', '订阅').obs;
   final isEligibleForIntroOffer = false.obs;
+  final showFreeTrialSwitchIntro = false.obs;
 
   SubscriptionSource source = SubscriptionSource.subscription;
   Worker? _vipWorker;
   bool _closed = false;
+  bool _trialSwitchIntroShown = false;
 
   @override
   void onInit() {
@@ -107,11 +109,18 @@ class SubscriptionViewModel extends GetxController {
   Future<void> _refreshSelectedProduct() async {
     final plan = plans[selectedIndex.value];
     final service = Get.find<SubscriptionService>();
-    isEligibleForIntroOffer.value = await service.isEligibleForIntroOffer(
-      plan.productId,
-    );
+    final eligible = await service.isEligibleForIntroOffer(plan.productId);
+    isEligibleForIntroOffer.value = eligible;
     final text = await service.buttonText(plan.productId);
     buttonText.value = text.isEmpty ? lt('Subscribe', '订阅') : text;
+    if (eligible && !_trialSwitchIntroShown) {
+      _trialSwitchIntroShown = true;
+      showFreeTrialSwitchIntro.value = true;
+    }
+  }
+
+  void hideFreeTrialSwitchIntro() {
+    showFreeTrialSwitchIntro.value = false;
   }
 
   void _closePage() {

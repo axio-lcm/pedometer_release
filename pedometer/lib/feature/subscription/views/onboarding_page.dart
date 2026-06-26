@@ -7,6 +7,7 @@ import 'package:get/get.dart';
 import 'package:pedometer/common/config/app_colors.dart';
 import 'package:pedometer/common/config/app_dimens.dart';
 import 'package:pedometer/common/config/localized_text.dart';
+import 'package:pedometer/feature/subscription/components/free_trial_switch_intro_overlay.dart';
 import 'package:pedometer/feature/subscription/viewmodel/onboarding_view_model.dart';
 
 class OnboardingPage extends GetView<OnboardingViewModel> {
@@ -18,9 +19,19 @@ class OnboardingPage extends GetView<OnboardingViewModel> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Obx(
-        () => controller.isGuidePage
-            ? _GuideOnboardingBody(controller: controller)
-            : _SubscriptionOnboardingBody(controller: controller),
+        () => Stack(
+          children: [
+            controller.isGuidePage
+                ? _GuideOnboardingBody(controller: controller)
+                : _SubscriptionOnboardingBody(controller: controller),
+            Positioned.fill(
+              child: FreeTrialSwitchIntroOverlay(
+                visible: controller.showFreeTrialSwitchIntro.value,
+                onFinished: controller.hideFreeTrialSwitchIntro,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

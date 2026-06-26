@@ -13,8 +13,12 @@ class OnboardingViewModel extends GetxController {
   final index = 0.obs;
   final buttonText = lt('Continue', '继续').obs;
   final productDescription = ''.obs;
+  final isEligibleForIntroOffer = false.obs;
+  final showFreeTrialSwitchIntro = false.obs;
   Worker? _vipWorker;
   bool _completed = false;
+  bool _trialSwitchIntroShown = false;
+  bool _showSubscriptionAfterIntro = false;
 
   static const images = [
     SubscriptionAssets.onboarding1,
@@ -86,8 +90,17 @@ class OnboardingViewModel extends GetxController {
   Future<void> next() async {
     // 引导阶段未到末页：继续翻页，翻到订阅页（仅非会员）时加载产品信息。
     if (index.value < _maxIndex) {
-      index.value++;
-      if (isLast) await _loadProductInfo();
+      final nextIndex = index.value + 1;
+      if (!_isMember && nextIndex == images.length - 1) {
+        await _loadProductInfo();
+        if (isEligibleForIntroOffer.value && !_trialSwitchIntroShown) {
+          _trialSwitchIntroShown = true;
+          _showSubscriptionAfterIntro = true;
+          showFreeTrialSwitchIntro.value = true;
+          return;
+        }
+      }
+      index.value = nextIndex;
       return;
     }
     // 会员：走完引导直接进首页，不展示订阅页。
@@ -118,6 +131,9 @@ class OnboardingViewModel extends GetxController {
     final service = Get.find<SubscriptionService>();
     await service.getAllProducts();
     final product = service.productOf(SubscriptionConfig.onboardingWeeklyId);
+    final eligible = await service.isEligibleForIntroOffer(
+      SubscriptionConfig.onboardingWeeklyId,
+    );
     final title = await service.titleFor(
       SubscriptionConfig.onboardingWeeklyId,
       SubscriptionPeriodType.week,
@@ -129,6 +145,7 @@ class OnboardingViewModel extends GetxController {
     final action = await service.buttonText(
       SubscriptionConfig.onboardingWeeklyId,
     );
+    isEligibleForIntroOffer.value = eligible;
     buttonText.value = action.isEmpty ? lt('Continue', '继续') : action;
     productDescription.value = [
       if (title.isNotEmpty) title,
@@ -136,6 +153,18 @@ class OnboardingViewModel extends GetxController {
       if (product?.displayPrice?.isNotEmpty == true)
         product?.displayPrice ?? '',
     ].join(' · ');
+    if (isLast && eligible && !_trialSwitchIntroShown) {
+      _trialSwitchIntroShown = true;
+      showFreeTrialSwitchIntro.value = true;
+    }
+  }
+
+  void hideFreeTrialSwitchIntro() {
+    showFreeTrialSwitchIntro.value = false;
+    if (_showSubscriptionAfterIntro) {
+      _showSubscriptionAfterIntro = false;
+      index.value = images.length - 1;
+    }
   }
 
   void _enterApp() {

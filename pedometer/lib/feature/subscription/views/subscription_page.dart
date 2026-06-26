@@ -5,6 +5,7 @@ import 'package:get/get.dart';
 import 'package:pedometer/common/config/app_colors.dart';
 import 'package:pedometer/common/config/app_dimens.dart';
 import 'package:pedometer/common/config/localized_text.dart';
+import 'package:pedometer/feature/subscription/components/free_trial_switch_intro_overlay.dart';
 import 'package:pedometer/feature/subscription/config/subscription_config.dart';
 import 'package:pedometer/feature/subscription/model/subscription_assets.dart';
 import 'package:pedometer/feature/subscription/viewmodel/subscription_view_model.dart';
@@ -93,6 +94,14 @@ class SubscriptionPage extends GetView<SubscriptionViewModel> {
             right: 0,
             bottom: 0,
             child: _BottomAction(controller: controller),
+          ),
+          Obx(
+            () => Positioned.fill(
+              child: FreeTrialSwitchIntroOverlay(
+                visible: controller.showFreeTrialSwitchIntro.value,
+                onFinished: controller.hideFreeTrialSwitchIntro,
+              ),
+            ),
           ),
         ],
       ),
