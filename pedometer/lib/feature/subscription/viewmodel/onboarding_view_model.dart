@@ -12,6 +12,7 @@ class OnboardingViewModel extends GetxController {
   final index = 0.obs;
   final buttonText = lt('Continue', '继续').obs;
   final productDescription = ''.obs;
+  final productPrice = r'$9.99'.obs;
   final isEligibleForIntroOffer = false.obs;
   final showFreeTrialSwitchIntro = false.obs;
   Worker? _vipWorker;
@@ -141,10 +142,16 @@ class OnboardingViewModel extends GetxController {
     final price = product?.displayPrice?.isNotEmpty == true
         ? product!.displayPrice!
         : r'$9.99';
-    productDescription.value = lt(
-      '3-day free trial, then weekly $price. Cancel anytime.',
-      '免费试用 3 天，之后每周 $price，可随时取消。',
-    );
+    productPrice.value = price;
+    productDescription.value = eligible
+        ? lt(
+            '3-day free trial, then weekly $price. Cancel anytime.',
+            '免费试用 3 天，之后每周 $price，可随时取消。',
+          )
+        : lt(
+            'Subscribe to unlock goals, rewards, route tracking, health sync, and training insights. Weekly $price. Cancel anytime.',
+            '订阅即可解锁目标、奖励、路线记录、健康同步和训练洞察。每周 $price，可随时取消。',
+          );
     if (isLast && eligible && !_trialSwitchIntroShown) {
       _trialSwitchIntroShown = true;
       showFreeTrialSwitchIntro.value = true;

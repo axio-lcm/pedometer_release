@@ -192,6 +192,24 @@ class _SubscriptionOnboardingBody extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isIntroOffer = controller.isEligibleForIntroOffer.value;
+    final description = controller.productDescription.value.isEmpty
+        ? isIntroOffer
+              ? lt(
+                  r'3-day free trial, then weekly $9.99. Cancel anytime.',
+                  r'免费试用 3 天，之后每周 $9.99，可随时取消。',
+                )
+              : lt(
+                  r'Subscribe to unlock goals, rewards, route tracking, health sync, and training insights. Weekly $9.99. Cancel anytime.',
+                  r'订阅即可解锁目标、奖励、路线记录、健康同步和训练洞察。每周 $9.99，可随时取消。',
+                )
+        : controller.productDescription.value;
+    final buttonText = isIntroOffer
+        ? (controller.buttonText.value.isEmpty
+              ? lt('Start Free Trial', '开始免费试用')
+              : controller.buttonText.value)
+        : lt('Subscribe', '订阅');
+
     return Stack(
       children: [
         Positioned.fill(
@@ -230,7 +248,7 @@ class _SubscriptionOnboardingBody extends StatelessWidget {
                       fit: BoxFit.contain,
                     ),
                   ),
-                  SizedBox(height: 25.h),
+                  SizedBox(height: isIntroOffer ? 25.h : 20.h),
                   Text(
                     lt('Get all permissions', '解锁全部权限'),
                     textAlign: TextAlign.center,
@@ -243,12 +261,7 @@ class _SubscriptionOnboardingBody extends StatelessWidget {
                   ),
                   SizedBox(height: 12.h),
                   Text(
-                    controller.productDescription.value.isEmpty
-                        ? lt(
-                            r'3-day free trial, then weekly $9.99. Cancel anytime.',
-                            r'免费试用 3 天，之后每周 $9.99，可随时取消。',
-                          )
-                        : controller.productDescription.value,
+                    description,
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       color: Colors.white.withValues(alpha: 0.82),
@@ -257,13 +270,14 @@ class _SubscriptionOnboardingBody extends StatelessWidget {
                       height: 1.22,
                     ),
                   ),
-                  SizedBox(height: 42.h),
-                  _PremiumTrialButton(
-                    text: controller.buttonText.value.isEmpty
-                        ? lt('Start Free Trial', '开始免费试用')
-                        : controller.buttonText.value,
-                    onTap: controller.next,
-                  ),
+                  SizedBox(height: isIntroOffer ? 42.h : 26.h),
+                  if (!isIntroOffer) ...[
+                    _OnboardingWeeklyPlanTile(
+                      price: controller.productPrice.value,
+                    ),
+                    SizedBox(height: 24.h),
+                  ],
+                  _PremiumTrialButton(text: buttonText, onTap: controller.next),
                   SizedBox(height: 18.h),
                   _LegalLinks(onRestore: controller.restore),
                 ],
@@ -417,6 +431,54 @@ class _PremiumTrialButton extends StatelessWidget {
   }
 }
 
+class _OnboardingWeeklyPlanTile extends StatelessWidget {
+  final String price;
+
+  const _OnboardingWeeklyPlanTile({required this.price});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 68.h,
+      padding: EdgeInsets.symmetric(horizontal: 24.w),
+      decoration: BoxDecoration(
+        color: const Color(0xFF03141A).withValues(alpha: 0.82),
+        borderRadius: BorderRadius.circular(20.r),
+        border: Border.all(color: AppColors.brandGreen, width: 2.r),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Text(
+              lt('Weekly Plan', '周计划'),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 16.sp,
+                fontWeight: FontWeight.w900,
+                height: 1,
+              ),
+            ),
+          ),
+          SizedBox(width: 16.w),
+          Text(
+            price,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 16.sp,
+              fontWeight: FontWeight.w900,
+              height: 1,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class _LegalLinks extends StatelessWidget {
   final VoidCallback onRestore;
 
@@ -433,11 +495,11 @@ class _LegalLinks extends StatelessWidget {
           fontWeight: FontWeight.w600,
         ),
         children: [
-          TextSpan(text: lt('Privacy', '隐私政策')),
+          const TextSpan(text: 'Privacy Policy'),
           const TextSpan(text: '  |  '),
           TextSpan(text: lt('Terms', '用户协议')),
           const TextSpan(text: '  |  '),
-          TextSpan(text: lt('Subscription', '订阅')),
+          TextSpan(text: lt('Subscribe', '订阅')),
           const TextSpan(text: '  |  '),
           TextSpan(
             text: lt('Restore', '恢复购买'),
