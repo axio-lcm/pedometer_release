@@ -343,8 +343,8 @@ class _GuideContinueButton extends StatelessWidget {
         height: 56.h,
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(AppRadius.full),
-          gradient: const LinearGradient(
-            colors: [Color(0xFF32F12C), Color(0xFFB8F915)],
+          gradient: LinearGradient(
+            colors: [AppColors.brandGreenLight, AppColors.brandGreen],
           ),
           boxShadow: [
             BoxShadow(
@@ -386,8 +386,8 @@ class _PremiumTrialButton extends StatelessWidget {
         height: 52.h,
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(AppRadius.full),
-          gradient: const LinearGradient(
-            colors: [Color(0xFF32F12C), Color(0xFFB8F915)],
+          gradient: LinearGradient(
+            colors: [AppColors.brandGreenLight, AppColors.brandGreen],
           ),
         ),
         child: Stack(
