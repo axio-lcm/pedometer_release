@@ -11,26 +11,25 @@ class SubscriptionViewModel extends GetxController {
     SubscriptionProductPlan(
       kind: SubscriptionPlanKind.weekly,
       productId: SubscriptionConfig.inAppWeeklyId,
-      fallbackTitle: lt('Weekly Pro', '周会员'),
+      fallbackTitle: lt('Weekly Plan', '周计划'),
       fallbackSubtitle: lt('3-day free trial', '免费试用 3 天'),
       fallbackPrice: r'$9.99',
     ),
     SubscriptionProductPlan(
       kind: SubscriptionPlanKind.yearly,
       productId: SubscriptionConfig.inAppYearlyId,
-      fallbackTitle: lt('Yearly Pro', '年会员'),
+      fallbackTitle: lt('Annual Plan', '年度计划'),
       fallbackSubtitle: lt('Best value', '年度会员'),
       fallbackPrice: r'$39.99',
     ),
   ].obs;
   final buttonText = lt('Subscribe', '订阅').obs;
   final isEligibleForIntroOffer = false.obs;
-  final showFreeTrialSwitchIntro = false.obs;
+  final weeklyIntroOfferEligible = false.obs;
 
   SubscriptionSource source = SubscriptionSource.subscription;
   Worker? _vipWorker;
   bool _closed = false;
-  bool _trialSwitchIntroShown = false;
 
   @override
   void onInit() {
@@ -77,6 +76,7 @@ class SubscriptionViewModel extends GetxController {
       );
     }
     plans.assignAll(updated);
+    await _refreshWeeklyIntroOfferEligibility();
     await _refreshSelectedProduct();
   }
 
@@ -111,16 +111,20 @@ class SubscriptionViewModel extends GetxController {
     final service = Get.find<SubscriptionService>();
     final eligible = await service.isEligibleForIntroOffer(plan.productId);
     isEligibleForIntroOffer.value = eligible;
+    if (plan.kind == SubscriptionPlanKind.weekly) {
+      weeklyIntroOfferEligible.value = eligible;
+    }
     final text = await service.buttonText(plan.productId);
     buttonText.value = text.isEmpty ? lt('Subscribe', '订阅') : text;
-    if (eligible && !_trialSwitchIntroShown) {
-      _trialSwitchIntroShown = true;
-      showFreeTrialSwitchIntro.value = true;
-    }
   }
 
-  void hideFreeTrialSwitchIntro() {
-    showFreeTrialSwitchIntro.value = false;
+  Future<void> _refreshWeeklyIntroOfferEligibility() async {
+    for (final plan in plans) {
+      if (plan.kind != SubscriptionPlanKind.weekly) continue;
+      weeklyIntroOfferEligible.value = await Get.find<SubscriptionService>()
+          .isEligibleForIntroOffer(plan.productId);
+      return;
+    }
   }
 
   void _closePage() {
