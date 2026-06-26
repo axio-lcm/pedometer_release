@@ -9,6 +9,7 @@ import 'package:pedometer/common/config/app_colors.dart';
 import 'package:pedometer/common/config/app_dimens.dart';
 import 'package:pedometer/common/config/app_icon_source.dart';
 import 'package:pedometer/common/config/localized_text.dart';
+import 'package:pedometer/feature/home/components/chart_reveal.dart';
 import 'package:pedometer/feature/home/components/walking_scene_placeholder.dart';
 import 'package:pedometer/feature/home/model/sport_detail_model.dart';
 
@@ -374,10 +375,16 @@ class NeonRingProgress extends StatelessWidget {
       child: Stack(
         fit: StackFit.expand,
         children: [
-          CustomPaint(
-            painter: _NeonRingPainter(
-              progress: progress.clamp(0.0, 1.0),
-              strokeWidth: strokeWidth,
+          // 进度从 0 扫到目标；目标变化时（如步数实时更新）平滑追随当前值。
+          TweenAnimationBuilder<double>(
+            tween: Tween<double>(begin: 0, end: progress.clamp(0.0, 1.0)),
+            duration: const Duration(milliseconds: 1800),
+            curve: Curves.easeInOutCubic,
+            builder: (context, value, _) => CustomPaint(
+              painter: _NeonRingPainter(
+                progress: value,
+                strokeWidth: strokeWidth,
+              ),
             ),
           ),
           Center(child: center),
@@ -558,59 +565,68 @@ class _HourlyStepTrendCardState extends State<HourlyStepTrendCard> {
           SizedBox(height: AppSpacing.md),
           SizedBox(
             height: 150,
-            child: LayoutBuilder(
-              builder: (context, constraints) {
-                final selectedPoint = selectedIndex < 0
-                    ? null
-                    : _chartPointFor(
-                        constraints.biggest,
-                        selectedIndex,
-                        widget.data[selectedIndex].steps,
-                      );
-                return Listener(
-                  behavior: HitTestBehavior.opaque,
-                  onPointerDown: (event) {
-                    _pointerDownPosition = event.localPosition;
-                  },
-                  onPointerUp: (event) {
-                    final down = _pointerDownPosition;
-                    _pointerDownPosition = null;
-                    if (down == null) return;
-                    if ((event.localPosition - down).distance >
-                        HourlyStepTrendCard._tapSlop) {
-                      return;
-                    }
-                    _selectIndexAt(
-                      event.localPosition.dx,
-                      constraints.maxWidth,
+            // 入场时把小时折线从 00:00 一路画到当前。
+            child: ChartRevealBuilder(
+              replayKey: widget.data.isNotEmpty,
+              builder: (context, t) {
+                final done = t >= 1;
+                return LayoutBuilder(
+                  builder: (context, constraints) {
+                    final selectedPoint = selectedIndex < 0
+                        ? null
+                        : _chartPointFor(
+                            constraints.biggest,
+                            selectedIndex,
+                            widget.data[selectedIndex].steps,
+                          );
+                    return Listener(
+                      behavior: HitTestBehavior.opaque,
+                      onPointerDown: (event) {
+                        _pointerDownPosition = event.localPosition;
+                      },
+                      onPointerUp: (event) {
+                        final down = _pointerDownPosition;
+                        _pointerDownPosition = null;
+                        if (down == null) return;
+                        if ((event.localPosition - down).distance >
+                            HourlyStepTrendCard._tapSlop) {
+                          return;
+                        }
+                        _selectIndexAt(
+                          event.localPosition.dx,
+                          constraints.maxWidth,
+                        );
+                      },
+                      child: Stack(
+                        clipBehavior: Clip.none,
+                        children: [
+                          LineChart(
+                            _lineData(selectedIndex, t, done),
+                            duration: Duration.zero,
+                          ),
+                          if (done &&
+                              tooltipText != null &&
+                              selectedPoint != null)
+                            Positioned(
+                              left: _tooltipLeftFor(
+                                selectedPoint.dx,
+                                constraints.maxWidth,
+                              ),
+                              top: _tooltipTopFor(
+                                selectedPoint.dy,
+                                constraints.maxHeight,
+                              ),
+                              child: IgnorePointer(
+                                child: SizedBox(
+                                  width: HourlyStepTrendCard._tooltipWidth,
+                                  child: _ChartTooltip(text: tooltipText),
+                                ),
+                              ),
+                            ),
+                        ],
+                      ),
                     );
                   },
-                  child: Stack(
-                    clipBehavior: Clip.none,
-                    children: [
-                      LineChart(
-                        _lineData(selectedIndex),
-                        duration: Duration.zero,
-                      ),
-                      if (tooltipText != null && selectedPoint != null)
-                        Positioned(
-                          left: _tooltipLeftFor(
-                            selectedPoint.dx,
-                            constraints.maxWidth,
-                          ),
-                          top: _tooltipTopFor(
-                            selectedPoint.dy,
-                            constraints.maxHeight,
-                          ),
-                          child: IgnorePointer(
-                            child: SizedBox(
-                              width: HourlyStepTrendCard._tooltipWidth,
-                              child: _ChartTooltip(text: tooltipText),
-                            ),
-                          ),
-                        ),
-                    ],
-                  ),
                 );
               },
             ),
@@ -666,12 +682,12 @@ class _HourlyStepTrendCardState extends State<HourlyStepTrendCard> {
     );
   }
 
-  LineChartData _lineData(int selectedIndex) {
+  LineChartData _lineData(int selectedIndex, double t, bool done) {
     final selectedX = selectedIndex < 0
         ? null
         : _timeAxisXForLabel(widget.data[selectedIndex].label);
     final scale = _chartScale;
-    final spots = <FlSpot>[
+    final fullSpots = <FlSpot>[
       for (var i = 0; i < widget.data.length; i++)
         FlSpot(
           _timeAxisXForLabel(widget.data[i].label),
@@ -680,9 +696,10 @@ class _HourlyStepTrendCardState extends State<HourlyStepTrendCard> {
     ];
     // fl_chart 至少需要 2 个点才能连成线。当只有单点（如仅拿到当日总步数的兜底）
     // 且该点不在 00:00 时，补一个原点，让曲线从 00:00 的 0 步上升到该点。
-    if (spots.length == 1 && spots.first.x > 0) {
-      spots.insert(0, const FlSpot(0, 0));
+    if (fullSpots.length == 1 && fullSpots.first.x > 0) {
+      fullSpots.insert(0, const FlSpot(0, 0));
     }
+    final spots = revealSpots(fullSpots, t);
     return LineChartData(
       minX: 0,
       maxX: HourlyStepTrendCard._chartMaxX,
@@ -767,7 +784,8 @@ class _HourlyStepTrendCardState extends State<HourlyStepTrendCard> {
           color: AppColors.brandGreen,
           barWidth: 2.5,
           dotData: FlDotData(
-            show: true,
+            // 画完再点亮选中节点，绘制中不出现游离圆点。
+            show: done,
             checkToShowDot: (spot, bar) =>
                 selectedX != null && (spot.x - selectedX).abs() < 0.001,
             getDotPainter: (spot, percent, bar, index) => FlDotCirclePainter(
@@ -916,68 +934,78 @@ class _WeeklyTrendCardState extends State<WeeklyTrendCard> {
           SizedBox(height: AppSpacing.md),
           SizedBox(
             height: 170,
-            child: LayoutBuilder(
-              builder: (context, constraints) {
-                final selectedPoint = selectedIndex < 0
-                    ? null
-                    : _chartPointFor(
-                        constraints.biggest,
-                        selectedIndex,
-                        widget.data[selectedIndex].steps,
-                        yAxisScale,
-                      );
-                return Listener(
-                  behavior: HitTestBehavior.opaque,
-                  onPointerDown: (event) {
-                    _pointerDownPosition = event.localPosition;
-                  },
-                  onPointerUp: (event) {
-                    final down = _pointerDownPosition;
-                    _pointerDownPosition = null;
-                    if (down == null) return;
-                    if ((event.localPosition - down).distance >
-                        WeeklyTrendCard._tapSlop) {
-                      return;
-                    }
-                    _selectIndexAt(
-                      event.localPosition.dx,
-                      constraints.maxWidth,
-                    );
-                  },
-                  child: Stack(
-                    children: [
-                      BarChart(
-                        _barData(_selectedLabel, yAxisScale),
-                        duration: Duration.zero,
-                      ),
-                      IgnorePointer(
-                        child: CustomPaint(
-                          size: Size.infinite,
-                          painter: _WeeklyCurveOverlay(
-                            data: widget.data,
-                            yAxisScale: yAxisScale,
+            // 入场时柱子从底部长起、折线左→右画出，同步推进。
+            child: ChartRevealBuilder(
+              replayKey: widget.data.isNotEmpty,
+              builder: (context, t) {
+                final done = t >= 1;
+                return LayoutBuilder(
+                  builder: (context, constraints) {
+                    final selectedPoint = selectedIndex < 0
+                        ? null
+                        : _chartPointFor(
+                            constraints.biggest,
+                            selectedIndex,
+                            widget.data[selectedIndex].steps,
+                            yAxisScale,
+                          );
+                    return Listener(
+                      behavior: HitTestBehavior.opaque,
+                      onPointerDown: (event) {
+                        _pointerDownPosition = event.localPosition;
+                      },
+                      onPointerUp: (event) {
+                        final down = _pointerDownPosition;
+                        _pointerDownPosition = null;
+                        if (down == null) return;
+                        if ((event.localPosition - down).distance >
+                            WeeklyTrendCard._tapSlop) {
+                          return;
+                        }
+                        _selectIndexAt(
+                          event.localPosition.dx,
+                          constraints.maxWidth,
+                        );
+                      },
+                      child: Stack(
+                        children: [
+                          BarChart(
+                            _barData(_selectedLabel, yAxisScale, t),
+                            duration: Duration.zero,
                           ),
-                        ),
-                      ),
-                      if (tooltipText != null && selectedPoint != null)
-                        Positioned(
-                          left: _tooltipLeftFor(
-                            selectedPoint.dx,
-                            constraints.maxWidth,
-                          ),
-                          top: _tooltipTopFor(
-                            selectedPoint.dy,
-                            constraints.maxHeight,
-                          ),
-                          child: IgnorePointer(
-                            child: SizedBox(
-                              width: WeeklyTrendCard._tooltipWidth,
-                              child: _ChartTooltip(text: tooltipText),
+                          IgnorePointer(
+                            child: CustomPaint(
+                              size: Size.infinite,
+                              painter: _WeeklyCurveOverlay(
+                                data: widget.data,
+                                yAxisScale: yAxisScale,
+                                progress: t,
+                              ),
                             ),
                           ),
-                        ),
-                    ],
-                  ),
+                          if (done &&
+                              tooltipText != null &&
+                              selectedPoint != null)
+                            Positioned(
+                              left: _tooltipLeftFor(
+                                selectedPoint.dx,
+                                constraints.maxWidth,
+                              ),
+                              top: _tooltipTopFor(
+                                selectedPoint.dy,
+                                constraints.maxHeight,
+                              ),
+                              child: IgnorePointer(
+                                child: SizedBox(
+                                  width: WeeklyTrendCard._tooltipWidth,
+                                  child: _ChartTooltip(text: tooltipText),
+                                ),
+                              ),
+                            ),
+                        ],
+                      ),
+                    );
+                  },
                 );
               },
             ),
@@ -1034,7 +1062,11 @@ class _WeeklyTrendCardState extends State<WeeklyTrendCard> {
     return preferred.clamp(0.0, chartHeight - WeeklyTrendCard._tooltipHeight);
   }
 
-  BarChartData _barData(String selectedLabel, _WeeklyYAxisScale yAxisScale) {
+  BarChartData _barData(
+    String selectedLabel,
+    _WeeklyYAxisScale yAxisScale,
+    double t,
+  ) {
     return BarChartData(
       minY: 0,
       maxY: yAxisScale.maxY,
@@ -1100,10 +1132,12 @@ class _WeeklyTrendCardState extends State<WeeklyTrendCard> {
             x: i,
             barRods: [
               BarChartRodData(
-                toY: widget.data[i].steps.toDouble().clamp(
-                  0.0,
-                  yAxisScale.maxY,
-                ),
+                toY:
+                    widget.data[i].steps.toDouble().clamp(
+                      0.0,
+                      yAxisScale.maxY,
+                    ) *
+                    t,
                 width: WeeklyTrendCard._barWidth,
                 borderRadius: const BorderRadius.vertical(
                   top: Radius.circular(6),
@@ -1167,7 +1201,14 @@ class _WeeklyCurveOverlay extends CustomPainter {
   final List<WeeklyStepData> data;
   final _WeeklyYAxisScale yAxisScale;
 
-  const _WeeklyCurveOverlay({required this.data, required this.yAxisScale});
+  /// 折线绘制进度 0→1：沿路径长度从左到右画出，1 时画完并点亮节点。
+  final double progress;
+
+  const _WeeklyCurveOverlay({
+    required this.data,
+    required this.yAxisScale,
+    this.progress = 1,
+  });
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -1196,19 +1237,22 @@ class _WeeklyCurveOverlay extends CustomPainter {
       final midX = (p0.dx + p1.dx) / 2;
       path.cubicTo(midX, p0.dy, midX, p1.dy, p1.dx, p1.dy);
     }
+    final drawPath = progress >= 1 ? path : _partialPath(path, progress);
     final glow = Paint()
       ..color = AppColors.brandGreen.withValues(alpha: 0.22)
       ..strokeWidth = 8
       ..style = PaintingStyle.stroke
       ..strokeCap = StrokeCap.round
       ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 8);
-    canvas.drawPath(path, glow);
+    canvas.drawPath(drawPath, glow);
     final line = Paint()
       ..color = AppColors.brandGreenLight
       ..strokeWidth = 2
       ..style = PaintingStyle.stroke
       ..strokeCap = StrokeCap.round;
-    canvas.drawPath(path, line);
+    canvas.drawPath(drawPath, line);
+    // 画完后再点亮节点，避免笔尖未到处出现游离圆点。
+    if (progress < 1) return;
     final dotPaint = Paint()..color = AppColors.white;
     final dotStroke = Paint()
       ..color = AppColors.brandGreen
@@ -1220,9 +1264,27 @@ class _WeeklyCurveOverlay extends CustomPainter {
     }
   }
 
+  /// 沿路径长度截取前 [progress] 比例，得到左→右生长的曲线。
+  Path _partialPath(Path path, double progress) {
+    final clamped = progress.clamp(0.0, 1.0);
+    final metrics = path.computeMetrics().toList();
+    final total = metrics.fold<double>(0, (sum, m) => sum + m.length);
+    var remaining = total * clamped;
+    final out = Path();
+    for (final metric in metrics) {
+      if (remaining <= 0) break;
+      final len = metric.length < remaining ? metric.length : remaining;
+      out.addPath(metric.extractPath(0, len), Offset.zero);
+      remaining -= len;
+    }
+    return out;
+  }
+
   @override
   bool shouldRepaint(covariant _WeeklyCurveOverlay oldDelegate) =>
-      oldDelegate.data != data || oldDelegate.yAxisScale != yAxisScale;
+      oldDelegate.data != data ||
+      oldDelegate.yAxisScale != yAxisScale ||
+      oldDelegate.progress != progress;
 }
 
 class _WeeklyYAxisScale {
@@ -1403,14 +1465,17 @@ class SportMiniAnalysisCard extends StatelessWidget {
           SizedBox(height: AppSpacing.md),
           SizedBox(
             height: 42,
-            child: LineChart(_miniLineData(), duration: Duration.zero),
+            child: ChartRevealBuilder(
+              builder: (context, t) =>
+                  LineChart(_miniLineData(t), duration: Duration.zero),
+            ),
           ),
         ],
       ),
     );
   }
 
-  LineChartData _miniLineData() {
+  LineChartData _miniLineData(double t) {
     final lastX = (data.samples.length - 1).toDouble();
     return LineChartData(
       minX: 0,
@@ -1423,10 +1488,7 @@ class SportMiniAnalysisCard extends StatelessWidget {
       titlesData: const FlTitlesData(show: false),
       lineBarsData: [
         LineChartBarData(
-          spots: [
-            for (var i = 0; i < data.samples.length; i++)
-              FlSpot(i.toDouble(), data.samples[i]),
-          ],
+          spots: revealLineSpots(data.samples, t),
           isCurved: true,
           curveSmoothness: 0.54,
           preventCurveOverShooting: true,
@@ -1594,25 +1656,29 @@ class _MonthlyHeatCalendarCardState extends State<MonthlyHeatCalendarCard> {
                   itemBuilder: (context, page) {
                     final offset = page - _basePage;
                     final monthDate = _monthForOffset(offset);
-                    return _MonthGrid(
-                      year: monthDate.year,
-                      month: monthDate.month,
-                      // 仅当前展示月份的格子使用真实数据并可点选。
-                      byDay: offset == _currentOffset
-                          ? byDay
-                          : const <int, MonthlyDayData>{},
-                      cellExtent: cell,
-                      spacing: spacing,
-                      selectedDay: offset == _currentOffset
-                          ? _selectedDay
-                          : null,
-                      onDayTap: offset == _currentOffset
-                          ? (day) => setState(
-                              () => _selectedDay = _selectedDay == day
-                                  ? null
-                                  : day,
-                            )
-                          : null,
+                    return ChartRevealBuilder(
+                      // 每个月页首次出现时按日逐格填充。
+                      builder: (context, t) => _MonthGrid(
+                        year: monthDate.year,
+                        month: monthDate.month,
+                        // 仅当前展示月份的格子使用真实数据并可点选。
+                        byDay: offset == _currentOffset
+                            ? byDay
+                            : const <int, MonthlyDayData>{},
+                        cellExtent: cell,
+                        spacing: spacing,
+                        progress: t,
+                        selectedDay: offset == _currentOffset
+                            ? _selectedDay
+                            : null,
+                        onDayTap: offset == _currentOffset
+                            ? (day) => setState(
+                                () => _selectedDay = _selectedDay == day
+                                    ? null
+                                    : day,
+                              )
+                            : null,
+                      ),
                     );
                   },
                 ),
@@ -1672,6 +1738,9 @@ class _MonthGrid extends StatelessWidget {
   final int? selectedDay;
   final void Function(int day)? onDayTap;
 
+  /// 入场进度 0→1：按日从 1 号到月末逐格淡入填充。
+  final double progress;
+
   const _MonthGrid({
     required this.year,
     required this.month,
@@ -1680,6 +1749,7 @@ class _MonthGrid extends StatelessWidget {
     required this.spacing,
     this.selectedDay,
     this.onDayTap,
+    this.progress = 1,
   });
 
   @override
@@ -1688,6 +1758,8 @@ class _MonthGrid extends StatelessWidget {
     final leading = DateTime(year, month, 1).weekday - 1;
     // 当月天数：下个月的第 0 天即本月最后一天。
     final daysInMonth = DateTime(year, month + 1, 0).day;
+    // 把整体进度分摊到各天：1 号最先出现、月末最后，得到逐格填充。
+    final frontier = progress * daysInMonth;
     return GridView.builder(
       padding: EdgeInsets.zero,
       itemCount: 42,
@@ -1704,11 +1776,13 @@ class _MonthGrid extends StatelessWidget {
           return const SizedBox.shrink();
         }
         final step = byDay[day]?.steps ?? 0;
+        final cellReveal = (frontier - (day - 1)).clamp(0.0, 1.0);
         return _HeatDayCircle(
           day: day,
           steps: step,
           selected: selectedDay == day,
           onTap: onDayTap == null ? null : () => onDayTap!(day),
+          reveal: cellReveal,
         );
       },
     );
@@ -1721,11 +1795,15 @@ class _HeatDayCircle extends StatelessWidget {
   final bool selected;
   final VoidCallback? onTap;
 
+  /// 入场显隐 0→1：淡入 + 轻微放大，配合按日逐格填充。
+  final double reveal;
+
   const _HeatDayCircle({
     required this.day,
     required this.steps,
     this.selected = false,
     this.onTap,
+    this.reveal = 1,
   });
 
   @override
@@ -1769,12 +1847,18 @@ class _HeatDayCircle extends StatelessWidget {
         ),
       ),
     );
-    if (onTap == null) return Center(child: circle);
+    final revealed = reveal >= 1
+        ? circle
+        : Opacity(
+            opacity: reveal.clamp(0.0, 1.0),
+            child: Transform.scale(scale: 0.6 + 0.4 * reveal, child: circle),
+          );
+    if (onTap == null) return Center(child: revealed);
     return Center(
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
         onTap: onTap,
-        child: circle,
+        child: revealed,
       ),
     );
   }

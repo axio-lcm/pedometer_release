@@ -83,18 +83,11 @@ class HealthRepository {
   HealthDataSource get _activeDataSource =>
       _shouldShowMock ? mockDataSource : realDataSource;
 
-  /// mock 仅在「未授权运动与健身 且 未授权 Apple Health 且 未开通订阅 且 无任何真实数据」
-  /// 的全新空状态下展示；满足任一真实条件即展示真实/持久化数据。
-  bool get _shouldShowMock {
-    if (membershipService.isActive) return false;
-    if (HealthSyncRuntime.hasActiveDataSource) return false;
-    if (HealthSyncRuntime.motionAuthorized) return false;
-    if (HealthSyncRuntime.connectionStatusOf(HealthSyncSource.appleHealth) ==
-        HealthAuthStatus.authorized) {
-      return false;
-    }
-    return true;
-  }
+  /// mock 仅由订阅状态决定：未订阅一律展示 mock；已订阅展示持久化/实时真实数据。
+  ///
+  /// 用户历史数据始终保留在本地（sqflite + 启动 hydrate 进底座），未订阅时仅在
+  /// 「显示层」盖上 mock；再次开通后 [membershipService.isActive] 为真即露出真实数据。
+  bool get _shouldShowMock => !membershipService.isActive;
 
   HealthHomeSnapshot homeSnapshot() => _activeDataSource.homeSnapshot();
 

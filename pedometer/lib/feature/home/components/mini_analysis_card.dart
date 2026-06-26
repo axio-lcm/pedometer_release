@@ -4,12 +4,17 @@ import 'package:pedometer/common/component/asset_metric_icon.dart';
 import 'package:pedometer/common/component/glass_card.dart';
 import 'package:pedometer/common/config/app_colors.dart';
 import 'package:pedometer/common/config/app_dimens.dart';
+import 'package:pedometer/feature/home/components/chart_reveal.dart';
 import 'package:pedometer/feature/home/model/home_model.dart';
 
 /// 底部分析小卡：标题 + 大数字 + 变化 + fl_chart 平滑曲线（末端发光节点）。
 class MiniAnalysisCard extends StatelessWidget {
   final AnalysisData data;
-  const MiniAnalysisCard({super.key, required this.data});
+
+  /// 外部重放键：变化时重新播放折线入场动画（如切回首页 tab）。
+  final Object? replayKey;
+
+  const MiniAnalysisCard({super.key, required this.data, this.replayKey});
 
   static const double _curveSmoothness = 0.56;
 
@@ -78,19 +83,20 @@ class MiniAnalysisCard extends StatelessWidget {
           SizedBox(
             height: 40,
             width: double.infinity,
-            child: LineChart(_chartData(), duration: Duration.zero),
+            child: ChartRevealBuilder(
+              replayKey: replayKey,
+              builder: (context, t) =>
+                  LineChart(_chartData(t), duration: Duration.zero),
+            ),
           ),
         ],
       ),
     );
   }
 
-  LineChartData _chartData() {
+  LineChartData _chartData(double t) {
     final lastX = (data.samples.length - 1).toDouble();
-    final spots = <FlSpot>[
-      for (var i = 0; i < data.samples.length; i++)
-        FlSpot(i.toDouble(), data.samples[i]),
-    ];
+    final spots = revealLineSpots(data.samples, t);
     return LineChartData(
       minX: 0,
       maxX: lastX,

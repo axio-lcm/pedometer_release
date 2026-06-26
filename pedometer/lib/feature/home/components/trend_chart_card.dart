@@ -5,13 +5,18 @@ import 'package:pedometer/common/component/glass_card.dart';
 import 'package:pedometer/common/config/app_colors.dart';
 import 'package:pedometer/common/config/app_dimens.dart';
 import 'package:pedometer/common/config/localized_text.dart';
+import 'package:pedometer/feature/home/components/chart_reveal.dart';
 import 'package:pedometer/feature/home/model/home_model.dart';
 import 'package:pedometer/feature/home/resources/home_resource.dart';
 
 /// 趋势大卡：标题 + fl_chart 平滑曲线（渐变填充 + 发光节点）。
 class TrendChartCard extends StatefulWidget {
   final List<TrendPoint> points;
-  const TrendChartCard({super.key, required this.points});
+
+  /// 外部重放键：变化时重新播放从左到右的入场动画（如切回首页 tab）。
+  final Object? replayKey;
+
+  const TrendChartCard({super.key, required this.points, this.replayKey});
 
   static const double _defaultMaxY = 8000;
   static const double _firstExpandedMaxY = 12000;
@@ -91,64 +96,72 @@ class _TrendChartCardState extends State<TrendChartCard> {
           SizedBox(height: AppSpacing.md),
           SizedBox(
             height: 160,
-            child: LayoutBuilder(
-              builder: (context, constraints) {
-                final chartPoint = selectedIndex < 0
-                    ? null
-                    : _chartPointFor(
-                        constraints.biggest,
-                        selectedIndex,
-                        widget.points[selectedIndex].value,
-                      );
-                return Listener(
-                  behavior: HitTestBehavior.opaque,
-                  onPointerDown: (event) {
-                    _pointerDownPosition = event.localPosition;
-                  },
-                  onPointerUp: (event) {
-                    final down = _pointerDownPosition;
-                    _pointerDownPosition = null;
-                    if (down == null) return;
-                    if ((event.localPosition - down).distance >
-                        TrendChartCard._tapSlop) {
-                      return;
-                    }
-                    _selectIndexAt(
-                      event.localPosition.dx,
-                      constraints.maxWidth,
-                    );
-                  },
-                  child: Stack(
-                    clipBehavior: Clip.none,
-                    children: [
-                      Padding(
-                        padding: EdgeInsets.symmetric(
-                          horizontal: AppSpacing.lg,
-                        ),
-                        child: LineChart(
-                          _chartData(selectedIndex),
-                          duration: Duration.zero,
-                        ),
-                      ),
-                      if (tooltipText != null && chartPoint != null)
-                        Positioned(
-                          left: _tooltipLeftFor(
-                            chartPoint.dx,
-                            constraints.maxWidth,
-                          ),
-                          top: _tooltipTopFor(
-                            chartPoint.dy,
-                            constraints.maxHeight,
-                          ),
-                          child: IgnorePointer(
-                            child: SizedBox(
-                              width: TrendChartCard._tooltipWidth,
-                              child: _TrendTooltip(text: tooltipText),
+            // 入场时从左到右把折线画到终点；数据从空变为有值时重放一次。
+            child: ChartRevealBuilder(
+              replayKey: Object.hash(widget.points.isNotEmpty, widget.replayKey),
+              builder: (context, t) {
+                final done = t >= 1;
+                return LayoutBuilder(
+                  builder: (context, constraints) {
+                    final chartPoint = selectedIndex < 0
+                        ? null
+                        : _chartPointFor(
+                            constraints.biggest,
+                            selectedIndex,
+                            widget.points[selectedIndex].value,
+                          );
+                    return Listener(
+                      behavior: HitTestBehavior.opaque,
+                      onPointerDown: (event) {
+                        _pointerDownPosition = event.localPosition;
+                      },
+                      onPointerUp: (event) {
+                        final down = _pointerDownPosition;
+                        _pointerDownPosition = null;
+                        if (down == null) return;
+                        if ((event.localPosition - down).distance >
+                            TrendChartCard._tapSlop) {
+                          return;
+                        }
+                        _selectIndexAt(
+                          event.localPosition.dx,
+                          constraints.maxWidth,
+                        );
+                      },
+                      child: Stack(
+                        clipBehavior: Clip.none,
+                        children: [
+                          Padding(
+                            padding: EdgeInsets.symmetric(
+                              horizontal: AppSpacing.lg,
+                            ),
+                            child: LineChart(
+                              _chartData(selectedIndex, t, done),
+                              duration: Duration.zero,
                             ),
                           ),
-                        ),
-                    ],
-                  ),
+                          // 画完后再显示选中节点的气泡，避免笔尖未到时错位。
+                          if (done && tooltipText != null && chartPoint != null)
+                            Positioned(
+                              left: _tooltipLeftFor(
+                                chartPoint.dx,
+                                constraints.maxWidth,
+                              ),
+                              top: _tooltipTopFor(
+                                chartPoint.dy,
+                                constraints.maxHeight,
+                              ),
+                              child: IgnorePointer(
+                                child: SizedBox(
+                                  width: TrendChartCard._tooltipWidth,
+                                  child: _TrendTooltip(text: tooltipText),
+                                ),
+                              ),
+                            ),
+                        ],
+                      ),
+                    );
+                  },
                 );
               },
             ),
@@ -196,12 +209,12 @@ class _TrendChartCardState extends State<TrendChartCard> {
     return preferred.clamp(0.0, chartHeight - TrendChartCard._tooltipHeight);
   }
 
-  LineChartData _chartData(int selectedIndex) {
+  LineChartData _chartData(int selectedIndex, double t, bool done) {
     final yAxisScale = _yAxisScale;
-    final spots = <FlSpot>[
-      for (var i = 0; i < widget.points.length; i++)
-        FlSpot(i.toDouble(), widget.points[i].value),
-    ];
+    final spots = revealLineSpots(
+      [for (final point in widget.points) point.value],
+      t,
+    );
     return LineChartData(
       minX: 0,
       maxX: (widget.points.length - 1)
@@ -276,7 +289,8 @@ class _TrendChartCardState extends State<TrendChartCard> {
           color: AppColors.brandGreen,
           barWidth: 2.5,
           dotData: FlDotData(
-            show: true,
+            // 绘制中不画节点，画到终点后再点亮，避免移动笔尖上出现游离圆点。
+            show: done,
             getDotPainter: (spot, percent, bar, index) {
               final highlight = index == selectedIndex;
               return FlDotCirclePainter(

@@ -12,6 +12,7 @@ import 'package:pedometer/feature/home/views/sync_data_detail_page.dart';
 import 'package:pedometer/feature/home/views/sport_detail_page.dart';
 import 'package:pedometer/feature/subscription/config/subscription_config.dart';
 import 'package:pedometer/feature/subscription/service/subscription_service.dart';
+import 'package:pedometer/products/phone/viewmodel/main_view_model.dart';
 
 /// 首页：暗色霓虹森林运动 Dashboard。
 class HomePage extends GetView<HomeViewModel> {
@@ -41,7 +42,13 @@ class HomePage extends GetView<HomeViewModel> {
                   SizedBox(height: AppSpacing.lg),
                   _mainRow(),
                   SizedBox(height: AppSpacing.lg),
-                  Obx(() => TrendChartCard(points: controller.trend.toList())),
+                  Obx(
+                    () => TrendChartCard(
+                      points: controller.trend.toList(),
+                      // 切回首页 tab 时重放从左到右的入场动画。
+                      replayKey: _homeRevealTick,
+                    ),
+                  ),
                   SizedBox(height: AppSpacing.lg),
                   _analysisRow(),
                 ],
@@ -107,14 +114,25 @@ class HomePage extends GetView<HomeViewModel> {
     return Obx(() {
       final list = controller.analyses;
       if (list.length < 2) return const SizedBox.shrink();
+      final replayKey = _homeRevealTick;
       return Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Expanded(child: MiniAnalysisCard(data: list[0])),
+          Expanded(
+            child: MiniAnalysisCard(data: list[0], replayKey: replayKey),
+          ),
           SizedBox(width: AppSpacing.md),
-          Expanded(child: MiniAnalysisCard(data: list[1])),
+          Expanded(
+            child: MiniAnalysisCard(data: list[1], replayKey: replayKey),
+          ),
         ],
       );
     });
+  }
+
+  /// 首页被切中的计数：切回首页 tab 时自增，作为统计图入场动画的重放键。
+  int get _homeRevealTick {
+    if (!Get.isRegistered<MainViewModel>()) return 0;
+    return Get.find<MainViewModel>().homeRevealTick.value;
   }
 }

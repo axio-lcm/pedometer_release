@@ -5,6 +5,9 @@ import 'package:pedometer/common/mvvm/ibase_view_model.dart';
 class MainViewModel extends GetxController implements IBaseViewModel {
   final currentIndex = 0.obs;
 
+  /// 首页被（重新）选中的计数：每次切回首页自增，驱动首页统计图重放入场动画。
+  final homeRevealTick = 0.obs;
+
   @override
   void init() {}
 
@@ -17,5 +20,8 @@ class MainViewModel extends GetxController implements IBaseViewModel {
     super.onClose();
   }
 
-  void selectTab(int index) => currentIndex.value = index;
+  void selectTab(int index) {
+    currentIndex.value = index;
+    if (index == 0) homeRevealTick.value++;
+  }
 }
