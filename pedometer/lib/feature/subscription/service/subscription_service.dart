@@ -9,7 +9,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:pedometer/common/config/prefs_keys.dart';
 import 'package:pedometer/feature/subscription/api/subscription_upload_api.dart';
 import 'package:pedometer/feature/subscription/config/subscription_config.dart';
-import 'package:pedometer/feature/subscription/views/start_load_page.dart';
+import 'package:pedometer/products/phone/views/main_page.dart';
 
 class SubscriptionService extends GetxService {
   final InappPurchase _purchaser = InappPurchase.instance;
@@ -29,6 +29,19 @@ class SubscriptionService extends GetxService {
   Future<SubscriptionService> init() async {
     await loadLocalVipStatus();
     return this;
+  }
+
+  /// 冷启动后台初始化（替代原启动加载页）：
+  /// 重置本会话订阅展示标记、初始化内购、上报归因，并刷新本地会员状态。
+  /// 静默执行、不阻塞首屏；会员状态变更经 [isVip] 通知相关页面。
+  Future<void> runStartupTasks() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(PrefsKeys.isShowedSubOnThisSession, false);
+    await initInAppPurchase();
+    await SubscriptionUploadApi.saveAttributionJson();
+    unawaited(SubscriptionUploadApi.uploadAttributionRegister());
+    await loadLocalVipStatus();
+    await prefs.setBool(PrefsKeys.isFirstLaunch, false);
   }
 
   Future<void> loadLocalVipStatus() async {
@@ -304,12 +317,15 @@ class SubscriptionService extends GetxService {
 
     if (isTrialCancelled) {
       await prefs.setBool(PrefsKeys.isTrialCanceled, true);
-      _restartApp();
+      unawaited(_restartApp());
     }
   }
 
-  void _restartApp() {
-    Get.offAllNamed(StartLoadPage.routeName);
+  Future<void> _restartApp() async {
+    // 试用期内取消后：重置本会话展示标记，使挽回订阅页可再次触发，并回到首页。
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(PrefsKeys.isShowedSubOnThisSession, false);
+    Get.offAllNamed(MainPage.routeName);
   }
 
   Future<void> _clearVip() async {
