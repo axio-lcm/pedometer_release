@@ -65,7 +65,6 @@ class SubscriptionPage extends GetView<SubscriptionViewModel> {
                   final compact = constraints.maxHeight < 750;
                   final veryCompact = constraints.maxHeight < 700;
                   final topPadding = veryCompact ? 0.0 : (compact ? 6.h : 14.h);
-                  final titleWidth = veryCompact ? 196.w : 218.w;
                   final titleGap = veryCompact ? 10.h : (compact ? 14.h : 18.h);
                   final panelGap = veryCompact ? 14.h : (compact ? 18.h : 22.h);
                   final planGap = veryCompact ? 12.h : (compact ? 14.h : 18.h);
@@ -82,13 +81,7 @@ class SubscriptionPage extends GetView<SubscriptionViewModel> {
                           fixedActionHeight + 18.h,
                         ),
                         children: [
-                          Center(
-                            child: Image.asset(
-                              SubscriptionAssets.onboardingPremiumTitle,
-                              width: titleWidth,
-                              fit: BoxFit.contain,
-                            ),
-                          ),
+                          const Center(child: _PremiumTitle()),
                           SizedBox(height: titleGap),
                           _BenefitPanel(compact: compact),
                           SizedBox(height: panelGap),
@@ -541,6 +534,39 @@ class _LegalLinks extends StatelessWidget {
           TextSpan(
             text: lt('Restore', '恢复购买'),
             recognizer: TapGestureRecognizer()..onTap = onRestore,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _PremiumTitle extends StatelessWidget {
+  const _PremiumTitle();
+
+  static const _angle = -0.21; // ~-12°
+
+  @override
+  Widget build(BuildContext context) {
+    final style = TextStyle(
+      color: AppColors.brandGreenLight,
+      fontSize: 36.sp,
+      fontWeight: FontWeight.w900,
+      height: 1.15,
+    );
+    return Transform.rotate(
+      angle: _angle,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Transform.translate(
+            offset: Offset(-30.w, 0),
+            child: Text(lt('Upgrade', 'Upgrade'), style: style),
+          ),
+          Padding(
+            padding: EdgeInsets.only(left: 16.w),
+            child: Text(lt('Premium', 'Premium'), style: style),
           ),
         ],
       ),

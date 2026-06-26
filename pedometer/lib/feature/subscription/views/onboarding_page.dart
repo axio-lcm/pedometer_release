@@ -242,11 +242,7 @@ class _SubscriptionOnboardingBody extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   Center(
-                    child: Image.asset(
-                      SubscriptionAssets.onboardingPremiumTitle,
-                      width: 248.w,
-                      fit: BoxFit.contain,
-                    ),
+                    child: _PremiumTitle(),
                   ),
                   SizedBox(height: isIntroOffer ? 25.h : 20.h),
                   Text(
@@ -504,6 +500,39 @@ class _LegalLinks extends StatelessWidget {
           TextSpan(
             text: lt('Restore', '恢复购买'),
             recognizer: TapGestureRecognizer()..onTap = onRestore,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _PremiumTitle extends StatelessWidget {
+  const _PremiumTitle();
+
+  static const _angle = -0.21; // ~-12°
+
+  @override
+  Widget build(BuildContext context) {
+    final style = TextStyle(
+      color: AppColors.brandGreenLight,
+      fontSize: 36.sp,
+      fontWeight: FontWeight.w900,
+      height: 1.15,
+    );
+    return Transform.rotate(
+      angle: _angle,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Transform.translate(
+            offset: Offset(-30.w, 0),
+            child: Text(lt('Upgrade', 'Upgrade'), style: style),
+          ),
+          Padding(
+            padding: EdgeInsets.only(left: 16.w),
+            child: Text(lt('Premium', 'Premium'), style: style),
           ),
         ],
       ),
