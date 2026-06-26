@@ -35,7 +35,7 @@ class StartupLoadingContent extends StatefulWidget {
 class _StartupLoadingContentState extends State<StartupLoadingContent>
     with SingleTickerProviderStateMixin {
   static const _backgroundColor = Color(0xFF00050A);
-  static const _progressFill = Color(0xFF8CF21A);
+  static Color get _progressFill => AppColors.brandGreen;
   static const _progressTrack = Color(0xFF15311F);
 
   late final AnimationController _progressController;
@@ -209,10 +209,10 @@ class _StartupProgressBar extends StatelessWidget {
                       top: 0,
                       bottom: 0,
                       width: constraints.maxWidth * clampedProgress,
-                      child: const DecoratedBox(
+                      child: DecoratedBox(
                         decoration: BoxDecoration(
                           gradient: LinearGradient(
-                            colors: [Color(0xFF32F12C), Color(0xFFB6F911)],
+                            colors: [AppColors.brandGreenLight, AppColors.brandGreen],
                           ),
                         ),
                       ),

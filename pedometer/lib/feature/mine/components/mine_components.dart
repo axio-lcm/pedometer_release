@@ -189,10 +189,10 @@ class MembershipSubscriptionCard extends StatelessWidget {
         padding: EdgeInsets.symmetric(horizontal: AppSpacing.xxl),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(AppRadius.xl),
-          gradient: const LinearGradient(
+          gradient: LinearGradient(
             begin: Alignment.centerLeft,
             end: Alignment.centerRight,
-            colors: [Color(0xFF43F21A), Color(0xFF91FF00)],
+            colors: [AppColors.brandGreenLight, AppColors.brandGreen],
           ),
         ),
         child: Row(
