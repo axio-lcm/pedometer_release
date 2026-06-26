@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:intl/intl.dart';
 import 'package:pedometer/common/component/app_top_navigation_bar.dart';
 import 'package:pedometer/common/config/app_colors.dart';
 import 'package:pedometer/common/config/app_dimens.dart';
 import 'package:pedometer/common/config/app_metric_assets.dart';
+import 'package:pedometer/common/config/localized_text.dart';
 import 'package:pedometer/feature/workout/components/edit_sport_goal_components.dart';
 import 'package:pedometer/feature/workout/components/workout_components.dart';
 import 'package:pedometer/feature/workout/resources/workout_resource.dart';
@@ -18,6 +20,14 @@ class EditSportGoalPage extends GetView<EditSportGoalViewModel> {
   void _save() {
     controller.save();
     _back();
+  }
+
+  /// 一周（×7）/ 一月（×当月天数）总目标步数提示。
+  String _stepsTotalsHint(int weekly, int monthly) {
+    final fmt = NumberFormat.decimalPattern();
+    final w = fmt.format(weekly);
+    final m = fmt.format(monthly);
+    return lt('Weekly $w · Monthly $m steps', '一周 $w 步 · 一月 $m 步');
   }
 
   void _back() {
@@ -124,6 +134,29 @@ class EditSportGoalPage extends GetView<EditSportGoalViewModel> {
                             ),
                             onIncrease: () => controller.changeCalories(
                               EditSportGoalViewModel.caloriesStep,
+                            ),
+                          ),
+                        ),
+                        SizedBox(height: AppSpacing.lg),
+                        Obx(
+                          () => GoalAdjustCard(
+                            iconAsset: AppMetricAssets.syncSteps,
+                            color: AppColors.accentPurple,
+                            title: WorkoutResource.targetSteps,
+                            value: '${controller.steps.value}',
+                            unit: WorkoutResource.stepUnit,
+                            // 提示展示按日目标换算出的一周 / 一月总目标步数。
+                            suggestion: _stepsTotalsHint(
+                              controller.weeklyStepGoal,
+                              controller.monthlyStepGoal,
+                            ),
+                            // 每日步数目标与「自由训练」无关，始终可调。
+                            enabled: true,
+                            onDecrease: () => controller.changeSteps(
+                              -EditSportGoalViewModel.stepsStep,
+                            ),
+                            onIncrease: () => controller.changeSteps(
+                              EditSportGoalViewModel.stepsStep,
                             ),
                           ),
                         ),

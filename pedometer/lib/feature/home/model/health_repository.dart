@@ -115,6 +115,11 @@ class HealthSyncRuntime {
   /// 各来源的连接（授权）状态变更通知，供来源列表/详情页同步显示。
   static final ValueNotifier<int> connectionRevision = ValueNotifier<int>(0);
 
+  /// 每日步数目标：由 StepGoalService 在启动 / 设置时写入，
+  /// 供首页圆环与日/周/月目标统一读取（周 = ×7，月 = ×当月天数）。
+  static const int defaultDailyStepGoal = 3000;
+  static int dailyStepGoal = defaultDailyStepGoal;
+
   static List<HealthDailySummary> _baseSummaries = const [];
   static Map<DateTime, List<HourlyStepData>> _baseHourly = const {};
   static bool _hasRealSource = false;
@@ -375,7 +380,7 @@ class MockHealthDataSource implements HealthDataSource {
   @override
   HealthHomeSnapshot homeSnapshot() {
     return HealthHomeSnapshot(
-      step: const StepData(steps: 5276, goal: 6000),
+      step: StepData(steps: 5276, goal: HealthSyncRuntime.dailyStepGoal),
       kpis: [
         KpiItem(
           assetIcon: AppMetricAssets.distance,
@@ -939,7 +944,7 @@ class SyncedHealthDataSource implements HealthDataSource {
     }
 
     return HealthHomeSnapshot(
-      step: StepData(steps: latest.steps, goal: 6000),
+      step: StepData(steps: latest.steps, goal: HealthSyncRuntime.dailyStepGoal),
       kpis: [
         KpiItem(
           assetIcon: AppMetricAssets.distance,
@@ -1010,7 +1015,7 @@ class SyncedHealthDataSource implements HealthDataSource {
       progress: SportProgressData(
         title: lt('Today', '今日'),
         value: latest.steps,
-        goal: 6000,
+        goal: HealthSyncRuntime.dailyStepGoal,
         goalUnit: lt('steps', '步'),
         badgePrefix: lt('Achieved', '达成'),
       ),
@@ -1062,7 +1067,9 @@ class SyncedHealthDataSource implements HealthDataSource {
     final weeklyTrend = _weeklyTrendForCurrentWeek(sorted, today: referenceDay);
     final steps = _sumInt(weeklyTrend.map((item) => item.steps));
     final activeDays = weeklyTrend.where((item) => item.steps > 0).length;
-    final goalDays = weeklyTrend.where((item) => item.steps >= 6000).length;
+    final goalDays = weeklyTrend
+        .where((item) => item.steps >= HealthSyncRuntime.dailyStepGoal)
+        .length;
 
     return SportPeriodData(
       period: SportPeriod.week,
@@ -1070,7 +1077,7 @@ class SyncedHealthDataSource implements HealthDataSource {
       progress: SportProgressData(
         title: lt('This Week', '本周'),
         value: steps,
-        goal: 42000,
+        goal: HealthSyncRuntime.dailyStepGoal * 7,
         goalUnit: lt('Goal', '目标'),
         badgePrefix: lt('Completed', '完成'),
       ),
@@ -1131,7 +1138,11 @@ class SyncedHealthDataSource implements HealthDataSource {
         )
         .toList();
     final steps = _sumInt(monthItems.map((item) => item.steps));
-    final goalDays = monthItems.where((item) => item.steps >= 6000).length;
+    // 当月实际天数：月总目标 = 每日目标 × 当月天数。
+    final daysInMonth = DateTime(anchor.year, anchor.month + 1, 0).day;
+    final goalDays = monthItems
+        .where((item) => item.steps >= HealthSyncRuntime.dailyStepGoal)
+        .length;
     // 上一月同区间（本月只到今天，过去月为整月），用于「较上月」对比。
     final isCurrentMonth = anchor.year == now.year && anchor.month == now.month;
     final dayBound = isCurrentMonth ? now.day : 31;
@@ -1151,7 +1162,7 @@ class SyncedHealthDataSource implements HealthDataSource {
       progress: SportProgressData(
         title: lt('This Month', '本月'),
         value: steps,
-        goal: 180000,
+        goal: HealthSyncRuntime.dailyStepGoal * daysInMonth,
         goalUnit: lt('Goal', '目标'),
         badgePrefix: lt('Completed', '完成'),
       ),

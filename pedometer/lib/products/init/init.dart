@@ -11,6 +11,7 @@ import 'package:pedometer/feature/home/model/health_data_store.dart';
 import 'package:pedometer/feature/home/model/health_repository.dart';
 import 'package:pedometer/feature/home/model/health_sync_models.dart';
 import 'package:pedometer/feature/subscription/service/subscription_service.dart';
+import 'package:pedometer/feature/workout/service/step_goal_service.dart';
 import 'package:pedometer/products/init/app.dart';
 
 /// 应用冷启动初始化（main 入口）。
@@ -39,6 +40,9 @@ class AppStartup {
     final subscriptionService = SubscriptionService();
     await subscriptionService.init();
     Get.put(subscriptionService, permanent: true);
+    final stepGoalService = StepGoalService();
+    await stepGoalService.init();
+    Get.put(stepGoalService, permanent: true);
     await _hydrateHealthData();
     if (subscriptionService.isVip.value) {
       unawaited(_backgroundResyncAppleHealth());

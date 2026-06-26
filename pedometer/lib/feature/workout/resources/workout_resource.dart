@@ -97,6 +97,11 @@ class WorkoutResource {
       _string('target_calorie', WorkoutText.targetCalorie);
   static String get targetCalorieSuggestion =>
       _string('target_calorie_suggestion', WorkoutText.targetCalorieSuggestion);
+  static String get targetSteps =>
+      _string('target_steps', WorkoutText.targetSteps);
+  static String get targetStepsSuggestion =>
+      _string('target_steps_suggestion', WorkoutText.targetStepsSuggestion);
+  static String get stepUnit => _string('step_unit', WorkoutText.stepUnit);
   static String get saveGoal => _string('save_goal', WorkoutText.saveGoal);
   static String get restoreDefault =>
       _string('restore_default', WorkoutText.restoreDefault);
@@ -268,6 +273,9 @@ class WorkoutText {
   static const targetDurationSuggestion = '10 - 300 min';
   static const targetCalorie = 'Calories';
   static const targetCalorieSuggestion = '100 - 2000 kcal';
+  static const targetSteps = 'Steps';
+  static const targetStepsSuggestion = '1000 - 50000 steps';
+  static const stepUnit = 'steps';
   static const saveGoal = 'Save Goal';
   static const restoreDefault = 'Restore Default';
   static const freeTrainingTip = 'No goal will be set when enabled';

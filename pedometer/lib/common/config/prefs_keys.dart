@@ -21,6 +21,9 @@ abstract final class PrefsKeys {
   static const String bodyWeight = 'bodyWeight';
   static const String bodyAge = 'bodyAge';
 
+  /// 每日步数目标（编辑目标页设置，首页圆环 / 日周月目标统一读取）。
+  static const String dailyStepGoal = 'dailyStepGoal';
+
   static const String attributionJson = 'attributionJson';
   static const String campaignId = 'campaignId';
   static const String isUploadedASAData = 'isUploadedASAData';
