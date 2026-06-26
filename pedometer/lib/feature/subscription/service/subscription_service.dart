@@ -8,6 +8,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:pedometer/common/config/prefs_keys.dart';
 import 'package:pedometer/feature/subscription/api/subscription_upload_api.dart';
+import 'package:pedometer/feature/subscription/components/purchase_loading.dart';
 import 'package:pedometer/feature/subscription/config/subscription_config.dart';
 import 'package:pedometer/products/phone/views/main_page.dart';
 
@@ -152,10 +153,14 @@ class SubscriptionService extends GetxService {
     if (!Platform.isIOS) return;
     _source = source;
     await initInAppPurchase();
+    final hasTrial = await isEligibleForIntroOffer(productId);
+    unawaited(PurchaseLoading.show(type: hasTrial ? 0 : 1));
     try {
       await _purchaser.purchase(productId: productId);
     } catch (e, st) {
       debugPrint('[SubscriptionService] purchase failed: $e\n$st');
+    } finally {
+      Future.delayed(const Duration(milliseconds: 500), PurchaseLoading.dismiss);
     }
   }
 
@@ -231,6 +236,7 @@ class SubscriptionService extends GetxService {
     final type = stateMap['type']?.toString() ?? '';
     switch (type) {
       case StoreKitState.purchaseSuccess:
+        PurchaseLoading.dismiss();
         final raw = stateMap['transaction'];
         if (raw is Map) {
           final transaction = Transaction.fromMap(
@@ -240,6 +246,10 @@ class SubscriptionService extends GetxService {
           await _updateVipStatus(transaction);
           unawaited(_cacheFirstSubscription(transaction));
         }
+        break;
+      case StoreKitState.purchaseCancelled:
+      case StoreKitState.purchaseFailed:
+        PurchaseLoading.dismiss();
         break;
       case StoreKitState.restorePurchasesSuccess:
       case StoreKitState.purchaseRefunded:
