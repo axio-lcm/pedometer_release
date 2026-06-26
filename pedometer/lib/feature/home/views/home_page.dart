@@ -10,6 +10,8 @@ import 'package:pedometer/feature/home/resources/home_resource.dart';
 import 'package:pedometer/feature/home/viewmodel/home_view_model.dart';
 import 'package:pedometer/feature/home/views/sync_data_detail_page.dart';
 import 'package:pedometer/feature/home/views/sport_detail_page.dart';
+import 'package:pedometer/feature/subscription/config/subscription_config.dart';
+import 'package:pedometer/feature/subscription/service/subscription_service.dart';
 
 /// 首页：暗色霓虹森林运动 Dashboard。
 class HomePage extends GetView<HomeViewModel> {
@@ -65,6 +67,8 @@ class HomePage extends GetView<HomeViewModel> {
     );
   }
 
+  SubscriptionService get _sub => Get.find<SubscriptionService>();
+
   Widget _topEntries() {
     return Row(
       children: [
@@ -73,7 +77,10 @@ class HomePage extends GetView<HomeViewModel> {
             icon: Icons.directions_run_rounded,
             iconColor: AppColors.brandGreen,
             label: HomeResource.entryOverview,
-            onTap: () => Get.toNamed(SportDetailPage.routeName),
+            onTap: () => _sub.navigateWithVipGate(
+              destination: SportDetailPage.routeName,
+              source: SubscriptionSource.subscription,
+            ),
           ),
         ),
         SizedBox(width: AppSpacing.md),
@@ -82,7 +89,10 @@ class HomePage extends GetView<HomeViewModel> {
             icon: Icons.favorite_rounded,
             iconColor: AppColors.accentPink,
             label: HomeResource.entryHealthSync,
-            onTap: () => Get.toNamed(SyncDataDetailPage.routeName),
+            onTap: () => _sub.navigateWithVipGate(
+              destination: SyncDataDetailPage.routeName,
+              source: SubscriptionSource.subscription,
+            ),
           ),
         ),
       ],

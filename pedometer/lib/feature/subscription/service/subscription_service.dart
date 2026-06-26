@@ -10,12 +10,14 @@ import 'package:pedometer/common/config/prefs_keys.dart';
 import 'package:pedometer/feature/subscription/api/subscription_upload_api.dart';
 import 'package:pedometer/feature/subscription/components/purchase_loading.dart';
 import 'package:pedometer/feature/subscription/config/subscription_config.dart';
+import 'package:pedometer/feature/subscription/views/subscription_page.dart';
 import 'package:pedometer/products/phone/views/main_page.dart';
 
 class SubscriptionService extends GetxService {
   final InappPurchase _purchaser = InappPurchase.instance;
 
   final RxBool isVip = false.obs;
+  final RxBool isTrialCanceled = false.obs;
   final RxBool isInitialized = false.obs;
   final RxList<Product> products = <Product>[].obs;
 
@@ -56,6 +58,7 @@ class SubscriptionService extends GetxService {
       return;
     }
     isVip.value = active;
+    isTrialCanceled.value = prefs.getBool(PrefsKeys.isTrialCanceled) ?? false;
   }
 
   Future<void> initInAppPurchase() async {
@@ -182,21 +185,17 @@ class SubscriptionService extends GetxService {
   Future<bool> shouldShowSubscriptionPage() async {
     await loadLocalVipStatus();
     final prefs = await SharedPreferences.getInstance();
-    final isTrialCanceled = prefs.getBool(PrefsKeys.isTrialCanceled) ?? false;
+    final trialCanceled = isTrialCanceled.value;
     final isShowedThisSession =
         prefs.getBool(PrefsKeys.isShowedSubOnThisSession) ?? false;
 
-    if (isVip.value && !isTrialCanceled) return false;
-    if (isVip.value && isTrialCanceled && isShowedThisSession) return false;
+    if (isVip.value && !trialCanceled) return false;
+    if (isVip.value && trialCanceled && isShowedThisSession) return false;
 
     await prefs.setBool(PrefsKeys.isShowedSubOnThisSession, true);
     return true;
   }
 
-  Future<bool> isTrialCanceled() async {
-    final prefs = await SharedPreferences.getInstance();
-    return prefs.getBool(PrefsKeys.isTrialCanceled) ?? false;
-  }
 
   Future<void> syncSubscriptionStatus() async {
     if (!Platform.isIOS || _isSyncing) return;
@@ -299,11 +298,10 @@ class SubscriptionService extends GetxService {
       transaction.purchaseDate ?? 0,
     );
     await prefs.setInt(PrefsKeys.vipExpireTime, expireTime);
-    await prefs.setBool(
-      PrefsKeys.isTrialCanceled,
-      transaction.isSubscribedButFreeTrailCancelled,
-    );
+    final trialCanceled = transaction.isSubscribedButFreeTrailCancelled;
+    await prefs.setBool(PrefsKeys.isTrialCanceled, trialCanceled);
     isVip.value = true;
+    isTrialCanceled.value = trialCanceled;
     return true;
   }
 
@@ -345,6 +343,33 @@ class SubscriptionService extends GetxService {
     await prefs.setInt(PrefsKeys.lastPurchaseTime, 0);
     await prefs.setInt(PrefsKeys.vipExpireTime, 0);
     isVip.value = false;
+    isTrialCanceled.value = false;
+  }
+
+  /// VIP 导航门控。
+  ///
+  /// - 非会员 / 试用过期：弹出订阅页，关闭后**不**跳转目标页。
+  /// - 试用中已取消（isTrialCanceled=true）：弹出订阅页（非首订样式），
+  ///   等用户关闭后**放行**进入目标页。
+  /// - 正常会员：直接跳转目标页。
+  Future<void> navigateWithVipGate({
+    required String destination,
+    dynamic arguments,
+    SubscriptionSource source = SubscriptionSource.subscription,
+  }) async {
+    if (!isVip.value) {
+      // 未订阅或试用已过期 → 拦截，只展示订阅页
+      await Get.toNamed(SubscriptionPage.routeName, arguments: source);
+      return;
+    }
+    if (isTrialCanceled.value) {
+      // 试用期内已取消 → 展示订阅页（非首订），关闭后放行
+      await Get.toNamed(SubscriptionPage.routeName, arguments: source);
+      Get.toNamed(destination, arguments: arguments);
+      return;
+    }
+    // 正常会员 → 直接跳转
+    Get.toNamed(destination, arguments: arguments);
   }
 
   String get _languageCode {

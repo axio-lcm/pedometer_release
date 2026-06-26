@@ -83,7 +83,7 @@ class SubscriptionViewModel extends GetxController {
   Future<void> _preparePage() async {
     final service = Get.find<SubscriptionService>();
     await service.loadLocalVipStatus();
-    if (service.isVip.value && !await service.isTrialCanceled()) {
+    if (service.isVip.value && !service.isTrialCanceled.value) {
       _closePage();
       return;
     }

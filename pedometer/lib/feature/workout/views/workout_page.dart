@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:pedometer/common/config/app_colors.dart';
 import 'package:pedometer/common/config/app_dimens.dart';
+import 'package:pedometer/feature/subscription/config/subscription_config.dart';
+import 'package:pedometer/feature/subscription/service/subscription_service.dart';
 import 'package:pedometer/feature/workout/components/workout_components.dart';
 import 'package:pedometer/feature/workout/resources/workout_resource.dart';
 import 'package:pedometer/feature/workout/viewmodel/workout_view_model.dart';
@@ -65,9 +67,10 @@ class WorkoutPage extends GetView<WorkoutViewModel> {
   }
 
   void _onStart() {
-    Get.toNamed(
-      WorkoutTrackingPage.routeName,
+    Get.find<SubscriptionService>().navigateWithVipGate(
+      destination: WorkoutTrackingPage.routeName,
       arguments: controller.selectedWorkoutType,
+      source: SubscriptionSource.subscription,
     );
   }
 
