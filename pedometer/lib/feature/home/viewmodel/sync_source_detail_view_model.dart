@@ -438,8 +438,19 @@ class SyncSourceDetailViewModel extends GetxController
   Future<bool> _ensureVipBeforeSync() async {
     if (!Get.isRegistered<SubscriptionService>()) return true;
     final service = Get.find<SubscriptionService>();
-    if (service.isVip.value) return true;
+    await service.loadLocalVipStatus();
 
+    if (service.isVip.value) {
+      if (await service.shouldShowSubscriptionPage()) {
+        await Get.toNamed(
+          SubscriptionPage.routeName,
+          arguments: SubscriptionSource.subscription,
+        );
+      }
+      return true;
+    }
+
+    if (!await service.shouldShowSubscriptionPage()) return false;
     await Get.toNamed(
       SubscriptionPage.routeName,
       arguments: SubscriptionSource.subscription,

@@ -4,6 +4,7 @@ import 'package:pedometer/common/config/app_colors.dart';
 import 'package:pedometer/common/config/app_dimens.dart';
 import 'package:pedometer/common/storage/language_service.dart';
 import 'package:pedometer/feature/subscription/config/subscription_config.dart';
+import 'package:pedometer/feature/subscription/service/subscription_service.dart';
 import 'package:pedometer/feature/subscription/views/subscription_page.dart';
 import 'package:pedometer/feature/mine/components/mine_components.dart';
 import 'package:pedometer/feature/mine/model/mine_model.dart';
@@ -44,13 +45,10 @@ class MinePage extends GetView<MineViewModel> {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     BodyStatsCard(stats: data.bodyStats),
-                    SizedBox(height: AppSpacing.xl),
-                    MembershipSubscriptionCard(
-                      onTap: () => Get.toNamed(
-                        SubscriptionPage.routeName,
-                        arguments: SubscriptionSource.mine,
-                      ),
-                    ),
+                    if (!_isVip) ...[
+                      SizedBox(height: AppSpacing.xl),
+                      MembershipSubscriptionCard(onTap: _openSubscriptionPage),
+                    ],
                     SizedBox(height: AppSpacing.xxl),
                     MineSettingsCard(
                       entries: data.entries,
@@ -64,6 +62,21 @@ class MinePage extends GetView<MineViewModel> {
         ],
       ),
     );
+  }
+
+  Future<void> _openSubscriptionPage() async {
+    if (!Get.isRegistered<SubscriptionService>()) return;
+    final service = Get.find<SubscriptionService>();
+    if (!await service.shouldShowSubscriptionPage()) return;
+    await Get.toNamed(
+      SubscriptionPage.routeName,
+      arguments: SubscriptionSource.mine,
+    );
+  }
+
+  bool get _isVip {
+    if (!Get.isRegistered<SubscriptionService>()) return false;
+    return Get.find<SubscriptionService>().isVip.value;
   }
 }
 

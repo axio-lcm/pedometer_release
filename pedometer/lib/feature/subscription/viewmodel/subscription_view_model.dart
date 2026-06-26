@@ -44,7 +44,7 @@ class SubscriptionViewModel extends GetxController {
   @override
   void onReady() {
     super.onReady();
-    loadProducts();
+    _preparePage();
   }
 
   @override
@@ -76,6 +76,16 @@ class SubscriptionViewModel extends GetxController {
     }
     plans.assignAll(updated);
     await _refreshSelectedProduct();
+  }
+
+  Future<void> _preparePage() async {
+    final service = Get.find<SubscriptionService>();
+    await service.loadLocalVipStatus();
+    if (service.isVip.value && !await service.isTrialCanceled()) {
+      _closePage();
+      return;
+    }
+    await loadProducts();
   }
 
   Future<void> select(int index) async {

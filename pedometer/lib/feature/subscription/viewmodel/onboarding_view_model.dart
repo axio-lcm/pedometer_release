@@ -47,7 +47,15 @@ class OnboardingViewModel extends GetxController {
     ),
   ];
 
-  bool get isLast => index.value == images.length - 1;
+  bool get _isMember => Get.find<SubscriptionService>().isVip.value;
+
+  /// 订阅页（最后一页）只对非会员展示；会员只走引导页，不展示订阅页。
+  bool get isLast => !_isMember && index.value == images.length - 1;
+
+  /// 引导阶段最大可翻页索引：
+  /// - 会员到倒数第二页（跳过订阅页）；
+  /// - 非会员到最后一页（订阅页）。
+  int get _maxIndex => _isMember ? images.length - 2 : images.length - 1;
 
   @override
   void onInit() {
@@ -61,7 +69,8 @@ class OnboardingViewModel extends GetxController {
   @override
   void onReady() {
     super.onReady();
-    _loadProductInfo();
+    // 会员不展示订阅页，无需加载订阅产品信息。
+    if (!_isMember) _loadProductInfo();
   }
 
   @override
@@ -71,11 +80,18 @@ class OnboardingViewModel extends GetxController {
   }
 
   Future<void> next() async {
-    if (!isLast) {
+    // 引导阶段未到末页：继续翻页，翻到订阅页（仅非会员）时加载产品信息。
+    if (index.value < _maxIndex) {
       index.value++;
       if (isLast) await _loadProductInfo();
       return;
     }
+    // 会员：走完引导直接进首页，不展示订阅页。
+    if (_isMember) {
+      _enterApp();
+      return;
+    }
+    // 非会员：在订阅页发起购买，成功后进首页（isVip 变更也会经 worker 触发跳转）。
     await Get.find<SubscriptionService>().purchase(
       SubscriptionConfig.onboardingWeeklyId,
       SubscriptionSource.onboarding,

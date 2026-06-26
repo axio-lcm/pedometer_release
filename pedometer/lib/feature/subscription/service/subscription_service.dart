@@ -9,6 +9,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:pedometer/common/config/prefs_keys.dart';
 import 'package:pedometer/feature/subscription/api/subscription_upload_api.dart';
 import 'package:pedometer/feature/subscription/config/subscription_config.dart';
+import 'package:pedometer/feature/subscription/views/start_load_page.dart';
 
 class SubscriptionService extends GetxService {
   final InappPurchase _purchaser = InappPurchase.instance;
@@ -156,6 +157,29 @@ class SubscriptionService extends GetxService {
     }
   }
 
+  /// 对齐 decibel-meter 的订阅页展示规则：
+  /// - 正常会员不展示订阅页；
+  /// - 免费试用期内取消过订阅的会员，本次会话只展示一次；
+  /// - 非会员允许展示，并记录本次会话已展示订阅页。
+  Future<bool> shouldShowSubscriptionPage() async {
+    await loadLocalVipStatus();
+    final prefs = await SharedPreferences.getInstance();
+    final isTrialCanceled = prefs.getBool(PrefsKeys.isTrialCanceled) ?? false;
+    final isShowedThisSession =
+        prefs.getBool(PrefsKeys.isShowedSubOnThisSession) ?? false;
+
+    if (isVip.value && !isTrialCanceled) return false;
+    if (isVip.value && isTrialCanceled && isShowedThisSession) return false;
+
+    await prefs.setBool(PrefsKeys.isShowedSubOnThisSession, true);
+    return true;
+  }
+
+  Future<bool> isTrialCanceled() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getBool(PrefsKeys.isTrialCanceled) ?? false;
+  }
+
   Future<void> syncSubscriptionStatus() async {
     if (!Platform.isIOS || _isSyncing) return;
     _isSyncing = true;
@@ -199,8 +223,9 @@ class SubscriptionService extends GetxService {
           final transaction = Transaction.fromMap(
             Map<String, dynamic>.from(raw),
           );
-          await _cacheFirstSubscription(transaction);
+          // 先置会员状态，尽快触发跳转；缓存与归因/首订上传放到后台异步执行，不阻塞进入首页。
           await _updateVipStatus(transaction);
+          unawaited(_cacheFirstSubscription(transaction));
         }
         break;
       case StoreKitState.restorePurchasesSuccess:
@@ -259,9 +284,16 @@ class SubscriptionService extends GetxService {
     return true;
   }
 
+  /// 对齐 decibel 的后台取消订阅处理：
+  /// - 非会员直接忽略；
+  /// - 仅处理当前会员订阅产品（productId 匹配）的取消；
+  /// - 免费试用期内取消：标记 isTrialCanceled 并重启 App，使挽回订阅页本会话即可
+  ///   重新触发（启动流程会把 isShowedSubOnThisSession 重置为 false）；
+  /// - 常规付费期取消：保持现状，不重启。
   Future<void> _handleSubscriptionCancelled(
     Map<String, dynamic> stateMap,
   ) async {
+    if (!isVip.value) return;
     final isTrialCancelled =
         stateMap['isSubscribedButFreeTrailCancelled'] == true;
     final productId = stateMap['productId']?.toString();
@@ -269,7 +301,15 @@ class SubscriptionService extends GetxService {
     final prefs = await SharedPreferences.getInstance();
     final currentProductId = prefs.getString(PrefsKeys.vipProductId);
     if (currentProductId != productId) return;
-    await prefs.setBool(PrefsKeys.isTrialCanceled, isTrialCancelled);
+
+    if (isTrialCancelled) {
+      await prefs.setBool(PrefsKeys.isTrialCanceled, true);
+      _restartApp();
+    }
+  }
+
+  void _restartApp() {
+    Get.offAllNamed(StartLoadPage.routeName);
   }
 
   Future<void> _clearVip() async {

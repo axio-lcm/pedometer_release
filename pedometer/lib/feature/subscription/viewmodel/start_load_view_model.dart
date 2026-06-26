@@ -78,6 +78,7 @@ class StartLoadViewModel extends GetxController {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool(PrefsKeys.isShowedSubOnThisSession, false);
     await prefs.setBool(PrefsKeys.isFirstLaunch, false);
+    // 会员直接进首页、不看引导（与 decibel 一致）；非会员进引导页。
     if (service.isVip.value) {
       Get.offAllNamed(MainPage.routeName);
     } else {

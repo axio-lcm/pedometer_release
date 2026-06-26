@@ -2,7 +2,6 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-import 'package:pedometer/common/config/app_colors.dart';
 import 'package:pedometer/common/config/app_dimens.dart';
 import 'package:pedometer/common/config/localized_text.dart';
 import 'package:pedometer/feature/subscription/viewmodel/onboarding_view_model.dart';
@@ -108,7 +107,6 @@ class OnboardingPage extends GetView<OnboardingViewModel> {
                 ],
               ),
             ),
-            if (controller.isLast) const _FreeTrialHintOverlay(),
           ],
         ),
       ),
@@ -182,44 +180,6 @@ class _LegalLinks extends StatelessWidget {
             recognizer: TapGestureRecognizer()..onTap = onRestore,
           ),
         ],
-      ),
-    );
-  }
-}
-
-class _FreeTrialHintOverlay extends StatelessWidget {
-  const _FreeTrialHintOverlay();
-
-  @override
-  Widget build(BuildContext context) {
-    return IgnorePointer(
-      child: TweenAnimationBuilder<double>(
-        tween: Tween(begin: 1, end: 0),
-        duration: const Duration(milliseconds: 2600),
-        builder: (context, value, child) {
-          if (value <= 0.02) return const SizedBox.shrink();
-          return Opacity(opacity: value, child: child);
-        },
-        child: Container(
-          color: Colors.black.withValues(alpha: 0.84),
-          alignment: Alignment.center,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Switch(value: true, onChanged: (_) {}),
-              SizedBox(height: AppSpacing.md),
-              Text(
-                lt('3-Day Free Trial Enabled', '已开启 3 天免费试用'),
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  color: AppColors.brandGreen,
-                  fontSize: 28,
-                  fontWeight: FontWeight.w900,
-                ),
-              ),
-            ],
-          ),
-        ),
       ),
     );
   }
