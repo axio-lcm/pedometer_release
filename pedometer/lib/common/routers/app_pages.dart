@@ -21,6 +21,8 @@ import 'package:pedometer/feature/subscription/viewmodel/onboarding_view_model.d
 import 'package:pedometer/feature/subscription/viewmodel/subscription_view_model.dart';
 import 'package:pedometer/feature/subscription/views/onboarding_page.dart';
 import 'package:pedometer/feature/subscription/views/subscription_page.dart';
+import 'package:pedometer/feature/splash/viewmodel/startup_loading_view_model.dart';
+import 'package:pedometer/feature/splash/views/startup_loading_page.dart';
 import 'package:pedometer/feature/workout/resources/workout_resource.dart';
 import 'package:pedometer/feature/workout/viewmodel/edit_sport_goal_view_model.dart';
 import 'package:pedometer/feature/workout/viewmodel/exercise_result_view_model.dart';
@@ -41,16 +43,26 @@ import 'package:pedometer/products/phone/views/main_page.dart';
 class AppPages {
   AppPages._();
 
-  /// 首屏路由：去除启动加载页后，依据本地会员状态直接进入首页或引导页。
-  /// 会员进首页；非会员进引导页（后台同步若刷新出会员状态会经引导页的
-  /// isVip 监听自动进入首页）。
-  static String get initial {
-    final isVip = Get.isRegistered<SubscriptionService>() &&
+  /// 启动后的业务首屏：会员进首页；非会员进引导页。
+  static String get postStartupRoute {
+    final isVip =
+        Get.isRegistered<SubscriptionService>() &&
         Get.find<SubscriptionService>().isVip.value;
     return isVip ? MainPage.routeName : OnboardingPage.routeName;
   }
 
+  /// 首屏路由：展示启动加载进度条页，再进入业务首屏。
+  static String get initial => StartupLoadingPage.routeName;
+
   static final List<GetPage> pages = [
+    GetPage(
+      name: StartupLoadingPage.routeName,
+      page: () => const StartupLoadingPage(),
+      transition: Transition.fadeIn,
+      binding: BindingsBuilder(() {
+        Get.lazyPut<StartupLoadingViewModel>(() => StartupLoadingViewModel());
+      }),
+    ),
     GetPage(
       name: OnboardingPage.routeName,
       page: () => const OnboardingPage(),

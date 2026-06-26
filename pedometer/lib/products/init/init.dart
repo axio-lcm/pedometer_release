@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:pedometer/common/config/resource_loader.dart';
@@ -36,9 +34,6 @@ class AppStartup {
     final subscriptionService = SubscriptionService();
     await subscriptionService.init();
     Get.put(subscriptionService, permanent: true);
-    // 原启动加载页的工作改为后台静默执行，不阻塞首屏；
-    // 首屏路由依据本地会员状态（已在 init 中加载）直接决定。
-    unawaited(subscriptionService.runStartupTasks());
     _bootstrapped = true;
   }
 }
