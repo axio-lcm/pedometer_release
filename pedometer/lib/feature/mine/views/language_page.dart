@@ -46,47 +46,56 @@ class LanguagePage extends GetView<LanguageViewModel> {
           const Positioned.fill(child: _LanguageBackground()),
           SafeArea(
             bottom: false,
-            child: SingleChildScrollView(
-              padding: EdgeInsets.fromLTRB(
-                AppSpacing.lg,
-                AppSpacing.xs,
-                AppSpacing.lg,
-                AppSpacing.xxl,
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  AppTopNavigationBar(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Padding(
+                  padding: EdgeInsets.fromLTRB(
+                    AppSpacing.lg,
+                    AppSpacing.xs,
+                    AppSpacing.lg,
+                    0,
+                  ),
+                  child: AppTopNavigationBar(
                     title: MineResource.languageTitle,
                     onBack: _back,
                   ),
-                  SizedBox(height: AppSpacing.lg),
-                  Obx(() {
-                    final selected = controller.selectedCode.value;
-                    final options = _options;
-                    return GlassCard(
-                      radius: AppRadius.xxl,
-                      padding: EdgeInsets.symmetric(
-                        horizontal: AppSpacing.xl,
-                        vertical: AppSpacing.sm,
-                      ),
-                      child: Column(
-                        children: [
-                          for (var i = 0; i < options.length; i++) ...[
-                            _LanguageRow(
-                              option: options[i],
-                              selected: selected == options[i].code,
-                              onTap: () => controller.select(options[i].code),
-                            ),
-                            if (i != options.length - 1)
-                              Divider(height: 1, color: AppColors.divider),
+                ),
+                Expanded(
+                  child: SingleChildScrollView(
+                    padding: EdgeInsets.fromLTRB(
+                      AppSpacing.lg,
+                      AppSpacing.lg,
+                      AppSpacing.lg,
+                      AppSpacing.xxl,
+                    ),
+                    child: Obx(() {
+                      final selected = controller.selectedCode.value;
+                      final options = _options;
+                      return GlassCard(
+                        radius: AppRadius.xxl,
+                        padding: EdgeInsets.symmetric(
+                          horizontal: AppSpacing.xl,
+                          vertical: AppSpacing.sm,
+                        ),
+                        child: Column(
+                          children: [
+                            for (var i = 0; i < options.length; i++) ...[
+                              _LanguageRow(
+                                option: options[i],
+                                selected: selected == options[i].code,
+                                onTap: () => controller.select(options[i].code),
+                              ),
+                              if (i != options.length - 1)
+                                Divider(height: 1, color: AppColors.divider),
+                            ],
                           ],
-                        ],
-                      ),
-                    );
-                  }),
-                ],
-              ),
+                        ),
+                      );
+                    }),
+                  ),
+                ),
+              ],
             ),
           ),
         ],
