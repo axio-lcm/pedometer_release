@@ -3,12 +3,9 @@ abstract final class SubscriptionAssets {
       'assets/subscription/image/background_1.png';
   static const String background2 =
       'assets/subscription/image/background_2.png';
-  static const String onboarding1 =
-      'assets/subscription/image/onboarding_1.png';
-  static const String onboarding2 =
-      'assets/subscription/image/onboarding_2.png';
-  static const String onboarding3 =
-      'assets/subscription/image/onboarding_3.png';
+  static const String onboarding1 = 'assets/yingdao01.png';
+  static const String onboarding2 = 'assets/yingdao02.png';
+  static const String onboarding3 = 'assets/yingdao03.png';
   static const String onboarding4 =
       'assets/subscription/image/onboarding_4.png';
 

@@ -8,6 +8,8 @@ import 'package:pedometer/feature/subscription/service/subscription_service.dart
 import 'package:pedometer/products/phone/views/main_page.dart';
 
 class OnboardingViewModel extends GetxController {
+  static const int guidePageCount = 3;
+
   final index = 0.obs;
   final buttonText = lt('Continue', '继续').obs;
   final productDescription = ''.obs;
@@ -22,24 +24,24 @@ class OnboardingViewModel extends GetxController {
   ];
 
   List<String> get titles => [
-    lt('Track every step', '记录每一步'),
-    lt('Understand your activity', '了解你的活动'),
-    lt('Reach goals daily', '每天达成目标'),
+    lt('Make Every Step Count', '让每一步都有意义'),
+    lt('Stay Motivated', '保持动力'),
+    lt('Sync with Health', '同步健康数据'),
     lt('Unlock Pedometer Pro', '解锁 Pedometer Pro'),
   ];
 
   List<String> get subtitles => [
     lt(
-      'See steps, distance, calories, and active time in one place.',
-      '集中查看步数、距离、卡路里和活动时间。',
+      'Track daily steps, distance, and calories in one clear view.',
+      '清晰查看每日步数、距离和卡路里。',
     ),
     lt(
-      'Sync Health data and review daily, weekly, and monthly trends.',
-      '同步健康数据，查看日、周、月趋势。',
+      'Set goals, close, and earn achievement badges every day.',
+      '设定目标，每天收获成就徽章。',
     ),
     lt(
-      'Set workout targets and keep your route history organized.',
-      '设置运动目标，保存并管理历史轨迹。',
+      'Keep steps and workouts connected with your health data in seconds.',
+      '快速连接步数、运动和健康数据。',
     ),
     lt(
       r'Start a 3-day free trial, then $9.99/week. Cancel anytime.',
@@ -51,6 +53,8 @@ class OnboardingViewModel extends GetxController {
 
   /// 订阅页（最后一页）只对非会员展示；会员只走引导页，不展示订阅页。
   bool get isLast => !_isMember && index.value == images.length - 1;
+
+  bool get isGuidePage => index.value < guidePageCount;
 
   /// 引导阶段最大可翻页索引：
   /// - 会员到倒数第二页（跳过订阅页）；
