@@ -24,7 +24,6 @@ class OnboardingViewModel extends GetxController {
     SubscriptionAssets.onboarding1,
     SubscriptionAssets.onboarding2,
     SubscriptionAssets.onboarding3,
-    SubscriptionAssets.onboarding4,
   ];
 
   List<String> get titles => [
@@ -47,23 +46,21 @@ class OnboardingViewModel extends GetxController {
       'Keep steps and workouts connected with your health data in seconds.',
       '快速连接步数、运动和健康数据。',
     ),
-    lt(
-      r'Start a 3-day free trial, then $9.99/week. Cancel anytime.',
-      r'免费试用 3 天，之后每周 $9.99，可随时取消。',
-    ),
   ];
 
   bool get _isMember => Get.find<SubscriptionService>().isVip.value;
 
+  static const int _subscriptionPageIndex = guidePageCount;
+
   /// 订阅页（最后一页）只对非会员展示；会员只走引导页，不展示订阅页。
-  bool get isLast => !_isMember && index.value == images.length - 1;
+  bool get isLast => !_isMember && index.value == _subscriptionPageIndex;
 
   bool get isGuidePage => index.value < guidePageCount;
 
   /// 引导阶段最大可翻页索引：
   /// - 会员到倒数第二页（跳过订阅页）；
   /// - 非会员到最后一页（订阅页）。
-  int get _maxIndex => _isMember ? images.length - 2 : images.length - 1;
+  int get _maxIndex => _isMember ? guidePageCount - 1 : _subscriptionPageIndex;
 
   @override
   void onInit() {
@@ -91,7 +88,7 @@ class OnboardingViewModel extends GetxController {
     // 引导阶段未到末页：继续翻页，翻到订阅页（仅非会员）时加载产品信息。
     if (index.value < _maxIndex) {
       final nextIndex = index.value + 1;
-      if (!_isMember && nextIndex == images.length - 1) {
+      if (!_isMember && nextIndex == _subscriptionPageIndex) {
         await _loadProductInfo();
         if (isEligibleForIntroOffer.value && !_trialSwitchIntroShown) {
           _trialSwitchIntroShown = true;
@@ -162,7 +159,7 @@ class OnboardingViewModel extends GetxController {
     showFreeTrialSwitchIntro.value = false;
     if (_showSubscriptionAfterIntro) {
       _showSubscriptionAfterIntro = false;
-      index.value = images.length - 1;
+      index.value = _subscriptionPageIndex;
     }
   }
 
