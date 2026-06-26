@@ -1,5 +1,4 @@
 import 'package:get/get.dart';
-import 'package:pp_inapp_purchase/inapp_purchase.dart';
 
 import 'package:pedometer/common/config/localized_text.dart';
 import 'package:pedometer/feature/subscription/config/subscription_config.dart';
@@ -134,25 +133,18 @@ class OnboardingViewModel extends GetxController {
     final eligible = await service.isEligibleForIntroOffer(
       SubscriptionConfig.onboardingWeeklyId,
     );
-    final title = await service.titleFor(
-      SubscriptionConfig.onboardingWeeklyId,
-      SubscriptionPeriodType.week,
-    );
-    final subtitle = await service.subtitleFor(
-      SubscriptionConfig.onboardingWeeklyId,
-      SubscriptionPeriodType.week,
-    );
     final action = await service.buttonText(
       SubscriptionConfig.onboardingWeeklyId,
     );
     isEligibleForIntroOffer.value = eligible;
     buttonText.value = action.isEmpty ? lt('Continue', '继续') : action;
-    productDescription.value = [
-      if (title.isNotEmpty) title,
-      if (subtitle.isNotEmpty) subtitle,
-      if (product?.displayPrice?.isNotEmpty == true)
-        product?.displayPrice ?? '',
-    ].join(' · ');
+    final price = product?.displayPrice?.isNotEmpty == true
+        ? product!.displayPrice!
+        : r'$9.99';
+    productDescription.value = lt(
+      '3-day free trial, then weekly $price. Cancel anytime.',
+      '免费试用 3 天，之后每周 $price，可随时取消。',
+    );
     if (isLast && eligible && !_trialSwitchIntroShown) {
       _trialSwitchIntroShown = true;
       showFreeTrialSwitchIntro.value = true;

@@ -8,6 +8,10 @@ abstract final class SubscriptionAssets {
   static const String onboarding3 = 'assets/yingdao03.png';
   static const String onboarding4 =
       'assets/subscription/image/onboarding_4.png';
+  static const String onboardingPremiumBackground =
+      'assets/subscription/image/onboarding_premium_bg.png';
+  static const String onboardingPremiumTitle =
+      'assets/subscription/image/onboarding_premium_title.png';
 
   static const String appLogo = 'assets/subscription/icon/app_logo.png';
   static const String apple = 'assets/subscription/icon/apple.png';

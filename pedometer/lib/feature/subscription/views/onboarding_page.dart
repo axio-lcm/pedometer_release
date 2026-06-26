@@ -8,6 +8,7 @@ import 'package:pedometer/common/config/app_colors.dart';
 import 'package:pedometer/common/config/app_dimens.dart';
 import 'package:pedometer/common/config/localized_text.dart';
 import 'package:pedometer/feature/subscription/components/free_trial_switch_intro_overlay.dart';
+import 'package:pedometer/feature/subscription/model/subscription_assets.dart';
 import 'package:pedometer/feature/subscription/viewmodel/onboarding_view_model.dart';
 
 class OnboardingPage extends GetView<OnboardingViewModel> {
@@ -189,84 +190,80 @@ class _SubscriptionOnboardingBody extends StatelessWidget {
     return Stack(
       children: [
         Positioned.fill(
-          child: DecoratedBox(
-            decoration: const BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [Color(0xFF0E3286), Color(0xFF010323)],
+          child: Image.asset(
+            SubscriptionAssets.onboardingPremiumBackground,
+            fit: BoxFit.cover,
+            alignment: Alignment.topCenter,
+          ),
+        ),
+        SafeArea(
+          child: Align(
+            alignment: Alignment.topLeft,
+            child: Padding(
+              padding: EdgeInsets.only(left: 8.w, top: 2.h),
+              child: IconButton(
+                onPressed: controller.close,
+                color: Colors.white.withValues(alpha: 0.78),
+                icon: Icon(Icons.close, size: 24.w),
               ),
             ),
           ),
         ),
         SafeArea(
-          child: Column(
-            children: [
-              Align(
-                alignment: Alignment.centerLeft,
-                child: IconButton(
-                  onPressed: controller.close,
-                  color: Colors.white.withValues(alpha: 0.62),
-                  icon: const Icon(Icons.close),
-                ),
-              ),
-              Padding(
-                padding: EdgeInsets.symmetric(horizontal: AppSpacing.xl),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Text(
-                      controller.titles[controller.index.value],
-                      textAlign: TextAlign.end,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 28,
-                        fontWeight: FontWeight.w900,
-                      ),
+          child: Align(
+            alignment: Alignment.bottomCenter,
+            child: Padding(
+              padding: EdgeInsets.fromLTRB(23.w, 0, 23.w, 26.h),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Center(
+                    child: Image.asset(
+                      SubscriptionAssets.onboardingPremiumTitle,
+                      width: 248.w,
+                      fit: BoxFit.contain,
                     ),
-                    SizedBox(height: AppSpacing.md),
-                    Text(
-                      controller.subtitles[controller.index.value],
-                      textAlign: TextAlign.end,
-                      style: TextStyle(
-                        color: Colors.white.withValues(alpha: 0.82),
-                        fontSize: 15,
-                        height: 1.45,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    if (controller.productDescription.value.isNotEmpty) ...[
-                      SizedBox(height: AppSpacing.sm),
-                      Text(
-                        controller.productDescription.value,
-                        textAlign: TextAlign.end,
-                        style: const TextStyle(
-                          color: Color(0xFFB2F0FF),
-                          fontSize: 13,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                    ],
-                  ],
-                ),
-              ),
-              Expanded(
-                child: Padding(
-                  padding: EdgeInsets.all(AppSpacing.xl),
-                  child: Image.asset(
-                    OnboardingViewModel.images[controller.index.value],
-                    fit: BoxFit.contain,
                   ),
-                ),
+                  SizedBox(height: 25.h),
+                  Text(
+                    lt('Get all permissions', '解锁全部权限'),
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 24.sp,
+                      fontWeight: FontWeight.w900,
+                      height: 1.05,
+                    ),
+                  ),
+                  SizedBox(height: 12.h),
+                  Text(
+                    controller.productDescription.value.isEmpty
+                        ? lt(
+                            r'3-day free trial, then weekly $9.99. Cancel anytime.',
+                            r'免费试用 3 天，之后每周 $9.99，可随时取消。',
+                          )
+                        : controller.productDescription.value,
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: Colors.white.withValues(alpha: 0.82),
+                      fontSize: 14.sp,
+                      fontWeight: FontWeight.w500,
+                      height: 1.22,
+                    ),
+                  ),
+                  SizedBox(height: 42.h),
+                  _PremiumTrialButton(
+                    text: controller.buttonText.value.isEmpty
+                        ? lt('Start Free Trial', '开始免费试用')
+                        : controller.buttonText.value,
+                    onTap: controller.next,
+                  ),
+                  SizedBox(height: 18.h),
+                  _LegalLinks(onRestore: controller.restore),
+                ],
               ),
-              _SubscriptionButton(
-                text: controller.buttonText.value,
-                onTap: controller.next,
-              ),
-              SizedBox(height: AppSpacing.sm),
-              _LegalLinks(onRestore: controller.restore),
-              SizedBox(height: AppSpacing.xl),
-            ],
+            ),
           ),
         ),
       ],
@@ -355,43 +352,60 @@ class _GuideContinueButton extends StatelessWidget {
   }
 }
 
-class _SubscriptionButton extends StatelessWidget {
+class _PremiumTrialButton extends StatelessWidget {
   final String text;
   final VoidCallback onTap;
 
-  const _SubscriptionButton({required this.text, required this.onTap});
+  const _PremiumTrialButton({required this.text, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: EdgeInsets.symmetric(horizontal: AppSpacing.xl),
-      child: GestureDetector(
-        onTap: onTap,
-        child: Container(
-          width: double.infinity,
-          height: 56,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(AppRadius.sm),
-            gradient: const LinearGradient(
-              colors: [
-                Color(0xFF69EAFF),
-                Color(0xFFB2F0FF),
-                Color(0xFFEDF5FD),
-                Color(0xFFF5CCFF),
-              ],
-            ),
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: double.infinity,
+        height: 52.h,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(AppRadius.full),
+          gradient: const LinearGradient(
+            colors: [Color(0xFF32F12C), Color(0xFFB8F915)],
           ),
+        ),
+        child: Stack(
           alignment: Alignment.center,
-          child: Text(
-            text,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: const TextStyle(
-              color: Color(0xFF101928),
-              fontSize: 18,
-              fontWeight: FontWeight.w900,
+          children: [
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: 52.w),
+              child: Text(
+                text,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  color: const Color(0xFF00130A),
+                  fontSize: 16.sp,
+                  fontWeight: FontWeight.w900,
+                  height: 1,
+                ),
+              ),
             ),
-          ),
+            Positioned(
+              right: 14.w,
+              child: Container(
+                width: 24.w,
+                height: 24.w,
+                decoration: BoxDecoration(
+                  color: const Color(0xFF18320E).withValues(alpha: 0.9),
+                  shape: BoxShape.circle,
+                ),
+                alignment: Alignment.center,
+                child: Icon(
+                  Icons.chevron_right,
+                  color: Colors.white,
+                  size: 20.w,
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -414,7 +428,11 @@ class _LegalLinks extends StatelessWidget {
           fontWeight: FontWeight.w600,
         ),
         children: [
-          TextSpan(text: lt('Cancel anytime', '可随时取消')),
+          TextSpan(text: lt('Privacy', '隐私政策')),
+          const TextSpan(text: '  |  '),
+          TextSpan(text: lt('Terms', '用户协议')),
+          const TextSpan(text: '  |  '),
+          TextSpan(text: lt('Subscription', '订阅')),
           const TextSpan(text: '  |  '),
           TextSpan(
             text: lt('Restore', '恢复购买'),
