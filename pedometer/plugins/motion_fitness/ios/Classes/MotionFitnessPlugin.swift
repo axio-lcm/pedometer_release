@@ -38,6 +38,11 @@ public final class MotionFitnessPlugin: NSObject, FlutterPlugin, FlutterStreamHa
       result(CMPedometer.isPaceAvailable())
     case "todaySteps":
       queryTodaySteps(result: result)
+    case "todayActivity":
+      queryTodayActivity(result: result)
+    case "historyDailyData":
+      let days = (call.arguments as? [String: Any])?["days"] as? Int ?? 7
+      queryHistoryDailyData(days: days, result: result)
     case "todayHourlySteps":
       queryTodayHourlySteps(result: result)
     default:
@@ -121,6 +126,96 @@ public final class MotionFitnessPlugin: NSObject, FlutterPlugin, FlutterStreamHa
           return
         }
         result(data?.numberOfSteps.intValue ?? 0)
+      }
+    }
+  }
+
+  /// 今日步数 + 真实距离（米）。距离取 CMPedometerData.distance（M 系协处理器统计，
+  /// 与「健康」App 同源），设备不支持距离时为 0，由 Dart 侧回退到按步数估算。
+  private func queryTodayActivity(result: @escaping FlutterResult) {
+    guard CMPedometer.isStepCountingAvailable() else {
+      result(
+        FlutterError(
+          code: "unsupported",
+          message: "Step counting is not available on this device.",
+          details: nil
+        )
+      )
+      return
+    }
+
+    let startOfDay = Calendar.current.startOfDay(for: Date())
+    pedometer.queryPedometerData(from: startOfDay, to: Date()) { data, error in
+      DispatchQueue.main.async {
+        if let error = error as NSError? {
+          result(
+            FlutterError(
+              code: "motion_error",
+              message: error.localizedDescription,
+              details: nil
+            )
+          )
+          return
+        }
+        result([
+          "steps": data?.numberOfSteps.intValue ?? 0,
+          "distance": data?.distance?.doubleValue ?? 0,
+        ])
+      }
+    }
+  }
+
+  /// 回查最近 [days] 个自然日的「步数 + 真实距离（米）」。
+  ///
+  /// Core Motion 本地仅保留约 7 天数据，故 days 被收敛到 1...7；超出范围或查询失败
+  /// 的日期会被跳过（不返回该天），由 Dart 侧并入持久化历史并去重。
+  private func queryHistoryDailyData(days: Int, result: @escaping FlutterResult) {
+    guard CMPedometer.isStepCountingAvailable() else {
+      result(
+        FlutterError(
+          code: "unsupported",
+          message: "Step counting is not available on this device.",
+          details: nil
+        )
+      )
+      return
+    }
+
+    let calendar = Calendar.current
+    let now = Date()
+    let today = calendar.startOfDay(for: now)
+    let clampedDays = max(1, min(days, 7))
+    var entries = [[String: Any]]()
+    var completed = 0
+
+    for offset in 0..<clampedDays {
+      guard let dayStart = calendar.date(byAdding: .day, value: -offset, to: today) else {
+        completed += 1
+        if completed == clampedDays { result(entries) }
+        continue
+      }
+      let nextDay = calendar.date(byAdding: .day, value: 1, to: dayStart) ?? now
+      let dayEnd = min(nextDay, now)
+      if dayEnd <= dayStart {
+        completed += 1
+        if completed == clampedDays { result(entries) }
+        continue
+      }
+
+      pedometer.queryPedometerData(from: dayStart, to: dayEnd) { data, error in
+        DispatchQueue.main.async {
+          if error == nil, let data = data {
+            entries.append([
+              "date": Int(dayStart.timeIntervalSince1970 * 1000),
+              "steps": data.numberOfSteps.intValue,
+              "distance": data.distance?.doubleValue ?? 0,
+            ])
+          }
+          completed += 1
+          if completed == clampedDays {
+            result(entries)
+          }
+        }
       }
     }
   }
@@ -213,7 +308,10 @@ public final class MotionFitnessPlugin: NSObject, FlutterPlugin, FlutterStreamHa
           )
           return
         }
-        self.eventSink?(data?.numberOfSteps.intValue ?? 0)
+        self.eventSink?([
+          "steps": data?.numberOfSteps.intValue ?? 0,
+          "distance": data?.distance?.doubleValue ?? 0,
+        ])
       }
     }
   }

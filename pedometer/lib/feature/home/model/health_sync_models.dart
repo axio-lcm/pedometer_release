@@ -40,4 +40,61 @@ class HealthDailySummary {
     required this.activeMinutes,
     required this.source,
   });
+
+  /// 去除时分秒，仅保留自然日（去重 / 主键以此为准）。
+  DateTime get dateOnly => DateTime(date.year, date.month, date.day);
+
+  /// 'yyyy-MM-dd' 形式的日期键，用作持久化主键。
+  String get dateKey {
+    final m = date.month.toString().padLeft(2, '0');
+    final d = date.day.toString().padLeft(2, '0');
+    return '${date.year}-$m-$d';
+  }
+
+  HealthDailySummary copyWith({
+    DateTime? date,
+    int? steps,
+    double? distanceKm,
+    double? caloriesKcal,
+    int? activeMinutes,
+    HealthSyncSource? source,
+  }) {
+    return HealthDailySummary(
+      date: date ?? this.date,
+      steps: steps ?? this.steps,
+      distanceKm: distanceKm ?? this.distanceKm,
+      caloriesKcal: caloriesKcal ?? this.caloriesKcal,
+      activeMinutes: activeMinutes ?? this.activeMinutes,
+      source: source ?? this.source,
+    );
+  }
+
+  Map<String, Object?> toRow() {
+    return {
+      'date': dateKey,
+      'steps': steps,
+      'distance_km': distanceKm,
+      'calories_kcal': caloriesKcal,
+      'active_minutes': activeMinutes,
+      'source': source.name,
+    };
+  }
+
+  static HealthDailySummary fromRow(Map<String, Object?> row) {
+    return HealthDailySummary(
+      date: DateTime.parse(row['date'] as String),
+      steps: (row['steps'] as num?)?.toInt() ?? 0,
+      distanceKm: (row['distance_km'] as num?)?.toDouble() ?? 0,
+      caloriesKcal: (row['calories_kcal'] as num?)?.toDouble() ?? 0,
+      activeMinutes: (row['active_minutes'] as num?)?.toInt() ?? 0,
+      source: _sourceFromName(row['source'] as String?),
+    );
+  }
+
+  static HealthSyncSource _sourceFromName(String? name) {
+    return HealthSyncSource.values.firstWhere(
+      (s) => s.name == name,
+      orElse: () => HealthSyncSource.appleHealth,
+    );
+  }
 }

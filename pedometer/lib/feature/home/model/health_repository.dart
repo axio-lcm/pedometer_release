@@ -73,14 +73,28 @@ class HealthRepository {
     return HealthRepository(
       membershipService: const SubscriptionMembershipService(),
       mockDataSource: const MockHealthDataSource(),
+      // 非 mock 状态下无数据时回退到「空」而非 mock：已授权/已订阅用户看到真实零值。
       realDataSource: RuntimeHealthDataSource(
-        fallback: const MockHealthDataSource(),
+        fallback: const SyncedHealthDataSource(summaries: []),
       ),
     );
   }
 
   HealthDataSource get _activeDataSource =>
-      membershipService.isActive ? realDataSource : mockDataSource;
+      _shouldShowMock ? mockDataSource : realDataSource;
+
+  /// mock 仅在「未授权运动与健身 且 未授权 Apple Health 且 未开通订阅 且 无任何真实数据」
+  /// 的全新空状态下展示；满足任一真实条件即展示真实/持久化数据。
+  bool get _shouldShowMock {
+    if (membershipService.isActive) return false;
+    if (HealthSyncRuntime.hasActiveDataSource) return false;
+    if (HealthSyncRuntime.motionAuthorized) return false;
+    if (HealthSyncRuntime.connectionStatusOf(HealthSyncSource.appleHealth) ==
+        HealthAuthStatus.authorized) {
+      return false;
+    }
+    return true;
+  }
 
   HealthHomeSnapshot homeSnapshot() => _activeDataSource.homeSnapshot();
 
@@ -97,56 +111,149 @@ class HealthRepository {
   }
 }
 
+/// 全局运行时健康数据：以「Apple Health 底座 + 运动传感器今日叠加」建模。
+///
+/// - [_baseSummaries]：Apple Health 同步或启动 hydrate 进来的权威历史（含今日快照）。
+/// - [_motionToday]：运动传感器今日实时汇总，**读取时叠加**到底座的「今天」之上，
+///   而非整体替换——这样冷启动 hydrate 出历史后，今天的步数仍能实时刷新。
 class HealthSyncRuntime {
   static final ValueNotifier<int> revision = ValueNotifier<int>(0);
 
   /// 各来源的连接（授权）状态变更通知，供来源列表/详情页同步显示。
   static final ValueNotifier<int> connectionRevision = ValueNotifier<int>(0);
 
-  static HealthDataSource? _realDataSource;
-  static HealthDataSource? _motionSensorDataSource;
-  static int? _motionSensorSteps;
+  static List<HealthDailySummary> _baseSummaries = const [];
+  static Map<DateTime, List<HourlyStepData>> _baseHourly = const {};
+  static bool _hasRealSource = false;
+  static HealthDailySummary? _motionToday;
+  static Map<DateTime, List<HourlyStepData>> _motionHourly = const {};
+  static int? _motionTodaySteps;
+  static bool _motionAuthorized = false;
   static final Map<HealthSyncSource, HealthAuthStatus> _connectionStatus = {};
+
+  // 按 revision 记忆化合并结果：一帧内多次读取（首页 + 详情页周/月）只算一次。
+  static SyncedHealthDataSource? _cachedEffective;
+  static int _cachedRevision = -1;
 
   HealthSyncRuntime._();
 
-  static HealthDataSource dataSourceOr(HealthDataSource fallback) {
-    return _realDataSource ?? _motionSensorDataSource ?? fallback;
-  }
+  /// 运动与健身（CMPedometer）是否本次会话已授权——用于判断是否展示 mock。
+  static bool get motionAuthorized => _motionAuthorized;
 
-  static HealthDataSource? get activeDataSource =>
-      _realDataSource ?? _motionSensorDataSource;
-
-  static bool get hasActiveDataSource => activeDataSource != null;
-
-  static bool get hasRealDataSource => _realDataSource != null;
-
-  static HealthDailySummary? get latestSummary {
-    final source = activeDataSource;
-    if (source is SyncedHealthDataSource) return source.latestSummary;
-    return null;
-  }
-
-  static List<HealthDailySummary> get activeSummaries {
-    final source = activeDataSource;
-    if (source is SyncedHealthDataSource) return source.sortedSummaries;
-    return const [];
-  }
-
-  static void replaceRealDataSource(HealthDataSource dataSource) {
-    _realDataSource = dataSource;
-    _motionSensorDataSource = null;
-    _motionSensorSteps = null;
+  static set motionAuthorized(bool value) {
+    if (_motionAuthorized == value) return;
+    _motionAuthorized = value;
     revision.value++;
   }
 
-  static void replaceMotionSensorDataSource(
-    HealthDataSource dataSource, {
-    required int steps,
+  /// 合并底座与今日叠加后的有效数据源；无任何数据时返回 null。
+  static SyncedHealthDataSource? get _effective {
+    if (!hasActiveDataSource) {
+      _cachedEffective = null;
+      _cachedRevision = revision.value;
+      return null;
+    }
+    if (_cachedRevision == revision.value && _cachedEffective != null) {
+      return _cachedEffective;
+    }
+    final byDay = <DateTime, HealthDailySummary>{
+      for (final summary in _baseSummaries) summary.dateOnly: summary,
+    };
+    final motion = _motionToday;
+    if (motion != null) {
+      final day = motion.dateOnly;
+      final base = byDay[day];
+      byDay[day] = base == null ? motion : _mergeTodayForDisplay(base, motion);
+    }
+    final summaries = byDay.values.toList()
+      ..sort((a, b) => a.date.compareTo(b.date));
+    // Apple Health 的小时步数（精确）覆盖运动传感器的同日小时步数。
+    final hourly = <DateTime, List<HourlyStepData>>{
+      ..._motionHourly,
+      ..._baseHourly,
+    };
+    final effective = SyncedHealthDataSource(
+      summaries: summaries,
+      hourlyStepsByDay: hourly,
+    );
+    _cachedEffective = effective;
+    _cachedRevision = revision.value;
+    return effective;
+  }
+
+  /// 今日「底座 ⊕ 运动」按字段合并：步数取 max、距离取 max（单调不回退），
+  /// 卡路里 / 活动时长在底座为 Apple Health 权威值时保留，否则用运动估算。
+  static HealthDailySummary _mergeTodayForDisplay(
+    HealthDailySummary base,
+    HealthDailySummary motion,
+  ) {
+    final baseIsAuthoritative = base.source == HealthSyncSource.appleHealth;
+    return HealthDailySummary(
+      date: base.date,
+      steps: base.steps > motion.steps ? base.steps : motion.steps,
+      distanceKm: base.distanceKm > motion.distanceKm
+          ? base.distanceKm
+          : motion.distanceKm,
+      caloriesKcal: baseIsAuthoritative
+          ? base.caloriesKcal
+          : motion.caloriesKcal,
+      activeMinutes: baseIsAuthoritative
+          ? base.activeMinutes
+          : motion.activeMinutes,
+      source: baseIsAuthoritative
+          ? HealthSyncSource.appleHealth
+          : HealthSyncSource.motionSensor,
+    );
+  }
+
+  static HealthDataSource dataSourceOr(HealthDataSource fallback) {
+    return _effective ?? fallback;
+  }
+
+  static HealthDataSource? get activeDataSource => _effective;
+
+  static bool get hasActiveDataSource =>
+      _hasRealSource || _motionToday != null;
+
+  static bool get hasRealDataSource => _hasRealSource;
+
+  static HealthDailySummary? get latestSummary => _effective?.latestSummary;
+
+  static List<HealthDailySummary> get activeSummaries =>
+      _effective?.sortedSummaries ?? const [];
+
+  /// Apple Health 同步成功后替换底座（保留运动今日叠加，不再清空）。
+  static void replaceRealDataSource(HealthDataSource dataSource) {
+    if (dataSource is SyncedHealthDataSource) {
+      _baseSummaries = dataSource.sortedSummaries;
+      _baseHourly = dataSource.hourlyStepsByDay;
+      _hasRealSource = true;
+    }
+    revision.value++;
+  }
+
+  /// 冷启动用持久化历史 hydrate 底座，使重启即显示历史而非 mock。
+  static void hydrateBase(List<HealthDailySummary> summaries) {
+    if (summaries.isEmpty) return;
+    _baseSummaries = [...summaries]..sort((a, b) => a.date.compareTo(b.date));
+    _hasRealSource = true;
+    revision.value++;
+  }
+
+  /// 更新运动传感器今日叠加；步数无变化时跳过，避免无谓刷新。
+  static void updateMotionToday(
+    HealthDailySummary today, {
+    Map<DateTime, List<HourlyStepData>> hourly = const {},
   }) {
-    if (_realDataSource != null || _motionSensorSteps == steps) return;
-    _motionSensorDataSource = dataSource;
-    _motionSensorSteps = steps;
+    _motionAuthorized = true;
+    if (_motionTodaySteps == today.steps &&
+        _motionToday?.distanceKm == today.distanceKm &&
+        hourly.isEmpty) {
+      return;
+    }
+    _motionToday = today;
+    _motionTodaySteps = today.steps;
+    if (hourly.isNotEmpty) _motionHourly = hourly;
     revision.value++;
   }
 
@@ -166,9 +273,15 @@ class HealthSyncRuntime {
   }
 
   static void resetForTest() {
-    _realDataSource = null;
-    _motionSensorDataSource = null;
-    _motionSensorSteps = null;
+    _baseSummaries = const [];
+    _baseHourly = const {};
+    _hasRealSource = false;
+    _motionToday = null;
+    _motionHourly = const {};
+    _motionTodaySteps = null;
+    _motionAuthorized = false;
+    _cachedEffective = null;
+    _cachedRevision = -1;
     _connectionStatus.clear();
     revision.value++;
     connectionRevision.value++;
@@ -221,6 +334,15 @@ class HealthSyncHistory {
 
   static void record(SyncHistoryEntry entry) {
     _entries.add(entry);
+    revision.value++;
+  }
+
+  /// 用持久化历史 hydrate 内存存储（[entries] 为时间倒序，最新在前）。
+  static void hydrate(List<SyncHistoryEntry> entries) {
+    if (entries.isEmpty) return;
+    _entries
+      ..clear()
+      ..addAll(entries.reversed);
     revision.value++;
   }
 

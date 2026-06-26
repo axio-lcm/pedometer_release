@@ -48,6 +48,9 @@ dependencies:
   share_plus: ^11.0.0
   # 本地偏好存储（语言选择）
   shared_preferences: ^2.5.5
+  # 本地结构化持久化：健康/运动数据日汇总与同步历史
+  sqflite: ^2.4.1
+  path: ^1.9.0
   # SVG 图标资源
   flutter_svg: ^2.0.17
   file_picker: ^11.0.2

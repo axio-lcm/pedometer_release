@@ -1,5 +1,8 @@
 import 'package:motion_fitness/motion_fitness.dart' as plugin;
 
+export 'package:motion_fitness/motion_fitness.dart'
+    show MotionFitnessSample, MotionFitnessDailySample;
+
 enum MotionFitnessAuthorizationStatus {
   authorized,
   denied,
@@ -31,11 +34,23 @@ class MotionFitnessPermissionService {
     return plugin.MotionFitness.todaySteps();
   }
 
+  /// 今日步数 + 真实距离（米）。距离不可用时 distanceMeters 为 0。
+  static Future<plugin.MotionFitnessSample?> todayActivity() async {
+    return plugin.MotionFitness.todayActivity();
+  }
+
+  /// 回查最近 [days] 天（iOS 上限约 7 天）的每日步数 + 真实距离。
+  static Future<List<plugin.MotionFitnessDailySample>> historyDailyData(
+    int days,
+  ) async {
+    return plugin.MotionFitness.historyDailyData(days);
+  }
+
   static Future<List<int>> todayHourlySteps() async {
     return plugin.MotionFitness.todayHourlySteps();
   }
 
-  static Stream<int> todayStepStream() {
+  static Stream<plugin.MotionFitnessSample> todayStepStream() {
     return plugin.MotionFitness.todayStepStream();
   }
 

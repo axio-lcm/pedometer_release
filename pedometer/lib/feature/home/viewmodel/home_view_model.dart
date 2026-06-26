@@ -5,6 +5,7 @@ import 'package:get/get.dart';
 import 'package:pedometer/common/mvvm/ibase_view_model.dart';
 import 'package:pedometer/common/service/motion_fitness_permission_service.dart';
 import 'package:pedometer/common/storage/language_service.dart';
+import 'package:pedometer/feature/home/model/health_data_store.dart';
 import 'package:pedometer/feature/home/model/health_repository.dart';
 import 'package:pedometer/feature/home/model/health_sync_models.dart';
 import 'package:pedometer/feature/home/model/home_model.dart';
@@ -15,9 +16,11 @@ import 'package:pedometer/feature/subscription/service/subscription_service.dart
 class HomeViewModel extends GetxController implements IBaseViewModel {
   final HomeVo vo = HomeVo();
   final HealthRepository repository;
-  StreamSubscription<int>? _motionStepSubscription;
+  StreamSubscription<MotionFitnessSample>? _motionStepSubscription;
   int? _motionSensorSteps;
+  double? _motionSensorDistanceMeters;
   List<int>? _motionHourlySteps;
+  int _lastPersistedTodaySteps = -1;
   Worker? _languageWorker;
   Worker? _subscriptionWorker;
 
@@ -75,66 +78,82 @@ class HomeViewModel extends GetxController implements IBaseViewModel {
     vo.trend.assignAll(snapshot.trend);
     vo.analyses.assignAll(snapshot.analyses);
     vo.dayOverview.value = repository.sportPeriodData(SportPeriod.day);
-    if (!_hasVipAccess) return;
-    _applyMotionSensorDataIfNeeded();
   }
 
   Future<void> _startMotionFitnessTracking() async {
     if (!_hasVipAccess) return;
     if (!_shouldUseMotionFitnessOnThisPlatform) return;
-    if (HealthSyncRuntime.hasRealDataSource ||
-        _motionStepSubscription != null) {
-      return;
-    }
+    if (_motionStepSubscription != null) return;
 
     final available =
         await MotionFitnessPermissionService.isStepCountingAvailable();
-    if (!available || HealthSyncRuntime.hasRealDataSource) return;
+    if (!available) return;
 
     final status = await MotionFitnessPermissionService.requestAuthorization();
-    if (status != MotionFitnessAuthorizationStatus.authorized ||
-        HealthSyncRuntime.hasRealDataSource) {
-      return;
-    }
+    if (status != MotionFitnessAuthorizationStatus.authorized) return;
+    HealthSyncRuntime.motionAuthorized = true;
 
-    final todaySteps = await MotionFitnessPermissionService.todaySteps();
-    if (todaySteps != null) {
-      _motionSensorSteps = todaySteps;
-      _applyMotionSensorDataIfNeeded();
+    // 回填最近 7 天（CMPedometer 本地保留上限）的真实步数 + 距离并入库。
+    unawaited(_backfillMotionHistory());
+
+    final today = await MotionFitnessPermissionService.todayActivity();
+    if (today != null) {
+      _motionSensorSteps = today.steps;
+      if (today.distanceMeters > 0) {
+        _motionSensorDistanceMeters = today.distanceMeters;
+      }
+      _pushMotionToday();
       unawaited(_loadMotionHourlySteps());
     }
 
     _motionStepSubscription = MotionFitnessPermissionService.todayStepStream()
-        .listen((steps) {
-          _updateCurrentMotionHour(steps);
-          _motionSensorSteps = steps;
-          _applyMotionSensorDataIfNeeded();
+        .listen((sample) {
+          _updateCurrentMotionHour(sample.steps);
+          _motionSensorSteps = sample.steps;
+          if (sample.distanceMeters > 0) {
+            _motionSensorDistanceMeters = sample.distanceMeters;
+          }
+          _pushMotionToday();
         });
   }
 
-  void _applyMotionSensorDataIfNeeded() {
+  /// 把今日运动汇总叠加到运行时（触发 revision → 重新渲染），并节流持久化。
+  void _pushMotionToday() {
     if (!_hasVipAccess) return;
-    if (HealthSyncRuntime.hasRealDataSource) return;
     final steps = _motionSensorSteps;
     if (steps == null) return;
 
-    final dataSource = SyncedHealthDataSource(
-      summaries: [_motionSummaryFor(steps)],
-      hourlyStepsByDay: _motionHourlyStepsByDay(),
+    final summary = _motionSummaryFor(steps);
+    HealthSyncRuntime.updateMotionToday(
+      summary,
+      hourly: _motionHourlyStepsByDay(),
     );
-    HealthSyncRuntime.replaceMotionSensorDataSource(dataSource, steps: steps);
-    final snapshot = dataSource.homeSnapshot();
-    vo.trend.assignAll(snapshot.trend);
-    vo.analyses.assignAll(snapshot.analyses);
-    vo.dayOverview.value = dataSource.sportPeriodData(SportPeriod.day);
+
+    // 节流：步数变化达到阈值才落盘，避免每步一次 DB 写。掉出会话也会被
+    // 下次启动的 7 天回填修正，故无需逐步精确持久化。
+    if (_lastPersistedTodaySteps < 0 ||
+        (steps - _lastPersistedTodaySteps).abs() >= 25) {
+      _lastPersistedTodaySteps = steps;
+      unawaited(HealthDataStore.instance.upsertSummaries([summary]));
+    }
+  }
+
+  /// 回查并持久化最近 7 天运动数据，再用合并后的库内历史 hydrate 底座供趋势展示。
+  Future<void> _backfillMotionHistory() async {
+    final samples = await MotionFitnessPermissionService.historyDailyData(7);
+    if (samples.isEmpty) return;
+    final summaries = [
+      for (final sample in samples) _motionDailySummaryFrom(sample),
+    ];
+    await HealthDataStore.instance.upsertSummaries(summaries);
+    HealthSyncRuntime.hydrateBase(await HealthDataStore.instance.loadSummaries());
   }
 
   Future<void> _loadMotionHourlySteps() async {
-    if (HealthSyncRuntime.hasRealDataSource) return;
     final values = await MotionFitnessPermissionService.todayHourlySteps();
-    if (values.isEmpty || HealthSyncRuntime.hasRealDataSource) return;
+    if (values.isEmpty) return;
     _motionHourlySteps = _normalizeHourlySteps(values);
-    _applyMotionSensorDataIfNeeded();
+    _pushMotionToday();
   }
 
   void _updateCurrentMotionHour(int latestTotalSteps) {
@@ -173,9 +192,30 @@ class HomeViewModel extends GetxController implements IBaseViewModel {
   HealthDailySummary _motionSummaryFor(int steps) {
     final now = DateTime.now();
     final safeSteps = steps < 0 ? 0 : steps;
-    final distanceKm = safeSteps * 0.0007;
+    final distanceMeters = _motionSensorDistanceMeters;
+    // 真实距离优先（CMPedometer.distance，与「健康」App 同源）；
+    // 设备不支持距离统计时回退到按步数估算。
+    final distanceKm = distanceMeters != null && distanceMeters > 0
+        ? distanceMeters / 1000
+        : safeSteps * 0.0007;
     return HealthDailySummary(
       date: DateTime(now.year, now.month, now.day),
+      steps: safeSteps,
+      distanceKm: distanceKm,
+      caloriesKcal: safeSteps * 0.04,
+      activeMinutes: (safeSteps / 100).round(),
+      source: HealthSyncSource.motionSensor,
+    );
+  }
+
+  /// 把回填的某一天运动样本转为日汇总；真实距离优先、按步数估算兜底。
+  HealthDailySummary _motionDailySummaryFrom(MotionFitnessDailySample sample) {
+    final safeSteps = sample.steps < 0 ? 0 : sample.steps;
+    final distanceKm = sample.distanceMeters > 0
+        ? sample.distanceMeters / 1000
+        : safeSteps * 0.0007;
+    return HealthDailySummary(
+      date: DateTime(sample.date.year, sample.date.month, sample.date.day),
       steps: safeSteps,
       distanceKm: distanceKm,
       caloriesKcal: safeSteps * 0.04,

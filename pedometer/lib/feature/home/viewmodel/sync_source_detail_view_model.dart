@@ -7,6 +7,7 @@ import 'package:get/get.dart';
 import 'package:pedometer/common/config/localized_text.dart';
 import 'package:pedometer/common/mvvm/ibase_view_model.dart';
 import 'package:pedometer/common/storage/language_service.dart';
+import 'package:pedometer/feature/home/model/health_data_store.dart';
 import 'package:pedometer/feature/home/model/health_repository.dart';
 import 'package:pedometer/feature/home/model/health_sync_models.dart';
 import 'package:pedometer/feature/home/model/health_sync_source_policy.dart';
@@ -284,6 +285,9 @@ class SyncSourceDetailViewModel extends GetxController
       // 同步到数据：默认视为已授权 / 已连接，立即展示快速结果。
       _applyAuthStatus(source, HealthAuthStatus.authorized, title);
       HealthSyncRuntime.replaceRealDataSource(result.source);
+      // 持久化权威历史（store 按日去重 + 合并写入），mock 永不入库。
+      unawaited(HealthDataStore.instance.upsertSummaries(result.source.summaries));
+      unawaited(HealthDataStore.instance.setLastSyncTime(now));
       stopwatch.stop();
       // 记录一条同步历史，供同步详情/历史列表/历史详情展示本次保存的数据。
       _recordHistory(source: source, types: types, elapsed: stopwatch.elapsed);
@@ -338,19 +342,19 @@ class SyncSourceDetailViewModel extends GetxController
           activeMinutes: 0,
           source: source,
         );
-    HealthSyncHistory.record(
-      SyncHistoryEntry(
-        id: '${source.name}-${now.microsecondsSinceEpoch}',
-        time: now,
-        source: source,
-        mode: isManualSyncSelected
-            ? lt('Manual Sync', '手动同步')
-            : lt('Auto Sync', '自动同步'),
-        itemCount: types.length,
-        snapshot: snapshot,
-        elapsed: elapsed,
-      ),
+    final entry = SyncHistoryEntry(
+      id: '${source.name}-${now.microsecondsSinceEpoch}',
+      time: now,
+      source: source,
+      mode: isManualSyncSelected
+          ? lt('Manual Sync', '手动同步')
+          : lt('Auto Sync', '自动同步'),
+      itemCount: types.length,
+      snapshot: snapshot,
+      elapsed: elapsed,
     );
+    HealthSyncHistory.record(entry);
+    unawaited(HealthDataStore.instance.recordSyncHistory(entry));
   }
 
   /// 后台补齐更准确的步数细节，完成后静默替换数据源刷新展示。不阻塞界面、不改 [syncing]。
@@ -375,6 +379,7 @@ class SyncSourceDetailViewModel extends GetxController
         if (token != _syncToken) return;
         if (refined.hasData) {
           HealthSyncRuntime.replaceRealDataSource(refined);
+          unawaited(HealthDataStore.instance.upsertSummaries(refined.summaries));
         }
       } catch (_) {
         // 后台精修失败不影响已展示的快速数据。
