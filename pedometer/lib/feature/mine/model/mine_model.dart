@@ -51,35 +51,53 @@ class MinePageData {
   static const _pink = Color(0xFFFF4770);
   static const _blue = Color(0xFF3D7CFF);
 
-  static MinePageData localized() {
+  static MinePageData localized({
+    double height = 175,
+    double weight = 68.0,
+    int age = 28,
+  }) {
+    final bmiValue = weight / ((height / 100) * (height / 100));
+    final bmiStr = bmiValue.toStringAsFixed(1);
+    final bmiStatus = bmiValue < 18.5
+        ? MineResource.bmiLow
+        : bmiValue < 25
+        ? MineResource.bmiNormal
+        : bmiValue < 30
+        ? MineResource.bmiHigh
+        : MineResource.bmiObese;
+    final weightStr = weight.toStringAsFixed(1);
+    final heightStr =
+        height == height.truncateToDouble()
+            ? height.toInt().toString()
+            : height.toStringAsFixed(1);
     return MinePageData(
       bodyStats: [
         BodyStat(
           iconAsset: 'assets/profile_height.svg',
           color: _cyan,
           label: MineResource.height,
-          value: '175',
+          value: heightStr,
           unit: MineResource.heightUnit,
         ),
         BodyStat(
           iconAsset: 'assets/profile_weight.svg',
           color: _green,
           label: MineResource.weight,
-          value: '68.0',
+          value: weightStr,
           unit: MineResource.weightUnit,
         ),
         BodyStat(
           iconAsset: 'assets/profile_bmi.svg',
           color: _purple,
           label: MineResource.bmi,
-          value: '22.2',
-          statusText: MineResource.bmiNormal,
+          value: bmiStr,
+          statusText: bmiStatus,
         ),
         BodyStat(
           iconAsset: 'assets/profile_age.svg',
           color: _orange,
           label: MineResource.age,
-          value: '28',
+          value: '$age',
           unit: MineResource.ageUnit,
         ),
       ],

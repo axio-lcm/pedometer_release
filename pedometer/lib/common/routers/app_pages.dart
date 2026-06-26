@@ -11,9 +11,11 @@ import 'package:pedometer/feature/home/viewmodel/sync_data_detail_view_model.dar
 import 'package:pedometer/feature/home/viewmodel/sync_history_detail_view_model.dart';
 import 'package:pedometer/feature/home/viewmodel/sync_history_list_view_model.dart';
 import 'package:pedometer/feature/home/viewmodel/sync_source_detail_view_model.dart';
+import 'package:pedometer/feature/mine/viewmodel/edit_body_data_view_model.dart';
 import 'package:pedometer/feature/mine/viewmodel/language_view_model.dart';
 import 'package:pedometer/feature/mine/viewmodel/mine_view_model.dart';
 import 'package:pedometer/feature/mine/viewmodel/suggestion_view_model.dart';
+import 'package:pedometer/feature/mine/views/edit_body_data_page.dart';
 import 'package:pedometer/feature/mine/views/language_page.dart';
 import 'package:pedometer/feature/mine/views/suggestion_page.dart';
 import 'package:pedometer/feature/subscription/service/subscription_service.dart';
@@ -173,6 +175,13 @@ class AppPages {
       page: () => const SuggestionPage(),
       binding: BindingsBuilder(() {
         Get.lazyPut<SuggestionViewModel>(() => SuggestionViewModel());
+      }),
+    ),
+    GetPage(
+      name: EditBodyDataPage.routeName,
+      page: () => const EditBodyDataPage(),
+      binding: BindingsBuilder(() {
+        Get.lazyPut<EditBodyDataViewModel>(() => EditBodyDataViewModel());
       }),
     ),
   ];

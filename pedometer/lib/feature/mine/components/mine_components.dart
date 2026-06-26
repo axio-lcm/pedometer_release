@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:pedometer/common/component/asset_metric_icon.dart';
 import 'package:pedometer/common/component/glass_card.dart';
 import 'package:pedometer/common/config/app_colors.dart';
 import 'package:pedometer/common/config/app_dimens.dart';
 import 'package:pedometer/feature/mine/model/mine_model.dart';
 import 'package:pedometer/feature/mine/resources/mine_resource.dart';
+import 'package:pedometer/feature/mine/viewmodel/mine_view_model.dart';
 
 /// 身体指标总览卡片：身高 / 体重 / BMI / 年龄 四列等宽展示。
 class BodyStatsCard extends StatelessWidget {
@@ -66,7 +68,10 @@ class _BodyEditButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: () => Get.find<MineViewModel>().openEditBodyData(),
+      child: Container(
       height: 32,
       padding: EdgeInsets.symmetric(horizontal: AppSpacing.md),
       decoration: BoxDecoration(
@@ -90,6 +95,7 @@ class _BodyEditButton extends StatelessWidget {
             ),
           ),
         ],
+      ),
       ),
     );
   }

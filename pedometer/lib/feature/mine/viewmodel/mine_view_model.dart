@@ -1,10 +1,13 @@
 import 'package:flutter/widgets.dart';
 import 'package:get/get.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:pedometer/common/config/prefs_keys.dart';
 import 'package:pedometer/common/mvvm/ibase_view_model.dart';
 import 'package:pedometer/feature/mine/components/mine_rate_dialog.dart';
 import 'package:pedometer/feature/mine/model/mine_model.dart';
 import 'package:pedometer/feature/mine/resources/mine_resource.dart';
+import 'package:pedometer/feature/mine/views/edit_body_data_page.dart';
 import 'package:pedometer/feature/mine/views/language_page.dart';
 import 'package:pedometer/feature/mine/views/suggestion_page.dart';
 
@@ -20,6 +23,12 @@ class MineViewModel extends GetxController implements IBaseViewModel {
 
   @override
   void unInit() {}
+
+  @override
+  void onInit() {
+    super.onInit();
+    _loadBodyData();
+  }
 
   @override
   void onClose() {
@@ -55,8 +64,20 @@ class MineViewModel extends GetxController implements IBaseViewModel {
     }
   }
 
+  Future<void> _loadBodyData() async {
+    final prefs = await SharedPreferences.getInstance();
+    final h = prefs.getDouble(PrefsKeys.bodyHeight) ?? 175.0;
+    final w = prefs.getDouble(PrefsKeys.bodyWeight) ?? 68.0;
+    final a = prefs.getInt(PrefsKeys.bodyAge) ?? 28;
+    data.value = MinePageData.localized(height: h, weight: w, age: a);
+  }
+
   void refreshLocalizedData() {
-    data.value = MinePageData.localized();
+    _loadBodyData();
+  }
+
+  void openEditBodyData() {
+    Get.toNamed(EditBodyDataPage.routeName);
   }
 
   /// 调起系统分享面板，分享应用。

@@ -40,7 +40,7 @@ class MinePage extends GetView<MineViewModel> {
                 if (Get.isRegistered<LanguageService>()) {
                   Get.find<LanguageService>().localeRevision.value;
                 }
-                final data = this.data ?? MinePageData.localized();
+                final data = this.data ?? controller.data.value;
                 return Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [

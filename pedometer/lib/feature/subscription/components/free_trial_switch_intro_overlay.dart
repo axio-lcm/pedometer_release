@@ -115,26 +115,3 @@ class _FreeTrialSwitchIntroOverlayState
     );
   }
 }
-
-class _GradientText extends StatelessWidget {
-  final String text;
-  final TextStyle style;
-
-  const _GradientText({required this.text, required this.style});
-
-  @override
-  Widget build(BuildContext context) {
-    return ShaderMask(
-      blendMode: BlendMode.srcIn,
-      shaderCallback: (bounds) => const LinearGradient(
-        colors: [
-          Color(0xFF69EAFF),
-          Color(0xFFFFFFFF),
-          Color(0xFFEDF5FD),
-          Color(0xFFF5CCFF),
-        ],
-      ).createShader(bounds),
-      child: Text(text, textAlign: TextAlign.center, style: style),
-    );
-  }
-}
