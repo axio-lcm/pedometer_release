@@ -85,18 +85,19 @@ class _FreeTrialSwitchIntroOverlayState
                   onChanged: (_) {},
                 ),
                 SizedBox(height: 14.h),
-                _GradientText(
-                  text: lt('Free trial for 3 days', '免费试用 3 天'),
+                Text(
+                  lt('3-Day Free Trial', '3天免费试用'),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                   style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 30.sp,
+                    color: AppColors.brandGreenLight,
+                    fontSize: 24.sp,
                     fontWeight: FontWeight.w900,
                     height: 1.1,
                   ),
                 ),
-                SizedBox(height: 10.h),
                 Text(
-                  lt('Enabled', '已开启'),
+                  lt('is Enabled！', '已开启！'),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
