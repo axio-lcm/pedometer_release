@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>API_KEY</key>
+	<string>AIzaSyAkUdUaBV6qrHmnwwYSzpZmmDocKwMuewQ</string>
+	<key>GCM_SENDER_ID</key>
+	<string>619858171550</string>
+	<key>PLIST_VERSION</key>
+	<string>1</string>
+	<key>BUNDLE_ID</key>
+	<string>com.pedometer.step.counter.walking.tracker</string>
+	<key>PROJECT_ID</key>
+	<string>pedometer-ios-72cf7</string>
+	<key>STORAGE_BUCKET</key>
+	<string>pedometer-ios-72cf7.firebasestorage.app</string>
+	<key>IS_ADS_ENABLED</key>
+	<false></false>
+	<key>IS_ANALYTICS_ENABLED</key>
+	<false></false>
+	<key>IS_APPINVITE_ENABLED</key>
+	<true></true>
+	<key>IS_GCM_ENABLED</key>
+	<true></true>
+	<key>IS_SIGNIN_ENABLED</key>
+	<true></true>
+	<key>GOOGLE_APP_ID</key>
+	<string>1:619858171550:ios:db9ae3d6e3c5aeabadcd8f</string>
+</dict>
+</plist>
