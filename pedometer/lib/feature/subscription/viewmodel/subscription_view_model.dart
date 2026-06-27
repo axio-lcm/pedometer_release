@@ -29,6 +29,7 @@ class SubscriptionViewModel extends GetxController {
 
   SubscriptionSource source = SubscriptionSource.subscription;
   Worker? _vipWorker;
+  Worker? _trialCanceledWorker;
   bool _closed = false;
 
   @override
@@ -38,7 +39,10 @@ class SubscriptionViewModel extends GetxController {
     if (args is SubscriptionSource) source = args;
     final service = Get.find<SubscriptionService>();
     _vipWorker = ever<bool>(service.isVip, (isVip) {
-      if (isVip) _closePage();
+      if (_hasActiveSubscription(service)) _closePage();
+    });
+    _trialCanceledWorker = ever<bool>(service.isTrialCanceled, (_) {
+      if (_hasActiveSubscription(service)) _closePage();
     });
   }
 
@@ -51,6 +55,7 @@ class SubscriptionViewModel extends GetxController {
   @override
   void onClose() {
     _vipWorker?.dispose();
+    _trialCanceledWorker?.dispose();
     super.onClose();
   }
 
@@ -97,13 +102,15 @@ class SubscriptionViewModel extends GetxController {
 
   Future<void> purchase() async {
     final plan = plans[selectedIndex.value];
-    await Get.find<SubscriptionService>().purchase(plan.productId, source);
-    if (Get.find<SubscriptionService>().isVip.value) _closePage();
+    final service = Get.find<SubscriptionService>();
+    await service.purchase(plan.productId, source);
+    if (_hasActiveSubscription(service)) _closePage();
   }
 
   Future<void> restore() async {
-    await Get.find<SubscriptionService>().restore(source);
-    if (Get.find<SubscriptionService>().isVip.value) _closePage();
+    final service = Get.find<SubscriptionService>();
+    await service.restore(source);
+    if (_hasActiveSubscription(service)) _closePage();
   }
 
   Future<void> _refreshSelectedProduct() async {
@@ -133,5 +140,9 @@ class SubscriptionViewModel extends GetxController {
     if (Get.key.currentState?.canPop() ?? false) {
       Get.back(result: true);
     }
+  }
+
+  bool _hasActiveSubscription(SubscriptionService service) {
+    return service.isVip.value && !service.isTrialCanceled.value;
   }
 }
