@@ -1,6 +1,9 @@
+import 'dart:async';
+
 import 'package:get/get.dart';
 import 'package:pp_inapp_purchase/inapp_purchase.dart';
 
+import 'package:pedometer/feature/home/service/health_auto_sync_service.dart';
 import 'package:pedometer/feature/subscription/config/subscription_config.dart';
 import 'package:pedometer/feature/subscription/resources/subscription_resource.dart';
 import 'package:pedometer/feature/subscription/service/subscription_service.dart';
@@ -29,7 +32,6 @@ class SubscriptionViewModel extends GetxController {
 
   SubscriptionSource source = SubscriptionSource.subscription;
   Worker? _vipWorker;
-  Worker? _trialCanceledWorker;
   bool _closed = false;
 
   @override
@@ -38,11 +40,9 @@ class SubscriptionViewModel extends GetxController {
     final args = Get.arguments;
     if (args is SubscriptionSource) source = args;
     final service = Get.find<SubscriptionService>();
+    // 订阅成功（拿到有效会员）即关页，不做试用取消的挽留判断。
     _vipWorker = ever<bool>(service.isVip, (isVip) {
-      if (_hasActiveSubscription(service)) _closePage();
-    });
-    _trialCanceledWorker = ever<bool>(service.isTrialCanceled, (_) {
-      if (_hasActiveSubscription(service)) _closePage();
+      if (isVip) _closePage();
     });
   }
 
@@ -55,7 +55,6 @@ class SubscriptionViewModel extends GetxController {
   @override
   void onClose() {
     _vipWorker?.dispose();
-    _trialCanceledWorker?.dispose();
     super.onClose();
   }
 
@@ -88,7 +87,8 @@ class SubscriptionViewModel extends GetxController {
   Future<void> _preparePage() async {
     final service = Get.find<SubscriptionService>();
     await service.loadLocalVipStatus();
-    if (service.isVip.value && !service.isTrialCanceled.value) {
+    // 已是会员则不展示订阅页，直接关闭。
+    if (service.isVip.value) {
       _closePage();
       return;
     }
@@ -104,13 +104,13 @@ class SubscriptionViewModel extends GetxController {
     final plan = plans[selectedIndex.value];
     final service = Get.find<SubscriptionService>();
     await service.purchase(plan.productId, source);
-    if (_hasActiveSubscription(service)) _closePage();
+    if (service.isVip.value) _closePage();
   }
 
   Future<void> restore() async {
     final service = Get.find<SubscriptionService>();
     await service.restore(source);
-    if (_hasActiveSubscription(service)) _closePage();
+    if (service.isVip.value) _closePage();
   }
 
   Future<void> _refreshSelectedProduct() async {
@@ -136,13 +136,20 @@ class SubscriptionViewModel extends GetxController {
 
   void _closePage() {
     if (_closed) return;
+    // 不可 pop 时（如导航过渡态）先不置位，留待后续会员状态回调重试，避免被永久拦截。
+    if (!(Get.key.currentState?.canPop() ?? false)) return;
     _closed = true;
-    if (Get.key.currentState?.canPop() ?? false) {
-      Get.back(result: true);
-    }
+    Get.back(result: true);
+    unawaited(_syncHealthDataAfterClose());
   }
 
-  bool _hasActiveSubscription(SubscriptionService service) {
-    return service.isVip.value && !service.isTrialCanceled.value;
+  Future<void> _syncHealthDataAfterClose() async {
+    await Future<void>.delayed(const Duration(milliseconds: 260));
+    if (!Get.isRegistered<SubscriptionService>() ||
+        !Get.find<SubscriptionService>().isVip.value ||
+        !Get.isRegistered<HealthAutoSyncService>()) {
+      return;
+    }
+    await Get.find<HealthAutoSyncService>().syncMemberHealthData();
   }
 }

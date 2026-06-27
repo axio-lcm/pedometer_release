@@ -1,4 +1,5 @@
 import 'package:pedometer/common/config/resource_loader.dart';
+import 'package:pedometer/common/config/localized_text.dart';
 
 /// 订阅模块静态文案资源。
 class SubscriptionResource {
@@ -28,6 +29,8 @@ class SubscriptionResource {
       _string('unlock_premium', SubscriptionText.unlockPremium);
   static String get threeDaysFreeTrial =>
       _string('three_days_free_trial', SubscriptionText.threeDaysFreeTrial);
+  static String get freeTrialEnabled =>
+      _string('free_trial_enabled', lt('is Enabled!', '已开启！'));
   static String get bestBadge =>
       _string('best_badge', SubscriptionText.bestBadge);
   static String get privacyPolicy =>

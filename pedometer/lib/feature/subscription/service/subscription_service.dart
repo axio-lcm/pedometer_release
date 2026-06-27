@@ -11,7 +11,6 @@ import 'package:pedometer/feature/subscription/api/subscription_upload_api.dart'
 import 'package:pedometer/feature/subscription/components/purchase_loading.dart';
 import 'package:pedometer/feature/subscription/config/subscription_config.dart';
 import 'package:pedometer/feature/subscription/views/subscription_page.dart';
-import 'package:pedometer/products/phone/views/main_page.dart';
 
 class SubscriptionService extends GetxService {
   final InappPurchase _purchaser = InappPurchase.instance;
@@ -178,22 +177,10 @@ class SubscriptionService extends GetxService {
     }
   }
 
-  /// 对齐 decibel-meter 的订阅页展示规则：
-  /// - 正常会员不展示订阅页；
-  /// - 免费试用期内取消过订阅的会员，本次会话只展示一次；
-  /// - 非会员允许展示，并记录本次会话已展示订阅页。
+  /// 订阅页展示规则：会员不展示，非会员展示。不做试用取消的挽留再展示。
   Future<bool> shouldShowSubscriptionPage() async {
     await loadLocalVipStatus();
-    final prefs = await SharedPreferences.getInstance();
-    final trialCanceled = isTrialCanceled.value;
-    final isShowedThisSession =
-        prefs.getBool(PrefsKeys.isShowedSubOnThisSession) ?? false;
-
-    if (isVip.value && !trialCanceled) return false;
-    if (isVip.value && trialCanceled && isShowedThisSession) return false;
-
-    await prefs.setBool(PrefsKeys.isShowedSubOnThisSession, true);
-    return true;
+    return !isVip.value;
   }
 
 
@@ -256,7 +243,8 @@ class SubscriptionService extends GetxService {
         await syncSubscriptionStatus();
         break;
       case StoreKitState.subscriptionCancelled:
-        await _handleSubscriptionCancelled(stateMap);
+        // 取消订阅（关闭自动续订）：仅刷新本地会员状态，不做挽留 / 重启。
+        await syncSubscriptionStatus();
         break;
       default:
         break;
@@ -305,37 +293,6 @@ class SubscriptionService extends GetxService {
     return true;
   }
 
-  /// 对齐 decibel 的后台取消订阅处理：
-  /// - 非会员直接忽略；
-  /// - 仅处理当前会员订阅产品（productId 匹配）的取消；
-  /// - 免费试用期内取消：标记 isTrialCanceled 并重启 App，使挽回订阅页本会话即可
-  ///   重新触发（启动流程会把 isShowedSubOnThisSession 重置为 false）；
-  /// - 常规付费期取消：保持现状，不重启。
-  Future<void> _handleSubscriptionCancelled(
-    Map<String, dynamic> stateMap,
-  ) async {
-    if (!isVip.value) return;
-    final isTrialCancelled =
-        stateMap['isSubscribedButFreeTrailCancelled'] == true;
-    final productId = stateMap['productId']?.toString();
-    if (productId == null) return;
-    final prefs = await SharedPreferences.getInstance();
-    final currentProductId = prefs.getString(PrefsKeys.vipProductId);
-    if (currentProductId != productId) return;
-
-    if (isTrialCancelled) {
-      await prefs.setBool(PrefsKeys.isTrialCanceled, true);
-      unawaited(_restartApp());
-    }
-  }
-
-  Future<void> _restartApp() async {
-    // 试用期内取消后：重置本会话展示标记，使挽回订阅页可再次触发，并回到首页。
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool(PrefsKeys.isShowedSubOnThisSession, false);
-    Get.offAllNamed(MainPage.routeName);
-  }
-
   Future<void> _clearVip() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool(PrefsKeys.isVip, false);
@@ -348,27 +305,17 @@ class SubscriptionService extends GetxService {
 
   /// VIP 导航门控。
   ///
-  /// - 非会员 / 试用过期：弹出订阅页，关闭后**不**跳转目标页。
-  /// - 试用中已取消（isTrialCanceled=true）：弹出订阅页（非首订样式），
-  ///   等用户关闭后**放行**进入目标页。
-  /// - 正常会员：直接跳转目标页。
+  /// - 非会员：弹出订阅页，关闭后**不**跳转目标页。
+  /// - 会员：直接跳转目标页。
   Future<void> navigateWithVipGate({
     required String destination,
     dynamic arguments,
     SubscriptionSource source = SubscriptionSource.subscription,
   }) async {
     if (!isVip.value) {
-      // 未订阅或试用已过期 → 拦截，只展示订阅页
       await Get.toNamed(SubscriptionPage.routeName, arguments: source);
       return;
     }
-    if (isTrialCanceled.value) {
-      // 试用期内已取消 → 展示订阅页（非首订），关闭后放行
-      await Get.toNamed(SubscriptionPage.routeName, arguments: source);
-      Get.toNamed(destination, arguments: arguments);
-      return;
-    }
-    // 正常会员 → 直接跳转
     Get.toNamed(destination, arguments: arguments);
   }
 

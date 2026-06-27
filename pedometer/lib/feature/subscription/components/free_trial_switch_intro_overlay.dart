@@ -3,9 +3,11 @@ import 'dart:async';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:get/get.dart';
 
 import 'package:pedometer/common/config/app_colors.dart';
-import 'package:pedometer/common/config/localized_text.dart';
+import 'package:pedometer/common/storage/language_service.dart';
+import 'package:pedometer/feature/subscription/resources/subscription_resource.dart';
 
 class FreeTrialSwitchIntroOverlay extends StatefulWidget {
   final bool visible;
@@ -75,43 +77,54 @@ class _FreeTrialSwitchIntroOverlayState
         opacity: widget.visible ? 1 : 0,
         child: ColoredBox(
           color: const Color(0xFF00050A),
-          child: Center(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                CupertinoSwitch(
-                  value: _switchEnabled,
-                  activeTrackColor: AppColors.brandGreen,
-                  onChanged: (_) {},
-                ),
-                SizedBox(height: 14.h),
-                Text(
-                  lt('3-Day Free Trial', '3天免费试用'),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    color: AppColors.brandGreenLight,
-                    fontSize: 24.sp,
-                    fontWeight: FontWeight.w900,
-                    height: 1.1,
-                  ),
-                ),
-                Text(
-                  lt('is Enabled！', '已开启！'),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 24.sp,
-                    fontWeight: FontWeight.w900,
-                    height: 1.1,
-                  ),
-                ),
-              ],
-            ),
-          ),
+          child: Center(child: _localizedContent()),
         ),
       ),
+    );
+  }
+
+  Widget _localizedContent() {
+    if (!Get.isRegistered<LanguageService>()) return _content();
+
+    return Obx(() {
+      Get.find<LanguageService>().localeRevision.value;
+      return _content();
+    });
+  }
+
+  Widget _content() {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        CupertinoSwitch(
+          value: _switchEnabled,
+          activeTrackColor: AppColors.brandGreen,
+          onChanged: (_) {},
+        ),
+        SizedBox(height: 14.h),
+        Text(
+          SubscriptionResource.threeDaysFreeTrial,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: TextStyle(
+            color: AppColors.brandGreenLight,
+            fontSize: 24.sp,
+            fontWeight: FontWeight.w900,
+            height: 1.1,
+          ),
+        ),
+        Text(
+          SubscriptionResource.freeTrialEnabled,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 24.sp,
+            fontWeight: FontWeight.w900,
+            height: 1.1,
+          ),
+        ),
+      ],
     );
   }
 }
