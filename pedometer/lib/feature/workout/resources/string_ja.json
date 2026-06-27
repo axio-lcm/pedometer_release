@@ -76,5 +76,8 @@
   "location_denied_forever_msg": "位置情報が拒否されています。設定で許可してください。",
   "location_open_service_action": "位置情報をオンにする",
   "location_open_settings_action": "設定を開く",
-  "location_retry_action": "再試行"
+  "location_retry_action": "再試行",
+  "step_unit": "歩",
+  "target_steps": "歩数",
+  "target_steps_suggestion": "1000 - 50000 歩"
 }

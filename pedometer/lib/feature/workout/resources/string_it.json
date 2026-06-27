@@ -76,5 +76,8 @@
   "location_denied_forever_msg": "Accesso alla posizione negato. Consentilo nelle Impostazioni.",
   "location_open_service_action": "Attiva la posizione",
   "location_open_settings_action": "Apri Impostazioni",
-  "location_retry_action": "Riprova"
+  "location_retry_action": "Riprova",
+  "step_unit": "passi",
+  "target_steps": "Passi",
+  "target_steps_suggestion": "1000 - 50000 passi"
 }

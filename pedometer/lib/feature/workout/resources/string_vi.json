@@ -76,5 +76,8 @@
   "location_denied_forever_msg": "Quyền truy cập vị trí bị từ chối. Hãy cho phép trong Cài đặt.",
   "location_open_service_action": "Bật dịch vụ vị trí",
   "location_open_settings_action": "Mở Cài đặt",
-  "location_retry_action": "Thử lại"
+  "location_retry_action": "Thử lại",
+  "step_unit": "bước",
+  "target_steps": "Số bước",
+  "target_steps_suggestion": "1000 - 50000 bước"
 }

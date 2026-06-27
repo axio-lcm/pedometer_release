@@ -76,5 +76,8 @@
   "location_denied_forever_msg": "Konum erişimi reddedildi. Ayarlar’dan izin ver.",
   "location_open_service_action": "Konumu aç",
   "location_open_settings_action": "Ayarları aç",
-  "location_retry_action": "Yeniden dene"
+  "location_retry_action": "Yeniden dene",
+  "step_unit": "adım",
+  "target_steps": "Adım",
+  "target_steps_suggestion": "1000 - 50000 adım"
 }

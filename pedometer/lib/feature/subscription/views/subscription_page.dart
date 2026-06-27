@@ -525,7 +525,7 @@ class _LegalLinks extends StatelessWidget {
           fontWeight: FontWeight.w500,
         ),
         children: [
-          const TextSpan(text: 'Privacy Policy'),
+          TextSpan(text: lt('Privacy Policy', '隐私政策')),
           const TextSpan(text: '  |  '),
           TextSpan(text: lt('Terms', '用户协议')),
           const TextSpan(text: '  |  '),

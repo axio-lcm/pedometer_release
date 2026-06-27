@@ -26,11 +26,12 @@ class OnboardingViewModel extends GetxController {
     SubscriptionAssets.onboarding3,
   ];
 
+  // 标题用 `*` 包裹需绿色高亮的关键词，[_GuideTitle] 解析后渲染。
   List<String> get titles => [
-    lt('Make Every Step Count', '让每一步都有意义'),
-    lt('Stay Motivated', '保持动力'),
-    lt('Sync with Health', '同步健康数据'),
-    lt('Unlock Pedometer Pro', '解锁 Pedometer Pro'),
+    lt('Make Every *Step* Count', '让每一*步*都有意义'),
+    lt('Stay *Motivated*', '保持*动力*'),
+    lt('Sync with *Health*', '*同步*健康数据'),
+    lt('Unlock *Pedometer Pro*', '解锁 *Pedometer Pro*'),
   ];
 
   List<String> get subtitles => [

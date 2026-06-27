@@ -41,6 +41,44 @@ String? _localizedTemplateText(String en) {
     );
   }
 
+  // 订阅文案（带动态价格）：用模板 + {{price}} 占位，避免价格进入 lt_ slug。
+  final introOfferDesc = RegExp(
+    r'^3-day free trial, then weekly (.+)\. Cancel anytime\.$',
+  ).firstMatch(en);
+  if (introOfferDesc != null) {
+    return fromTemplate('lt_template_intro_offer_desc', {
+      'price': introOfferDesc.group(1)!,
+    });
+  }
+
+  final subscribeUnlockDesc = RegExp(
+    r'^Subscribe to unlock goals, rewards, route tracking, health sync, '
+    r'and training insights\. Weekly (.+)\. Cancel anytime\.$',
+  ).firstMatch(en);
+  if (subscribeUnlockDesc != null) {
+    return fromTemplate('lt_template_subscribe_unlock_desc', {
+      'price': subscribeUnlockDesc.group(1)!,
+    });
+  }
+
+  final pricePerYear = RegExp(
+    r'^(.+) per year, cancel anytime\.$',
+  ).firstMatch(en);
+  if (pricePerYear != null) {
+    return fromTemplate('lt_template_price_per_year', {
+      'price': pricePerYear.group(1)!,
+    });
+  }
+
+  final pricePerWeekly = RegExp(
+    r'^(.+) per weekly, cancel anytime\.$',
+  ).firstMatch(en);
+  if (pricePerWeekly != null) {
+    return fromTemplate('lt_template_price_per_weekly', {
+      'price': pricePerWeekly.group(1)!,
+    });
+  }
+
   final connected = RegExp(r'^(.+) Connected$').firstMatch(en);
   if (connected != null) {
     return fromTemplate('lt_template_source_connected', {

@@ -76,5 +76,8 @@
   "location_denied_forever_msg": "위치 권한이 거부되었습니다. 설정에서 허용하세요.",
   "location_open_service_action": "위치 서비스 켜기",
   "location_open_settings_action": "설정 열기",
-  "location_retry_action": "다시 시도"
+  "location_retry_action": "다시 시도",
+  "step_unit": "걸음",
+  "target_steps": "걸음 수",
+  "target_steps_suggestion": "1000 - 50000 걸음"
 }

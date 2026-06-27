@@ -87,7 +87,9 @@ class _GuideOnboardingBody extends StatelessWidget {
                           mainAxisSize: MainAxisSize.min,
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
-                            _GuideTitle(index: controller.index.value),
+                            _GuideTitle(
+                              title: controller.titles[controller.index.value],
+                            ),
                             SizedBox(height: 22.h),
                             Text(
                               controller.subtitles[controller.index.value],
@@ -151,18 +153,14 @@ class _GuideScrim extends StatelessWidget {
 }
 
 class _GuideTitle extends StatelessWidget {
-  final int index;
+  /// 本地化标题文案，用 `*` 包裹需绿色高亮的关键词，例如 `Make Every *Step* Count`。
+  final String title;
 
-  const _GuideTitle({required this.index});
+  const _GuideTitle({required this.title});
 
   @override
   Widget build(BuildContext context) {
-    final parts = switch (index) {
-      0 => ('Make Every ', 'Step', ' Count'),
-      1 => ('Stay ', 'Motivated', ''),
-      _ => ('Sync with ', 'Health', ''),
-    };
-
+    final segments = title.split('*');
     return RichText(
       textAlign: TextAlign.center,
       text: TextSpan(
@@ -172,13 +170,15 @@ class _GuideTitle extends StatelessWidget {
           fontWeight: FontWeight.w900,
           height: 1.05,
         ),
+        // split('*') 后奇数下标即被 `*` 包裹的高亮片段。
         children: [
-          TextSpan(text: parts.$1),
-          TextSpan(
-            text: parts.$2,
-            style: TextStyle(color: AppColors.brandGreen),
-          ),
-          TextSpan(text: parts.$3),
+          for (var i = 0; i < segments.length; i++)
+            TextSpan(
+              text: segments[i],
+              style: i.isOdd
+                  ? TextStyle(color: AppColors.brandGreen)
+                  : null,
+            ),
         ],
       ),
     );
@@ -491,7 +491,7 @@ class _LegalLinks extends StatelessWidget {
           fontWeight: FontWeight.w600,
         ),
         children: [
-          const TextSpan(text: 'Privacy Policy'),
+          TextSpan(text: lt('Privacy Policy', '隐私政策')),
           const TextSpan(text: '  |  '),
           TextSpan(text: lt('Terms', '用户协议')),
           const TextSpan(text: '  |  '),

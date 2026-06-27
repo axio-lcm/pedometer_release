@@ -76,5 +76,8 @@
   "location_denied_forever_msg": "Acceso a la ubicación denegado. Permítelo en Ajustes.",
   "location_open_service_action": "Activar ubicación",
   "location_open_settings_action": "Abrir ajustes",
-  "location_retry_action": "Reintentar"
+  "location_retry_action": "Reintentar",
+  "step_unit": "pasos",
+  "target_steps": "Pasos",
+  "target_steps_suggestion": "1000 - 50000 pasos"
 }

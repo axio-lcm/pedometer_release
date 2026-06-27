@@ -76,5 +76,8 @@
   "location_denied_forever_msg": "Доступ к геолокации запрещён. Разрешите его в настройках.",
   "location_open_service_action": "Включить геолокацию",
   "location_open_settings_action": "Открыть настройки",
-  "location_retry_action": "Повторить"
+  "location_retry_action": "Повторить",
+  "step_unit": "шагов",
+  "target_steps": "Шаги",
+  "target_steps_suggestion": "1000 - 50000 шагов"
 }

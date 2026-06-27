@@ -76,5 +76,8 @@
   "location_denied_forever_msg": "تم رفض الوصول إلى الموقع. اسمح به من الإعدادات.",
   "location_open_service_action": "تشغيل خدمات الموقع",
   "location_open_settings_action": "فتح الإعدادات",
-  "location_retry_action": "إعادة المحاولة"
+  "location_retry_action": "إعادة المحاولة",
+  "step_unit": "خطوة",
+  "target_steps": "الخطوات",
+  "target_steps_suggestion": "1000 - 50000 خطوة"
 }

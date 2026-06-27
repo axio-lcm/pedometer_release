@@ -76,5 +76,8 @@
   "location_denied_forever_msg": "Орналасуға қол жеткізу тыйым салынған. Параметрлерден рұқсат етіңіз.",
   "location_open_service_action": "Орналасуды қосу",
   "location_open_settings_action": "Параметрлерді ашу",
-  "location_retry_action": "Қайталау"
+  "location_retry_action": "Қайталау",
+  "step_unit": "қадам",
+  "target_steps": "Қадамдар",
+  "target_steps_suggestion": "1000 - 50000 қадам"
 }
