@@ -216,6 +216,12 @@ class WorkoutTrackingData {
   final bool hasMusic;
   final bool musicPlaying;
 
+  /// 室内会话步数（展示用）。
+  final String steps;
+
+  /// 是否以步数为主指标展示（室内）；否则以距离为主（户外）。
+  final bool stepsPrimary;
+
   const WorkoutTrackingData({
     required this.workoutTitle,
     required this.status,
@@ -229,6 +235,8 @@ class WorkoutTrackingData {
     required this.musicStatus,
     this.hasMusic = false,
     this.musicPlaying = false,
+    this.steps = '0',
+    this.stepsPrimary = false,
   });
 
   static const mock = WorkoutTrackingData(
@@ -256,6 +264,8 @@ class WorkoutTrackingData {
     String? musicStatus,
     bool? hasMusic,
     bool? musicPlaying,
+    String? steps,
+    bool? stepsPrimary,
   }) {
     return WorkoutTrackingData(
       workoutTitle: workoutTitle ?? this.workoutTitle,
@@ -270,6 +280,8 @@ class WorkoutTrackingData {
       musicStatus: musicStatus ?? this.musicStatus,
       hasMusic: hasMusic ?? this.hasMusic,
       musicPlaying: musicPlaying ?? this.musicPlaying,
+      steps: steps ?? this.steps,
+      stepsPrimary: stepsPrimary ?? this.stepsPrimary,
     );
   }
 }

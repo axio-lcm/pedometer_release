@@ -123,6 +123,8 @@ class WorkoutMapSectionState extends State<WorkoutMapSection> {
       duration: widget.controller.durationText,
       calories: widget.controller.caloriesText,
       pace: widget.controller.paceText,
+      steps: widget.controller.stepsText,
+      stepsPrimary: widget.controller.isIndoor.value,
     );
   }
 }
@@ -945,13 +947,22 @@ class WorkoutDistanceOverlay extends StatelessWidget {
       );
     }
 
+    // 室内：步数为主指标，距离作为副指标展示。
+    final label = data.stepsPrimary
+        ? WorkoutResource.targetSteps
+        : WorkoutResource.trackingDistanceLabel;
+    final primaryValue = data.stepsPrimary ? data.steps : data.distanceKm;
+    final subtitle = data.stepsPrimary
+        ? '${data.distanceKm} ${WorkoutResource.distanceUnit}'
+        : WorkoutResource.trackingTarget(data.targetKm);
+
     return SizedBox(
       width: 190,
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           Text(
-            WorkoutResource.trackingDistanceLabel,
+            label,
             style: TextStyle(
               color: AppColors.textSecondary,
               fontSize: 14,
@@ -962,7 +973,7 @@ class WorkoutDistanceOverlay extends StatelessWidget {
           FittedBox(
             fit: BoxFit.scaleDown,
             child: Text(
-              data.distanceKm,
+              primaryValue,
               style: TextStyle(
                 color: AppColors.textPrimary,
                 fontSize: 78,
@@ -980,7 +991,7 @@ class WorkoutDistanceOverlay extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           Text(
-            WorkoutResource.trackingTarget(data.targetKm),
+            subtitle,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             textAlign: TextAlign.center,

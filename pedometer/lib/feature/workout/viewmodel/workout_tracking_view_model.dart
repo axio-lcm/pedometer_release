@@ -77,6 +77,9 @@ class WorkoutTrackingViewModel extends GetxController
   /// 是否为室内运动：室内无 GPS 地图，运动区域显示纯色背景且累积里程固定居中。
   final isIndoor = false.obs;
 
+  /// 室内会话累计步数（来自计步器，按会话基线增量累积）。
+  final steps = 0.obs;
+
   Timer? _ticker;
   Position? _lastRaw; // 上一个被接受的原始定位（算距离 / 方位）
   Position? _currentRaw; // 最近一次定位，开始运动时用作第一段距离基准
@@ -84,6 +87,9 @@ class WorkoutTrackingViewModel extends GetxController
   double _lastSpeedKmh = 0; // 当前 tick 卡路里用的速度
   DateTime? _lastSpeedUpdatedAt;
   StreamSubscription<Duration>? _motionPaceSubscription;
+  StreamSubscription<MotionFitnessSample>? _motionStepSubscription;
+  double? _lastIndoorDistanceMeters; // 上一计步样本的当天累计距离（米）
+  int? _lastIndoorSteps; // 上一计步样本的当天累计步数
   StreamSubscription<bool>? _musicPlayingSubscription;
   StreamSubscription<int?>? _musicIndexSubscription;
   DateTime? _lastMotionPaceAt;
@@ -112,6 +118,9 @@ class WorkoutTrackingViewModel extends GetxController
     if (status.value == WorkoutStatus.ended) return;
 
     distanceMeters.value = 0;
+    steps.value = 0;
+    _lastIndoorDistanceMeters = null;
+    _lastIndoorSteps = null;
     elapsed.value = Duration.zero;
     calories.value = 0;
     pace.value = null;
@@ -565,6 +574,46 @@ class WorkoutTrackingViewModel extends GetxController
         );
   }
 
+  /// 室内运动无 GPS，距离 / 步数改用计步器（CMPedometer）按会话基线增量累积。
+  void _startMotionStepIfNeeded() {
+    if (defaultTargetPlatform != TargetPlatform.iOS) return;
+    _motionStepSubscription ??=
+        MotionFitnessPermissionService.todayStepStream().listen(
+          _onMotionStep,
+          onError: (_) {},
+        );
+  }
+
+  void _onMotionStep(MotionFitnessSample sample) {
+    if (!isIndoor.value) return; // 户外用 GPS 累积，室内才用计步器。
+
+    final currentDistance = sample.distanceMeters;
+    final currentSteps = sample.steps;
+
+    // 非运行态（未开始 / 暂停）：只滚动基线，不累积，从而跳过暂停期间的步数。
+    if (status.value != WorkoutStatus.running) {
+      _lastIndoorDistanceMeters = currentDistance;
+      _lastIndoorSteps = currentSteps;
+      return;
+    }
+
+    final lastDistance = _lastIndoorDistanceMeters;
+    final lastSteps = _lastIndoorSteps;
+    // 首个运行态样本：仅建立基线（含跨午夜计步器清零后的重新基线）。
+    if (lastDistance == null || lastSteps == null) {
+      _lastIndoorDistanceMeters = currentDistance;
+      _lastIndoorSteps = currentSteps;
+      return;
+    }
+
+    final deltaDistance = currentDistance - lastDistance;
+    final deltaSteps = currentSteps - lastSteps;
+    if (deltaDistance > 0) distanceMeters.value += deltaDistance;
+    if (deltaSteps > 0) steps.value += deltaSteps;
+    _lastIndoorDistanceMeters = currentDistance;
+    _lastIndoorSteps = currentSteps;
+  }
+
   void _onMotionPace(Duration pacePerKm) {
     if (status.value != WorkoutStatus.running) return;
     final millisPerKm = pacePerKm.inMilliseconds;
@@ -610,6 +659,7 @@ class WorkoutTrackingViewModel extends GetxController
     musicTitle.value = WorkoutResource.trackingMusicTitle;
     musicStatus.value = WorkoutResource.trackingMusicIdle;
     _startMotionPaceIfNeeded();
+    _startMotionStepIfNeeded();
     final args = Get.arguments;
     if (args is WorkoutType) {
       workoutTitle.value = args.title;
@@ -635,6 +685,8 @@ class WorkoutTrackingViewModel extends GetxController
     _stopTicker();
     _motionPaceSubscription?.cancel();
     _motionPaceSubscription = null;
+    _motionStepSubscription?.cancel();
+    _motionStepSubscription = null;
     _musicPlayingSubscription?.cancel();
     _musicPlayingSubscription = null;
     _musicIndexSubscription?.cancel();
@@ -653,6 +705,8 @@ class WorkoutTrackingViewModel extends GetxController
   // ---- 格式化展示 ----
 
   String get distanceKmText => (distanceMeters.value / 1000).toStringAsFixed(2);
+
+  String get stepsText => steps.value.toString();
 
   String get durationText {
     final d = elapsed.value;
