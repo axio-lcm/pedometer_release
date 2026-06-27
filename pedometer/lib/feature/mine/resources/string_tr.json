@@ -61,5 +61,21 @@
   "user_agreement": "Kullanım Koşulları",
   "privacy_policy": "Gizlilik Politikası",
   "about_us": "Hakkında",
-  "version": "Sürüm"
+  "version": "Sürüm",
+  "bmi_low": "Dusuk",
+  "bmi_high": "Yuksek",
+  "bmi_obese": "Obez",
+  "edit_body_data_title": "Vucut Verilerini Duzenle",
+  "save": "Kaydet",
+  "invalid_input": "Gecersiz giris",
+  "invalid_body_data_input_message": "Araliklari kontrol edip tekrar dene.",
+  "height_input_hint": "120 - 220",
+  "height_range_hint": "Aralik: 120 - 220 cm",
+  "weight_input_hint": "30 - 200",
+  "weight_range_hint": "Aralik: 30 - 200 kg",
+  "age_input_hint": "1 - 120",
+  "age_range_hint": "Aralik: 1 - 120",
+  "bmi_formula": "BMI = Kilo(kg) / Boy^2(m)",
+  "tip_title": "Ipucu",
+  "body_data_tip": "Vucut verileri kalori yakimi, saglik analizi ve kisisel oneriler icin kullanilir. Verileri dogru tut."
 }

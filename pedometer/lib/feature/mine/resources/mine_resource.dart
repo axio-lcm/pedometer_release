@@ -27,6 +27,31 @@ class MineResource {
   static String get bodyData => _string('body_data', MineText.bodyData);
   static String get editBodyData =>
       _string('edit_body_data', MineText.editBodyData);
+  static String get editBodyDataTitle =>
+      _string('edit_body_data_title', MineText.editBodyDataTitle);
+  static String get save => _string('save', MineText.save);
+  static String get invalidInput =>
+      _string('invalid_input', MineText.invalidInput);
+  static String get invalidBodyDataInputMessage => _string(
+    'invalid_body_data_input_message',
+    MineText.invalidBodyDataInputMessage,
+  );
+  static String get heightInputHint =>
+      _string('height_input_hint', MineText.heightInputHint);
+  static String get heightRangeHint =>
+      _string('height_range_hint', MineText.heightRangeHint);
+  static String get weightInputHint =>
+      _string('weight_input_hint', MineText.weightInputHint);
+  static String get weightRangeHint =>
+      _string('weight_range_hint', MineText.weightRangeHint);
+  static String get ageInputHint =>
+      _string('age_input_hint', MineText.ageInputHint);
+  static String get ageRangeHint =>
+      _string('age_range_hint', MineText.ageRangeHint);
+  static String get bmiFormula => _string('bmi_formula', MineText.bmiFormula);
+  static String get tipTitle => _string('tip_title', MineText.tipTitle);
+  static String get bodyDataTip =>
+      _string('body_data_tip', MineText.bodyDataTip);
   static String get subscribeTitle =>
       _string('subscribe_title', MineText.subscribeTitle);
   static String get subscribeSubtitle =>
@@ -125,6 +150,21 @@ class MineText {
   static const ageUnit = 'yrs';
   static const bodyData = 'Body Data';
   static const editBodyData = 'Edit';
+  static const editBodyDataTitle = 'Edit Body Data';
+  static const save = 'Save';
+  static const invalidInput = 'Invalid input';
+  static const invalidBodyDataInputMessage =
+      'Please check the ranges and try again.';
+  static const heightInputHint = '120 - 220';
+  static const heightRangeHint = 'Range: 120 - 220 cm';
+  static const weightInputHint = '30 - 200';
+  static const weightRangeHint = 'Range: 30 - 200 kg';
+  static const ageInputHint = '1 - 120';
+  static const ageRangeHint = 'Range: 1 - 120';
+  static const bmiFormula = 'BMI = Weight(kg) / Height^2(m)';
+  static const tipTitle = 'Tip';
+  static const bodyDataTip =
+      'Body data is used to calculate calorie burn, health analysis and personalised advice. Please keep the data accurate.';
   static const subscribeTitle = 'Membership';
   static const subscribeSubtitle = 'Unlock all premium features';
   static const themeSetting = 'Theme';

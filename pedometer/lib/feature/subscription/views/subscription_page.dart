@@ -6,9 +6,9 @@ import 'package:get/get.dart';
 
 import 'package:pedometer/common/config/app_colors.dart';
 import 'package:pedometer/common/config/app_dimens.dart';
-import 'package:pedometer/common/config/localized_text.dart';
 import 'package:pedometer/feature/subscription/config/subscription_config.dart';
 import 'package:pedometer/feature/subscription/model/subscription_assets.dart';
+import 'package:pedometer/feature/subscription/resources/subscription_resource.dart';
 import 'package:pedometer/feature/subscription/viewmodel/subscription_view_model.dart';
 
 class SubscriptionPage extends GetView<SubscriptionViewModel> {
@@ -49,16 +49,13 @@ class SubscriptionPage extends GetView<SubscriptionViewModel> {
                   selectedPlan.kind == SubscriptionPlanKind.weekly;
               final selectedPrice = selectedPlan.fallbackPrice;
               final description = isIntroOffer
-                  ? lt(
-                      '3-day free trial, then weekly $selectedPrice. Cancel anytime.',
-                      '免费试用 3 天，之后每周 $selectedPrice，可随时取消。',
-                    )
+                  ? SubscriptionResource.introOfferDescription(selectedPrice)
                   : _descriptionFor(selectedPlan);
               final buttonText = isIntroOffer
                   ? (controller.buttonText.value.isEmpty
-                        ? lt('Start Free Trial', '开始免费试用')
+                        ? SubscriptionResource.startFreeTrial
                         : controller.buttonText.value)
-                  : lt('Subscribe', '订阅');
+                  : SubscriptionResource.subscribe;
 
               return LayoutBuilder(
                 builder: (context, constraints) {
@@ -149,13 +146,11 @@ class SubscriptionPage extends GetView<SubscriptionViewModel> {
   String _descriptionFor(SubscriptionProductPlan plan) {
     final price = plan.fallbackPrice;
     return switch (plan.kind) {
-      SubscriptionPlanKind.yearly => lt(
-        '$price per year, cancel anytime.',
-        '每年 $price，可随时取消。',
+      SubscriptionPlanKind.yearly => SubscriptionResource.yearlyDescription(
+        price,
       ),
-      SubscriptionPlanKind.weekly => lt(
-        '$price per weekly, cancel anytime.',
-        '每周 $price，可随时取消。',
+      SubscriptionPlanKind.weekly => SubscriptionResource.weeklyDescription(
+        price,
       ),
     };
   }
@@ -243,23 +238,23 @@ class _BenefitPanel extends StatelessWidget {
     final benefits = [
       (
         SubscriptionAssets.subscriptionGoalsRewards,
-        lt('Goals & Rewards', '目标与奖励'),
+        SubscriptionResource.goalsRewards,
       ),
       (
         SubscriptionAssets.subscriptionRouteTracking,
-        lt('Route Tracking', '路线记录'),
+        SubscriptionResource.routeTracking,
       ),
       (
         SubscriptionAssets.subscriptionHealthDataSync,
-        lt('Health Data Sync', '健康数据同步'),
+        SubscriptionResource.healthDataSync,
       ),
       (
         SubscriptionAssets.subscriptionWorkoutTrends,
-        lt('Workout Trends', '运动趋势'),
+        SubscriptionResource.workoutTrends,
       ),
       (
         SubscriptionAssets.subscriptionUnlockPremium,
-        lt('Unlock Premium', '解锁高级版'),
+        SubscriptionResource.unlockPremium,
       ),
     ];
 
@@ -343,9 +338,9 @@ class _SubscriptionPlanTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final badgeText = showFreeTrialBadge
-        ? lt('3 Days Free Trial', '免费试用 3 天')
+        ? SubscriptionResource.threeDaysFreeTrial
         : showBestBadge
-        ? 'BEST'
+        ? SubscriptionResource.bestBadge
         : null;
 
     return GestureDetector(
@@ -410,8 +405,8 @@ class _SubscriptionPlanTile extends StatelessWidget {
 
   String _titleFor(SubscriptionProductPlan plan) {
     return switch (plan.kind) {
-      SubscriptionPlanKind.weekly => lt('Weekly Plan', '周计划'),
-      SubscriptionPlanKind.yearly => lt('Annual Plan', '年度计划'),
+      SubscriptionPlanKind.weekly => SubscriptionResource.weeklyPlan,
+      SubscriptionPlanKind.yearly => SubscriptionResource.annualPlan,
     };
   }
 }
@@ -525,14 +520,14 @@ class _LegalLinks extends StatelessWidget {
           fontWeight: FontWeight.w500,
         ),
         children: [
-          TextSpan(text: lt('Privacy Policy', '隐私政策')),
+          TextSpan(text: SubscriptionResource.privacyPolicy),
           const TextSpan(text: '  |  '),
-          TextSpan(text: lt('Terms', '用户协议')),
+          TextSpan(text: SubscriptionResource.terms),
           const TextSpan(text: '  |  '),
-          TextSpan(text: lt('Subscription', '订阅')),
+          TextSpan(text: SubscriptionResource.subscription),
           const TextSpan(text: '  |  '),
           TextSpan(
-            text: lt('Restore', '恢复购买'),
+            text: SubscriptionResource.restore,
             recognizer: TapGestureRecognizer()..onTap = onRestore,
           ),
         ],
@@ -562,11 +557,11 @@ class _PremiumTitle extends StatelessWidget {
         children: [
           Transform.translate(
             offset: Offset(-30.w, 0),
-            child: Text(lt('Upgrade', 'Upgrade'), style: style),
+            child: Text(SubscriptionResource.upgrade, style: style),
           ),
           Padding(
             padding: EdgeInsets.only(left: 16.w),
-            child: Text(lt('Premium', 'Premium'), style: style),
+            child: Text(SubscriptionResource.premium, style: style),
           ),
         ],
       ),

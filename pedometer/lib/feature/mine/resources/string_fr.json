@@ -61,5 +61,21 @@
   "user_agreement": "Conditions d'utilisation",
   "privacy_policy": "Politique de confidentialité",
   "about_us": "À propos",
-  "version": "Version"
+  "version": "Version",
+  "bmi_low": "Bas",
+  "bmi_high": "Eleve",
+  "bmi_obese": "Obesite",
+  "edit_body_data_title": "Modifier les donnees corporelles",
+  "save": "Enregistrer",
+  "invalid_input": "Saisie invalide",
+  "invalid_body_data_input_message": "Verifiez les plages et reessayez.",
+  "height_input_hint": "120 - 220",
+  "height_range_hint": "Plage : 120 - 220 cm",
+  "weight_input_hint": "30 - 200",
+  "weight_range_hint": "Plage : 30 - 200 kg",
+  "age_input_hint": "1 - 120",
+  "age_range_hint": "Plage : 1 - 120",
+  "bmi_formula": "IMC = Poids(kg) / Taille^2(m)",
+  "tip_title": "Astuce",
+  "body_data_tip": "Les donnees corporelles servent a calculer les calories, l’analyse sante et les conseils personnalises. Gardez-les exactes."
 }

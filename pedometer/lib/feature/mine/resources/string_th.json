@@ -61,5 +61,21 @@
   "user_agreement": "ข้อตกลงการใช้งาน",
   "privacy_policy": "นโยบายความเป็นส่วนตัว",
   "about_us": "เกี่ยวกับ",
-  "version": "เวอร์ชัน"
+  "version": "เวอร์ชัน",
+  "bmi_low": "ต่ำ",
+  "bmi_high": "สูง",
+  "bmi_obese": "อ้วน",
+  "edit_body_data_title": "แก้ไขข้อมูลร่างกาย",
+  "save": "บันทึก",
+  "invalid_input": "ข้อมูลไม่ถูกต้อง",
+  "invalid_body_data_input_message": "โปรดตรวจสอบช่วงค่าแล้วลองอีกครั้ง",
+  "height_input_hint": "120 - 220",
+  "height_range_hint": "ช่วง: 120 - 220 cm",
+  "weight_input_hint": "30 - 200",
+  "weight_range_hint": "ช่วง: 30 - 200 kg",
+  "age_input_hint": "1 - 120",
+  "age_range_hint": "ช่วง: 1 - 120",
+  "bmi_formula": "BMI = น้ำหนัก(kg) / ส่วนสูง^2(m)",
+  "tip_title": "คำแนะนำ",
+  "body_data_tip": "ข้อมูลร่างกายใช้คำนวณแคลอรี การวิเคราะห์สุขภาพ และคำแนะนำส่วนตัว โปรดเก็บข้อมูลให้ถูกต้อง"
 }

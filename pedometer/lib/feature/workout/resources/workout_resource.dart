@@ -45,6 +45,65 @@ class WorkoutResource {
       _string('beginner_runner', WorkoutText.beginnerRunner);
   static String get persistent => _string('persistent', WorkoutText.persistent);
   static String get hundredKm => _string('hundred_km', WorkoutText.hundredKm);
+
+  // 成就徽章页：标题（9 枚新徽章）、描述（12 枚）、获得状态。
+  static String get badgeTimeMaster =>
+      _string('badge_time_master', WorkoutText.badgeTimeMaster);
+  static String get badge200Km =>
+      _string('badge_200km', WorkoutText.badge200Km);
+  static String get badgeCalorieMaster =>
+      _string('badge_calorie_master', WorkoutText.badgeCalorieMaster);
+  static String get badgePeakClimber =>
+      _string('badge_peak_climber', WorkoutText.badgePeakClimber);
+  static String get badgeAdvancedRunner =>
+      _string('badge_advanced_runner', WorkoutText.badgeAdvancedRunner);
+  static String get badgeWeeklyCheckin =>
+      _string('badge_weekly_checkin', WorkoutText.badgeWeeklyCheckin);
+  static String get badgeMonthlyStar =>
+      _string('badge_monthly_star', WorkoutText.badgeMonthlyStar);
+  static String get badgeStepsMaster =>
+      _string('badge_steps_master', WorkoutText.badgeStepsMaster);
+  static String get badge500Km =>
+      _string('badge_500km', WorkoutText.badge500Km);
+
+  static String get badgeDescBeginnerRunner => _string(
+    'badge_desc_beginner_runner',
+    WorkoutText.badgeDescBeginnerRunner,
+  );
+  static String get badgeDescPersistent =>
+      _string('badge_desc_persistent', WorkoutText.badgeDescPersistent);
+  static String get badgeDescHundredKm =>
+      _string('badge_desc_hundred_km', WorkoutText.badgeDescHundredKm);
+  static String get badgeDescTimeMaster =>
+      _string('badge_desc_time_master', WorkoutText.badgeDescTimeMaster);
+  static String get badgeDesc200Km =>
+      _string('badge_desc_200km', WorkoutText.badgeDesc200Km);
+  static String get badgeDescCalorieMaster => _string(
+    'badge_desc_calorie_master',
+    WorkoutText.badgeDescCalorieMaster,
+  );
+  static String get badgeDescPeakClimber =>
+      _string('badge_desc_peak_climber', WorkoutText.badgeDescPeakClimber);
+  static String get badgeDescAdvancedRunner => _string(
+    'badge_desc_advanced_runner',
+    WorkoutText.badgeDescAdvancedRunner,
+  );
+  static String get badgeDescWeeklyCheckin => _string(
+    'badge_desc_weekly_checkin',
+    WorkoutText.badgeDescWeeklyCheckin,
+  );
+  static String get badgeDescMonthlyStar =>
+      _string('badge_desc_monthly_star', WorkoutText.badgeDescMonthlyStar);
+  static String get badgeDescStepsMaster =>
+      _string('badge_desc_steps_master', WorkoutText.badgeDescStepsMaster);
+  static String get badgeDesc500Km =>
+      _string('badge_desc_500km', WorkoutText.badgeDesc500Km);
+
+  static String get achievementEarned =>
+      _string('achievement_earned', WorkoutText.achievementEarned);
+  static String get achievementLocked =>
+      _string('achievement_locked', WorkoutText.achievementLocked);
+
   static String get trackingEndHint =>
       _string('tracking_end_hint', WorkoutText.trackingEndHint);
   static String get trackingMusicTitle =>
@@ -246,6 +305,29 @@ class WorkoutText {
   static const beginnerRunner = 'Beginner';
   static const persistent = 'Persistent';
   static const hundredKm = '100 km';
+  static const badgeTimeMaster = 'Time Master';
+  static const badge200Km = '200 km';
+  static const badgeCalorieMaster = 'Calorie Master';
+  static const badgePeakClimber = 'Peak Climber';
+  static const badgeAdvancedRunner = 'Advanced Runner';
+  static const badgeWeeklyCheckin = 'Weekly Check-in';
+  static const badgeMonthlyStar = 'Monthly Star';
+  static const badgeStepsMaster = 'Steps Master';
+  static const badge500Km = '500 km';
+  static const badgeDescBeginnerRunner = 'Run 10 km total';
+  static const badgeDescPersistent = 'Run for 30 days total';
+  static const badgeDescHundredKm = 'Run 100 km total';
+  static const badgeDescTimeMaster = 'Run 60 min in one session';
+  static const badgeDesc200Km = 'Run 200 km total';
+  static const badgeDescCalorieMaster = 'Burn 2000 kcal total';
+  static const badgeDescPeakClimber = 'Climb 1000 m total';
+  static const badgeDescAdvancedRunner = 'Run 50 km total';
+  static const badgeDescWeeklyCheckin = 'Hit your goal 7 weeks in a row';
+  static const badgeDescMonthlyStar = 'Run 100 km in a month';
+  static const badgeDescStepsMaster = '20,000 steps in a day';
+  static const badgeDesc500Km = 'Run 500 km total';
+  static const achievementEarned = 'Earned';
+  static const achievementLocked = 'Locked';
   static const trackingEndHint = 'Hold to end';
   static const trackingMusicTitle = 'Workout Music';
   static const trackingMusicStatus = 'Playing';
@@ -331,4 +413,5 @@ class WorkoutRouteTable {
   static const String pathMusicList = '/workout/music-list';
   static const String pathRouteHistory = '/workout/route-history';
   static const String pathRouteHistoryDetail = '/workout/route-history/detail';
+  static const String pathAchievement = '/workout/achievement';
 }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'dart:typed_data';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:pedometer/feature/workout/model/achievement_stats_store.dart';
 import 'package:pedometer/feature/workout/resources/workout_resource.dart';
 
 /// 运动类型（户外 / 室内 / 健走 / 徒步）。
@@ -46,6 +47,103 @@ class Achievement {
     required this.imageAsset,
     required this.color,
   });
+}
+
+/// 成就徽章详情（成就页用）：已获得显示彩色徽章，未获得显示灰色（0 开头）徽章 + 进度。
+class AchievementBadgeItem {
+  final String title;
+  final String description;
+
+  /// 徽章序号 1..12：彩色图 `assets/<index>.png`，灰色图 `assets/0<index>.png`。
+  final int index;
+  final bool earned;
+
+  /// 未获得时的进度，0~1。
+  final double progress;
+
+  const AchievementBadgeItem({
+    required this.title,
+    required this.description,
+    required this.index,
+    required this.earned,
+    this.progress = 0,
+  });
+
+  /// 已获得用彩色徽章，未获得用 0 开头的灰色徽章。
+  String get imageAsset =>
+      earned ? 'assets/$index.png' : 'assets/0$index.png';
+}
+
+/// 成就徽章目录：12 枚徽章，按真实累积数据计算进度，达标（≥100%）才点亮彩色徽章。
+///
+/// 运动类（距离 / 天数 / 时长 / 单月 / 连续周）取自 [AchievementStatsStore]
+/// （开始运动结束时累积）；步数 / 卡路里类由首页数据传入。
+/// 登峰造极（index 7）暂未实现功能与数据，保持锁定 0 进度。
+class WorkoutAchievementCatalog {
+  WorkoutAchievementCatalog._();
+
+  /// [maxDailySteps] 历史单日最高步数、[totalCalories] 累计消耗（kcal），均来自首页。
+  static List<AchievementBadgeItem> items({
+    required int maxDailySteps,
+    required double totalCalories,
+  }) {
+    final distanceKm = AchievementStatsStore.totalDistanceKm;
+    final runDays = AchievementStatsStore.runDaysCount;
+    final maxMinutes = AchievementStatsStore.maxSessionMinutes;
+    final bestMonthKm = AchievementStatsStore.bestMonthDistanceKm;
+    final weekStreak = AchievementStatsStore.longestWeekStreak;
+
+    AchievementBadgeItem badge(
+      int index,
+      String title,
+      String description,
+      double current,
+      double target,
+    ) {
+      final ratio = target <= 0 ? 0.0 : current / target;
+      final progress = ratio.isFinite ? ratio.clamp(0.0, 1.0) : 0.0;
+      return AchievementBadgeItem(
+        title: title,
+        description: description,
+        index: index,
+        earned: progress >= 1.0,
+        progress: progress,
+      );
+    }
+
+    return [
+      badge(1, WorkoutResource.beginnerRunner,
+          WorkoutResource.badgeDescBeginnerRunner, distanceKm, 10),
+      badge(2, WorkoutResource.persistent,
+          WorkoutResource.badgeDescPersistent, runDays.toDouble(), 30),
+      badge(3, WorkoutResource.hundredKm,
+          WorkoutResource.badgeDescHundredKm, distanceKm, 100),
+      badge(4, WorkoutResource.badgeTimeMaster,
+          WorkoutResource.badgeDescTimeMaster, maxMinutes.toDouble(), 60),
+      badge(5, WorkoutResource.badge200Km,
+          WorkoutResource.badgeDesc200Km, distanceKm, 200),
+      badge(6, WorkoutResource.badgeCalorieMaster,
+          WorkoutResource.badgeDescCalorieMaster, totalCalories, 2000),
+      // 登峰造极：暂未实现累积数据，保持锁定 0 进度。
+      AchievementBadgeItem(
+        title: WorkoutResource.badgePeakClimber,
+        description: WorkoutResource.badgeDescPeakClimber,
+        index: 7,
+        earned: false,
+        progress: 0,
+      ),
+      badge(8, WorkoutResource.badgeAdvancedRunner,
+          WorkoutResource.badgeDescAdvancedRunner, distanceKm, 50),
+      badge(9, WorkoutResource.badgeWeeklyCheckin,
+          WorkoutResource.badgeDescWeeklyCheckin, weekStreak.toDouble(), 7),
+      badge(10, WorkoutResource.badgeMonthlyStar,
+          WorkoutResource.badgeDescMonthlyStar, bestMonthKm, 100),
+      badge(11, WorkoutResource.badgeStepsMaster,
+          WorkoutResource.badgeDescStepsMaster, maxDailySteps.toDouble(), 20000),
+      badge(12, WorkoutResource.badge500Km,
+          WorkoutResource.badgeDesc500Km, distanceKm, 500),
+    ];
+  }
 }
 
 /// 运动记录状态。

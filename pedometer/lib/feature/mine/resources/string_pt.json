@@ -61,5 +61,21 @@
   "user_agreement": "Termos de uso",
   "privacy_policy": "Política de privacidade",
   "about_us": "Sobre",
-  "version": "Versão"
+  "version": "Versão",
+  "bmi_low": "Baixo",
+  "bmi_high": "Alto",
+  "bmi_obese": "Obesidade",
+  "edit_body_data_title": "Editar dados corporais",
+  "save": "Salvar",
+  "invalid_input": "Entrada invalida",
+  "invalid_body_data_input_message": "Verifique os intervalos e tente novamente.",
+  "height_input_hint": "120 - 220",
+  "height_range_hint": "Intervalo: 120 - 220 cm",
+  "weight_input_hint": "30 - 200",
+  "weight_range_hint": "Intervalo: 30 - 200 kg",
+  "age_input_hint": "1 - 120",
+  "age_range_hint": "Intervalo: 1 - 120",
+  "bmi_formula": "IMC = Peso(kg) / Altura^2(m)",
+  "tip_title": "Dica",
+  "body_data_tip": "Os dados corporais sao usados para calcular calorias, analise de saude e conselhos personalizados. Mantenha-os precisos."
 }

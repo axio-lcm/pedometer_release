@@ -61,5 +61,21 @@
   "user_agreement": "Пайдаланушы келісімі",
   "privacy_policy": "Құпиялылық саясаты",
   "about_us": "Қолданба туралы",
-  "version": "Нұсқа"
+  "version": "Нұсқа",
+  "bmi_low": "Төмен",
+  "bmi_high": "Жоғары",
+  "bmi_obese": "Семіздік",
+  "edit_body_data_title": "Дене деректерін өңдеу",
+  "save": "Сақтау",
+  "invalid_input": "Қате енгізу",
+  "invalid_body_data_input_message": "Ауқымдарды тексеріп, қайта көріңіз.",
+  "height_input_hint": "120 - 220",
+  "height_range_hint": "Ауқым: 120 - 220 cm",
+  "weight_input_hint": "30 - 200",
+  "weight_range_hint": "Ауқым: 30 - 200 kg",
+  "age_input_hint": "1 - 120",
+  "age_range_hint": "Ауқым: 1 - 120",
+  "bmi_formula": "BMI = Салмақ(kg) / Бой^2(m)",
+  "tip_title": "Кеңес",
+  "body_data_tip": "Дене деректері калория шығынын, денсаулық талдауын және жеке кеңестерді есептеуге қолданылады. Деректерді дәл сақтаңыз."
 }

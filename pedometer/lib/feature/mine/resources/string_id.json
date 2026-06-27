@@ -61,5 +61,21 @@
   "user_agreement": "Ketentuan Penggunaan",
   "privacy_policy": "Kebijakan Privasi",
   "about_us": "Tentang",
-  "version": "Versi"
+  "version": "Versi",
+  "bmi_low": "Rendah",
+  "bmi_high": "Tinggi",
+  "bmi_obese": "Obesitas",
+  "edit_body_data_title": "Edit Data Tubuh",
+  "save": "Simpan",
+  "invalid_input": "Input tidak valid",
+  "invalid_body_data_input_message": "Periksa rentang lalu coba lagi.",
+  "height_input_hint": "120 - 220",
+  "height_range_hint": "Rentang: 120 - 220 cm",
+  "weight_input_hint": "30 - 200",
+  "weight_range_hint": "Rentang: 30 - 200 kg",
+  "age_input_hint": "1 - 120",
+  "age_range_hint": "Rentang: 1 - 120",
+  "bmi_formula": "BMI = Berat(kg) / Tinggi^2(m)",
+  "tip_title": "Tips",
+  "body_data_tip": "Data tubuh digunakan untuk menghitung kalori, analisis kesehatan, dan saran pribadi. Pastikan datanya akurat."
 }

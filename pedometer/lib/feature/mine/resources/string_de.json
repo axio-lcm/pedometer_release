@@ -61,5 +61,21 @@
   "user_agreement": "Nutzungsbedingungen",
   "privacy_policy": "Datenschutzrichtlinie",
   "about_us": "Über uns",
-  "version": "Version"
+  "version": "Version",
+  "bmi_low": "Niedrig",
+  "bmi_high": "Hoch",
+  "bmi_obese": "Adipositas",
+  "edit_body_data_title": "Koerperdaten bearbeiten",
+  "save": "Speichern",
+  "invalid_input": "Ungueltige Eingabe",
+  "invalid_body_data_input_message": "Bitte pruefe die Bereiche und versuche es erneut.",
+  "height_input_hint": "120 - 220",
+  "height_range_hint": "Bereich: 120 - 220 cm",
+  "weight_input_hint": "30 - 200",
+  "weight_range_hint": "Bereich: 30 - 200 kg",
+  "age_input_hint": "1 - 120",
+  "age_range_hint": "Bereich: 1 - 120",
+  "bmi_formula": "BMI = Gewicht(kg) / Groesse^2(m)",
+  "tip_title": "Tipp",
+  "body_data_tip": "Koerperdaten werden zur Berechnung des Kalorienverbrauchs, fuer Gesundheitsanalysen und persoenliche Tipps verwendet. Bitte halte sie aktuell."
 }

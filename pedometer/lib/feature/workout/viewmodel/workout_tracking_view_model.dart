@@ -11,6 +11,7 @@ import 'package:pedometer/common/config/app_colors.dart';
 import 'package:pedometer/common/config/localized_text.dart';
 import 'package:pedometer/common/mvvm/ibase_view_model.dart';
 import 'package:pedometer/common/service/motion_fitness_permission_service.dart';
+import 'package:pedometer/feature/workout/model/achievement_stats_store.dart';
 import 'package:pedometer/feature/workout/model/workout_calorie_policy.dart';
 import 'package:pedometer/feature/workout/model/workout_model.dart';
 import 'package:pedometer/feature/workout/model/workout_pace_policy.dart';
@@ -184,6 +185,14 @@ class WorkoutTrackingViewModel extends GetxController
     );
     if (!_routeHistorySaved) {
       WorkoutRouteHistoryStore.add(record);
+      // 累积成就统计：距离 / 时长 / 运动天数 / 单月距离 / 连续周。
+      unawaited(
+        AchievementStatsStore.recordWorkout(
+          distanceKm: distanceMeters.value / 1000,
+          durationMinutes: elapsed.value.inMinutes,
+          endedAt: endedAt,
+        ),
+      );
       _routeHistorySaved = true;
     }
     return record;

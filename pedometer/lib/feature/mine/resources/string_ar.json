@@ -61,5 +61,21 @@
   "user_agreement": "اتفاقية المستخدم",
   "privacy_policy": "سياسة الخصوصية",
   "about_us": "حول",
-  "version": "الإصدار"
+  "version": "الإصدار",
+  "bmi_low": "منخفض",
+  "bmi_high": "مرتفع",
+  "bmi_obese": "سمنة",
+  "edit_body_data_title": "تعديل بيانات الجسم",
+  "save": "حفظ",
+  "invalid_input": "إدخال غير صالح",
+  "invalid_body_data_input_message": "يرجى التحقق من النطاقات والمحاولة مرة أخرى.",
+  "height_input_hint": "120 - 220",
+  "height_range_hint": "النطاق: 120 - 220 cm",
+  "weight_input_hint": "30 - 200",
+  "weight_range_hint": "النطاق: 30 - 200 kg",
+  "age_input_hint": "1 - 120",
+  "age_range_hint": "النطاق: 1 - 120",
+  "bmi_formula": "BMI = الوزن(kg) / الطول^2(m)",
+  "tip_title": "نصيحة",
+  "body_data_tip": "تُستخدم بيانات الجسم لحساب حرق السعرات والتحليل الصحي والنصائح الشخصية. يرجى الحفاظ على دقتها."
 }

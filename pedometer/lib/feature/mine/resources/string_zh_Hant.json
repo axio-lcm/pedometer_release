@@ -61,5 +61,21 @@
   "user_agreement": "使用者協議",
   "privacy_policy": "隱私政策",
   "about_us": "關於我們",
-  "version": "版本號"
+  "version": "版本號",
+  "bmi_low": "偏低",
+  "bmi_high": "偏高",
+  "bmi_obese": "肥胖",
+  "edit_body_data_title": "編輯身體資料",
+  "save": "儲存",
+  "invalid_input": "輸入有誤",
+  "invalid_body_data_input_message": "請檢查輸入範圍後重試。",
+  "height_input_hint": "120 - 220",
+  "height_range_hint": "建議範圍：120 - 220 cm",
+  "weight_input_hint": "30 - 200",
+  "weight_range_hint": "建議範圍：30 - 200 kg",
+  "age_input_hint": "1 - 120",
+  "age_range_hint": "建議範圍：1 - 120 歲",
+  "bmi_formula": "BMI = 體重(kg) / 身高^2(m)",
+  "tip_title": "溫馨提示",
+  "body_data_tip": "身體資料將用於計算運動消耗、健康分析和個人化建議，請確保資料準確。"
 }

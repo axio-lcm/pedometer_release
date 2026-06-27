@@ -61,5 +61,21 @@
   "user_agreement": "Điều khoản sử dụng",
   "privacy_policy": "Chính sách bảo mật",
   "about_us": "Giới thiệu",
-  "version": "Phiên bản"
+  "version": "Phiên bản",
+  "bmi_low": "Thap",
+  "bmi_high": "Cao",
+  "bmi_obese": "Beo phi",
+  "edit_body_data_title": "Sua du lieu co the",
+  "save": "Luu",
+  "invalid_input": "Du lieu khong hop le",
+  "invalid_body_data_input_message": "Vui long kiem tra pham vi va thu lai.",
+  "height_input_hint": "120 - 220",
+  "height_range_hint": "Pham vi: 120 - 220 cm",
+  "weight_input_hint": "30 - 200",
+  "weight_range_hint": "Pham vi: 30 - 200 kg",
+  "age_input_hint": "1 - 120",
+  "age_range_hint": "Pham vi: 1 - 120",
+  "bmi_formula": "BMI = Can nang(kg) / Chieu cao^2(m)",
+  "tip_title": "Meo",
+  "body_data_tip": "Du lieu co the duoc dung de tinh calo, phan tich suc khoe va loi khuyen ca nhan. Hay giu du lieu chinh xac."
 }

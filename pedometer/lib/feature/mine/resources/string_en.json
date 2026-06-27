@@ -61,5 +61,21 @@
   "user_agreement": "User Agreement",
   "privacy_policy": "Privacy Policy",
   "about_us": "About Us",
-  "version": "Version"
+  "version": "Version",
+  "bmi_low": "Low",
+  "bmi_high": "High",
+  "bmi_obese": "Obese",
+  "edit_body_data_title": "Edit Body Data",
+  "save": "Save",
+  "invalid_input": "Invalid input",
+  "invalid_body_data_input_message": "Please check the ranges and try again.",
+  "height_input_hint": "120 - 220",
+  "height_range_hint": "Range: 120 - 220 cm",
+  "weight_input_hint": "30 - 200",
+  "weight_range_hint": "Range: 30 - 200 kg",
+  "age_input_hint": "1 - 120",
+  "age_range_hint": "Range: 1 - 120",
+  "bmi_formula": "BMI = Weight(kg) / Height^2(m)",
+  "tip_title": "Tip",
+  "body_data_tip": "Body data is used to calculate calorie burn, health analysis and personalised advice. Please keep the data accurate."
 }

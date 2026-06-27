@@ -61,5 +61,21 @@
   "user_agreement": "用户协议",
   "privacy_policy": "隐私政策",
   "about_us": "关于我们",
-  "version": "版本号"
+  "version": "版本号",
+  "bmi_low": "偏低",
+  "bmi_high": "偏高",
+  "bmi_obese": "肥胖",
+  "edit_body_data_title": "编辑身体数据",
+  "save": "保存",
+  "invalid_input": "输入有误",
+  "invalid_body_data_input_message": "请检查输入范围后重试。",
+  "height_input_hint": "120 - 220",
+  "height_range_hint": "建议范围：120 - 220 cm",
+  "weight_input_hint": "30 - 200",
+  "weight_range_hint": "建议范围：30 - 200 kg",
+  "age_input_hint": "1 - 120",
+  "age_range_hint": "建议范围：1 - 120 岁",
+  "bmi_formula": "BMI = 体重(kg) / 身高^2(m)",
+  "tip_title": "温馨提示",
+  "body_data_tip": "身体数据将用于计算运动消耗、健康分析和个性化建议，请确保数据准确。"
 }

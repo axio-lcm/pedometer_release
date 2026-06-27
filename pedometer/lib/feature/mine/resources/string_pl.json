@@ -61,5 +61,21 @@
   "user_agreement": "Warunki korzystania",
   "privacy_policy": "Polityka prywatności",
   "about_us": "O aplikacji",
-  "version": "Wersja"
+  "version": "Wersja",
+  "bmi_low": "Niskie",
+  "bmi_high": "Wysokie",
+  "bmi_obese": "Otylosc",
+  "edit_body_data_title": "Edytuj dane ciala",
+  "save": "Zapisz",
+  "invalid_input": "Nieprawidlowe dane",
+  "invalid_body_data_input_message": "Sprawdz zakresy i sprobuj ponownie.",
+  "height_input_hint": "120 - 220",
+  "height_range_hint": "Zakres: 120 - 220 cm",
+  "weight_input_hint": "30 - 200",
+  "weight_range_hint": "Zakres: 30 - 200 kg",
+  "age_input_hint": "1 - 120",
+  "age_range_hint": "Zakres: 1 - 120",
+  "bmi_formula": "BMI = Waga(kg) / Wzrost^2(m)",
+  "tip_title": "Wskazowka",
+  "body_data_tip": "Dane ciala sluza do obliczania kalorii, analizy zdrowia i spersonalizowanych porad. Dbaj o ich dokladnosc."
 }

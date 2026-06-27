@@ -61,5 +61,21 @@
   "user_agreement": "Пользовательское соглашение",
   "privacy_policy": "Политика конфиденциальности",
   "about_us": "О приложении",
-  "version": "Версия"
+  "version": "Версия",
+  "bmi_low": "Низкий",
+  "bmi_high": "Высокий",
+  "bmi_obese": "Ожирение",
+  "edit_body_data_title": "Изменить данные тела",
+  "save": "Сохранить",
+  "invalid_input": "Некорректный ввод",
+  "invalid_body_data_input_message": "Проверьте диапазоны и повторите попытку.",
+  "height_input_hint": "120 - 220",
+  "height_range_hint": "Диапазон: 120 - 220 cm",
+  "weight_input_hint": "30 - 200",
+  "weight_range_hint": "Диапазон: 30 - 200 kg",
+  "age_input_hint": "1 - 120",
+  "age_range_hint": "Диапазон: 1 - 120",
+  "bmi_formula": "BMI = Вес(kg) / Рост^2(m)",
+  "tip_title": "Совет",
+  "body_data_tip": "Данные тела используются для расчета калорий, анализа здоровья и персональных советов. Поддерживайте их точность."
 }

@@ -7,6 +7,7 @@ import 'package:pedometer/feature/subscription/service/subscription_service.dart
 import 'package:pedometer/feature/workout/components/workout_components.dart';
 import 'package:pedometer/feature/workout/resources/workout_resource.dart';
 import 'package:pedometer/feature/workout/viewmodel/workout_view_model.dart';
+import 'package:pedometer/feature/workout/views/achievement_badge_page.dart';
 import 'package:pedometer/feature/workout/views/edit_sport_goal_page.dart';
 import 'package:pedometer/feature/workout/views/workout_tracking_page.dart';
 
@@ -77,7 +78,7 @@ class WorkoutPage extends GetView<WorkoutViewModel> {
   void _onEdit() => Get.toNamed(EditSportGoalPage.routeName);
 
   // TODO: 接入成就列表入口。
-  void _onViewMore() {}
+  void _onViewMore() => Get.toNamed(AchievementBadgePage.routeName);
 }
 
 class _WorkoutBackground extends StatelessWidget {

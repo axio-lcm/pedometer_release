@@ -7,7 +7,7 @@ import 'package:pedometer/common/component/app_top_navigation_bar.dart';
 import 'package:pedometer/common/component/glass_card.dart';
 import 'package:pedometer/common/config/app_colors.dart';
 import 'package:pedometer/common/config/app_dimens.dart';
-import 'package:pedometer/common/config/localized_text.dart';
+import 'package:pedometer/feature/mine/resources/mine_resource.dart';
 import 'package:pedometer/feature/mine/viewmodel/edit_body_data_view_model.dart';
 
 class EditBodyDataPage extends GetView<EditBodyDataViewModel> {
@@ -25,8 +25,8 @@ class EditBodyDataPage extends GetView<EditBodyDataViewModel> {
       _back();
     } else {
       Get.snackbar(
-        lt('Invalid input', '输入有误'),
-        lt('Please check the ranges and try again.', '请检查输入范围后重试。'),
+        MineResource.invalidInput,
+        MineResource.invalidBodyDataInputMessage,
         snackPosition: SnackPosition.BOTTOM,
         backgroundColor: AppColors.surfaceCardTop,
         colorText: AppColors.textPrimary,
@@ -60,7 +60,7 @@ class EditBodyDataPage extends GetView<EditBodyDataViewModel> {
                     alignment: Alignment.center,
                     children: [
                       AppTopNavigationBar(
-                        title: lt('Edit Body Data', '编辑身体数据'),
+                        title: MineResource.editBodyDataTitle,
                         onBack: _back,
                       ),
                       Align(
@@ -68,15 +68,14 @@ class EditBodyDataPage extends GetView<EditBodyDataViewModel> {
                         child: Obx(
                           () => GestureDetector(
                             behavior: HitTestBehavior.opaque,
-                            onTap:
-                                controller.isSaving.value ? null : _save,
+                            onTap: controller.isSaving.value ? null : _save,
                             child: Padding(
                               padding: EdgeInsets.symmetric(
                                 horizontal: AppSpacing.xs,
                                 vertical: AppSpacing.sm,
                               ),
                               child: Text(
-                                lt('Save', '保存'),
+                                MineResource.save,
                                 style: TextStyle(
                                   color: AppColors.brandGreen,
                                   fontSize: 16,
@@ -112,28 +111,22 @@ class EditBodyDataPage extends GetView<EditBodyDataViewModel> {
                               _BodyField(
                                 iconAsset: 'assets/profile_height.svg',
                                 iconColor: const Color(0xFF0CD9FF),
-                                label: lt('Height', '身高'),
+                                label: MineResource.height,
                                 controller: controller.heightController,
-                                unit: 'cm',
-                                hint: lt('120 – 220', '120 – 220'),
-                                hintLabel: lt(
-                                  'Range: 120 – 220 cm',
-                                  '建议范围：120 – 220 cm',
-                                ),
+                                unit: MineResource.heightUnit,
+                                hint: MineResource.heightInputHint,
+                                hintLabel: MineResource.heightRangeHint,
                                 onChanged: controller.onHeightChanged,
                               ),
                               Divider(height: 1, color: AppColors.divider),
                               _BodyField(
                                 iconAsset: 'assets/profile_weight.svg',
                                 iconColor: const Color(0xFF24F04E),
-                                label: lt('Weight', '体重'),
+                                label: MineResource.weight,
                                 controller: controller.weightController,
-                                unit: 'kg',
-                                hint: lt('30 – 200', '30 – 200'),
-                                hintLabel: lt(
-                                  'Range: 30 – 200 kg',
-                                  '建议范围：30 – 200 kg',
-                                ),
+                                unit: MineResource.weightUnit,
+                                hint: MineResource.weightInputHint,
+                                hintLabel: MineResource.weightRangeHint,
                                 decimal: true,
                                 onChanged: controller.onWeightChanged,
                               ),
@@ -143,14 +136,11 @@ class EditBodyDataPage extends GetView<EditBodyDataViewModel> {
                               _BodyField(
                                 iconAsset: 'assets/profile_age.svg',
                                 iconColor: const Color(0xFFFF9F12),
-                                label: lt('Age', '年龄'),
+                                label: MineResource.age,
                                 controller: controller.ageController,
-                                unit: lt('yrs', '岁'),
-                                hint: lt('1 – 120', '1 – 120'),
-                                hintLabel: lt(
-                                  'Range: 1 – 120',
-                                  '建议范围：1 – 120 岁',
-                                ),
+                                unit: MineResource.ageUnit,
+                                hint: MineResource.ageInputHint,
+                                hintLabel: MineResource.ageRangeHint,
                               ),
                             ],
                           ),
@@ -232,9 +222,7 @@ class _BodyField extends StatelessWidget {
                         ),
                         inputFormatters: [
                           FilteringTextInputFormatter.allow(
-                            decimal
-                                ? RegExp(r'^\d*\.?\d*')
-                                : RegExp(r'^\d*'),
+                            decimal ? RegExp(r'^\d*\.?\d*') : RegExp(r'^\d*'),
                           ),
                         ],
                         style: TextStyle(
@@ -270,10 +258,7 @@ class _BodyField extends StatelessWidget {
                 SizedBox(height: AppSpacing.xxs),
                 Text(
                   hintLabel,
-                  style: TextStyle(
-                    color: AppColors.textTertiary,
-                    fontSize: 12,
-                  ),
+                  style: TextStyle(color: AppColors.textTertiary, fontSize: 12),
                 ),
               ],
             ),
@@ -295,10 +280,10 @@ class _BmiRow extends StatelessWidget {
 
   String get _status {
     if (bmi <= 0) return '';
-    if (bmi < 18.5) return lt('Low', '偏低');
-    if (bmi < 25) return lt('Normal', '正常');
-    if (bmi < 30) return lt('High', '偏高');
-    return lt('Obese', '肥胖');
+    if (bmi < 18.5) return MineResource.bmiLow;
+    if (bmi < 25) return MineResource.bmiNormal;
+    if (bmi < 30) return MineResource.bmiHigh;
+    return MineResource.bmiObese;
   }
 
   @override
@@ -323,7 +308,7 @@ class _BmiRow extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'BMI',
+                  MineResource.bmi,
                   style: TextStyle(
                     color: AppColors.textSecondary,
                     fontSize: 13,
@@ -368,11 +353,8 @@ class _BmiRow extends StatelessWidget {
                 ),
                 SizedBox(height: AppSpacing.xxs),
                 Text(
-                  lt('BMI = Weight(kg) / Height²(m)', 'BMI = 体重(kg) / 身高²(m)'),
-                  style: TextStyle(
-                    color: AppColors.textTertiary,
-                    fontSize: 12,
-                  ),
+                  MineResource.bmiFormula,
+                  style: TextStyle(color: AppColors.textTertiary, fontSize: 12),
                 ),
               ],
             ),
@@ -405,7 +387,7 @@ class _TipCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  lt('Tip', '温馨提示'),
+                  MineResource.tipTitle,
                   style: TextStyle(
                     color: AppColors.textPrimary,
                     fontSize: 14,
@@ -414,10 +396,7 @@ class _TipCard extends StatelessWidget {
                 ),
                 SizedBox(height: AppSpacing.xxs),
                 Text(
-                  lt(
-                    'Body data is used to calculate calorie burn, health analysis and personalised advice. Please keep the data accurate.',
-                    '身体数据将用于计算运动消耗、健康分析和个性化建议，请确保数据准确。',
-                  ),
+                  MineResource.bodyDataTip,
                   style: TextStyle(
                     color: AppColors.textSecondary,
                     fontSize: 13,

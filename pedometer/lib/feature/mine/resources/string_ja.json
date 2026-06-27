@@ -61,5 +61,21 @@
   "user_agreement": "利用規約",
   "privacy_policy": "プライバシーポリシー",
   "about_us": "アプリについて",
-  "version": "バージョン"
+  "version": "バージョン",
+  "bmi_low": "低い",
+  "bmi_high": "高い",
+  "bmi_obese": "肥満",
+  "edit_body_data_title": "身体データを編集",
+  "save": "保存",
+  "invalid_input": "入力が正しくありません",
+  "invalid_body_data_input_message": "入力範囲を確認してもう一度お試しください。",
+  "height_input_hint": "120 - 220",
+  "height_range_hint": "範囲: 120 - 220 cm",
+  "weight_input_hint": "30 - 200",
+  "weight_range_hint": "範囲: 30 - 200 kg",
+  "age_input_hint": "1 - 120",
+  "age_range_hint": "範囲: 1 - 120",
+  "bmi_formula": "BMI = 体重(kg) / 身長^2(m)",
+  "tip_title": "ヒント",
+  "body_data_tip": "身体データは消費カロリー、健康分析、パーソナルアドバイスの計算に使われます。正確に保ってください。"
 }

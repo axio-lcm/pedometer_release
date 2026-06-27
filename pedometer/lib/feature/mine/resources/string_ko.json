@@ -61,5 +61,21 @@
   "user_agreement": "이용약관",
   "privacy_policy": "개인정보 처리방침",
   "about_us": "정보",
-  "version": "버전"
+  "version": "버전",
+  "bmi_low": "낮음",
+  "bmi_high": "높음",
+  "bmi_obese": "비만",
+  "edit_body_data_title": "신체 데이터 편집",
+  "save": "저장",
+  "invalid_input": "잘못된 입력",
+  "invalid_body_data_input_message": "입력 범위를 확인하고 다시 시도해 주세요.",
+  "height_input_hint": "120 - 220",
+  "height_range_hint": "범위: 120 - 220 cm",
+  "weight_input_hint": "30 - 200",
+  "weight_range_hint": "범위: 30 - 200 kg",
+  "age_input_hint": "1 - 120",
+  "age_range_hint": "범위: 1 - 120",
+  "bmi_formula": "BMI = 체중(kg) / 키^2(m)",
+  "tip_title": "팁",
+  "body_data_tip": "신체 데이터는 칼로리 소모, 건강 분석, 개인 맞춤 조언 계산에 사용됩니다. 정확하게 유지해 주세요."
 }

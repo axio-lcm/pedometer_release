@@ -1,8 +1,8 @@
 import 'package:get/get.dart';
 import 'package:pp_inapp_purchase/inapp_purchase.dart';
 
-import 'package:pedometer/common/config/localized_text.dart';
 import 'package:pedometer/feature/subscription/config/subscription_config.dart';
+import 'package:pedometer/feature/subscription/resources/subscription_resource.dart';
 import 'package:pedometer/feature/subscription/service/subscription_service.dart';
 
 class SubscriptionViewModel extends GetxController {
@@ -11,19 +11,19 @@ class SubscriptionViewModel extends GetxController {
     SubscriptionProductPlan(
       kind: SubscriptionPlanKind.weekly,
       productId: SubscriptionConfig.inAppWeeklyId,
-      fallbackTitle: lt('Weekly Plan', '周计划'),
-      fallbackSubtitle: lt('3-day free trial', '免费试用 3 天'),
+      fallbackTitle: SubscriptionResource.weeklyPlan,
+      fallbackSubtitle: SubscriptionResource.weeklyTrialSubtitle,
       fallbackPrice: r'$9.99',
     ),
     SubscriptionProductPlan(
       kind: SubscriptionPlanKind.yearly,
       productId: SubscriptionConfig.inAppYearlyId,
-      fallbackTitle: lt('Annual Plan', '年度计划'),
-      fallbackSubtitle: lt('Best value', '年度会员'),
+      fallbackTitle: SubscriptionResource.annualPlan,
+      fallbackSubtitle: SubscriptionResource.annualBestValue,
       fallbackPrice: r'$39.99',
     ),
   ].obs;
-  final buttonText = lt('Subscribe', '订阅').obs;
+  final buttonText = SubscriptionResource.subscribe.obs;
   final isEligibleForIntroOffer = false.obs;
   final weeklyIntroOfferEligible = false.obs;
 
@@ -115,7 +115,7 @@ class SubscriptionViewModel extends GetxController {
       weeklyIntroOfferEligible.value = eligible;
     }
     final text = await service.buttonText(plan.productId);
-    buttonText.value = text.isEmpty ? lt('Subscribe', '订阅') : text;
+    buttonText.value = text.isEmpty ? SubscriptionResource.subscribe : text;
   }
 
   Future<void> _refreshWeeklyIntroOfferEligibility() async {

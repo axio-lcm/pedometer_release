@@ -17,6 +17,7 @@ class ResourceLoader {
     ('common', 'lib/common/resources'),
     ('home', 'lib/feature/home/resources'),
     ('mine', 'lib/feature/mine/resources'),
+    ('subscription', 'lib/feature/subscription/resources'),
     ('workout', 'lib/feature/workout/resources'),
     ('phone', 'lib/products/phone/resources'),
   ];
