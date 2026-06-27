@@ -4,6 +4,7 @@ import 'package:share_plus/share_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:pedometer/common/config/prefs_keys.dart';
 import 'package:pedometer/common/mvvm/ibase_view_model.dart';
+import 'package:pedometer/common/storage/language_service.dart';
 import 'package:pedometer/feature/mine/components/mine_rate_dialog.dart';
 import 'package:pedometer/feature/mine/model/mine_model.dart';
 import 'package:pedometer/feature/mine/resources/mine_resource.dart';
@@ -18,6 +19,8 @@ class MineViewModel extends GetxController implements IBaseViewModel {
 
   final Rx<MinePageData> data;
 
+  Worker? _languageWorker;
+
   @override
   void init() {}
 
@@ -28,10 +31,18 @@ class MineViewModel extends GetxController implements IBaseViewModel {
   void onInit() {
     super.onInit();
     _loadBodyData();
+    // 切换语言后重建本地化数据，使设置入口/身体指标文案随之刷新。
+    if (Get.isRegistered<LanguageService>()) {
+      _languageWorker = ever<int>(
+        Get.find<LanguageService>().localeRevision,
+        (_) => refreshLocalizedData(),
+      );
+    }
   }
 
   @override
   void onClose() {
+    _languageWorker?.dispose();
     unInit();
     super.onClose();
   }
