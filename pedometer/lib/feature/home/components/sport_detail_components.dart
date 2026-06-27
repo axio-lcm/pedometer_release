@@ -16,8 +16,9 @@ import 'package:pedometer/feature/home/model/sport_detail_model.dart';
 /// 顶部圆环 + 右侧 KPI 的组合区域。
 class SportHeroSection extends StatelessWidget {
   final SportPeriodData data;
+  final Object? replayKey;
 
-  const SportHeroSection({super.key, required this.data});
+  const SportHeroSection({super.key, required this.data, this.replayKey});
 
   static const int _heroFlex = 5;
   static const int _metricFlex = 4;
@@ -39,7 +40,10 @@ class SportHeroSection extends StatelessWidget {
             children: [
               Expanded(
                 flex: _heroFlex,
-                child: StepProgressHeroCard(data: data.progress),
+                child: StepProgressHeroCard(
+                  data: data.progress,
+                  replayKey: replayKey,
+                ),
               ),
               SizedBox(width: AppSpacing.md),
               Expanded(
@@ -220,8 +224,9 @@ class MetricCard extends StatelessWidget {
 /// 主数据圆环卡。
 class StepProgressHeroCard extends StatelessWidget {
   final SportProgressData data;
+  final Object? replayKey;
 
-  const StepProgressHeroCard({super.key, required this.data});
+  const StepProgressHeroCard({super.key, required this.data, this.replayKey});
 
   @override
   Widget build(BuildContext context) {
@@ -261,6 +266,7 @@ class StepProgressHeroCard extends StatelessWidget {
                   size: ringSize,
                   strokeWidth: 18,
                   progress: data.progress,
+                  replayKey: replayKey,
                   center: _RingCenter(data: data),
                 ),
               ),
@@ -359,6 +365,7 @@ class NeonRingProgress extends StatelessWidget {
   final double strokeWidth;
   final double progress;
   final Widget center;
+  final Object? replayKey;
 
   const NeonRingProgress({
     super.key,
@@ -366,6 +373,7 @@ class NeonRingProgress extends StatelessWidget {
     required this.strokeWidth,
     required this.progress,
     required this.center,
+    this.replayKey,
   });
 
   @override
@@ -375,14 +383,14 @@ class NeonRingProgress extends StatelessWidget {
       child: Stack(
         fit: StackFit.expand,
         children: [
-          // 进度从 0 扫到目标；目标变化时（如步数实时更新）平滑追随当前值。
-          TweenAnimationBuilder<double>(
-            tween: Tween<double>(begin: 0, end: progress.clamp(0.0, 1.0)),
+          // replayKey 变化时从 0 重新扫到目标；实时数据刷新时追随当前目标值。
+          ChartRevealBuilder(
+            replayKey: replayKey,
             duration: const Duration(milliseconds: 1800),
             curve: Curves.easeInOutCubic,
-            builder: (context, value, _) => CustomPaint(
+            builder: (context, value) => CustomPaint(
               painter: _NeonRingPainter(
-                progress: value,
+                progress: progress.clamp(0.0, 1.0) * value,
                 strokeWidth: strokeWidth,
               ),
             ),
@@ -472,8 +480,9 @@ class TransparentAssetPlaceholder extends StatelessWidget {
 /// 每日小时趋势卡。
 class HourlyStepTrendCard extends StatefulWidget {
   final List<HourlyStepData> data;
+  final Object? replayKey;
 
-  const HourlyStepTrendCard({super.key, required this.data});
+  const HourlyStepTrendCard({super.key, required this.data, this.replayKey});
 
   static const double _chartMaxX = 10;
 
@@ -567,7 +576,7 @@ class _HourlyStepTrendCardState extends State<HourlyStepTrendCard> {
             height: 150,
             // 入场时把小时折线从 00:00 一路画到当前。
             child: ChartRevealBuilder(
-              replayKey: widget.data.isNotEmpty,
+              replayKey: widget.replayKey ?? widget.data.isNotEmpty,
               builder: (context, t) {
                 final done = t >= 1;
                 return LayoutBuilder(
@@ -843,8 +852,9 @@ class _HourlyStepTrendCardState extends State<HourlyStepTrendCard> {
 /// 每周柱状统计卡，柱图使用项目已有 fl_chart 插件。
 class WeeklyTrendCard extends StatefulWidget {
   final List<WeeklyStepData> data;
+  final Object? replayKey;
 
-  const WeeklyTrendCard({super.key, required this.data});
+  const WeeklyTrendCard({super.key, required this.data, this.replayKey});
 
   static const double _defaultMaxY = 10000;
   static const double _firstExpandedMaxY = 15000;
@@ -936,7 +946,7 @@ class _WeeklyTrendCardState extends State<WeeklyTrendCard> {
             height: 170,
             // 入场时柱子从底部长起、折线左→右画出，同步推进。
             child: ChartRevealBuilder(
-              replayKey: widget.data.isNotEmpty,
+              replayKey: widget.replayKey ?? widget.data.isNotEmpty,
               builder: (context, t) {
                 final done = t >= 1;
                 return LayoutBuilder(
@@ -1400,8 +1410,9 @@ class _SegmentRow extends StatelessWidget {
 /// 分析小卡。
 class SportMiniAnalysisCard extends StatelessWidget {
   final SportAnalysisData data;
+  final Object? replayKey;
 
-  const SportMiniAnalysisCard({super.key, required this.data});
+  const SportMiniAnalysisCard({super.key, required this.data, this.replayKey});
 
   @override
   Widget build(BuildContext context) {
@@ -1466,6 +1477,7 @@ class SportMiniAnalysisCard extends StatelessWidget {
           SizedBox(
             height: 42,
             child: ChartRevealBuilder(
+              replayKey: replayKey,
               builder: (context, t) =>
                   LineChart(_miniLineData(t), duration: Duration.zero),
             ),
@@ -1525,6 +1537,7 @@ class SportMiniAnalysisCard extends StatelessWidget {
 /// 月度热力圆形日历。
 class MonthlyHeatCalendarCard extends StatefulWidget {
   final List<MonthlyDayData> days;
+  final Object? replayKey;
 
   /// 滑动切换月份后回调，offset：0 = 本月，-1 = 上月，依此类推。
   final void Function(int offset)? onMonthChanged;
@@ -1532,6 +1545,7 @@ class MonthlyHeatCalendarCard extends StatefulWidget {
   const MonthlyHeatCalendarCard({
     super.key,
     required this.days,
+    this.replayKey,
     this.onMonthChanged,
   });
 
@@ -1658,6 +1672,9 @@ class _MonthlyHeatCalendarCardState extends State<MonthlyHeatCalendarCard> {
                     final monthDate = _monthForOffset(offset);
                     return ChartRevealBuilder(
                       // 每个月页首次出现时按日逐格填充。
+                      replayKey: widget.replayKey == null
+                          ? offset
+                          : '${widget.replayKey}-$offset',
                       builder: (context, t) => _MonthGrid(
                         year: monthDate.year,
                         month: monthDate.month,

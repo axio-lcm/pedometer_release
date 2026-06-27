@@ -17,6 +17,7 @@ class SportDetailViewModel extends GetxController implements IBaseViewModel {
   Rx<SportPeriodData> get data => vo.data;
   RxInt get weekOffset => vo.weekOffset;
   RxInt get monthOffset => vo.monthOffset;
+  RxInt get revealRevision => vo.revealRevision;
 
   bool get isWeek => vo.period.value == SportPeriod.week;
 
@@ -72,15 +73,23 @@ class SportDetailViewModel extends GetxController implements IBaseViewModel {
 
   /// 切换周期，并重置周/月偏移到当前。
   void changePeriod(SportPeriod period) {
+    if (vo.period.value == period &&
+        vo.weekOffset.value == 0 &&
+        vo.monthOffset.value == 0) {
+      _replay();
+      return;
+    }
     vo.period.value = period;
     vo.weekOffset.value = 0;
     vo.monthOffset.value = 0;
+    _replay();
     _load();
   }
 
   /// 上一周。
   void prevWeek() {
     vo.weekOffset.value -= 1;
+    _replay();
     _load();
   }
 
@@ -88,6 +97,7 @@ class SportDetailViewModel extends GetxController implements IBaseViewModel {
   void nextWeek() {
     if (vo.weekOffset.value < 0) {
       vo.weekOffset.value += 1;
+      _replay();
       _load();
     }
   }
@@ -96,7 +106,12 @@ class SportDetailViewModel extends GetxController implements IBaseViewModel {
   void changeMonth(int offset) {
     if (vo.monthOffset.value == offset) return;
     vo.monthOffset.value = offset;
+    _replay();
     _load();
+  }
+
+  void _replay() {
+    vo.revealRevision.value++;
   }
 
   void _load() {
@@ -113,5 +128,6 @@ class SportDetailVo {
   final Rx<SportPeriod> period = SportPeriod.day.obs;
   final RxInt weekOffset = 0.obs;
   final RxInt monthOffset = 0.obs;
+  final RxInt revealRevision = 0.obs;
   final Rx<SportPeriodData> data = SportDetailFixtures.day.obs;
 }

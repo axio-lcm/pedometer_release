@@ -59,12 +59,16 @@ class SportDetailPage extends GetView<SportDetailViewModel> {
                       children: [
                         SizedBox(height: AppSpacing.sm),
                         Obx(
-                          () => SportHeroSection(data: controller.data.value),
+                          () => SportHeroSection(
+                            data: controller.data.value,
+                            replayKey: controller.revealRevision.value,
+                          ),
                         ),
                         SizedBox(height: AppSpacing.md),
                         Obx(
                           () => _PeriodSpecificContent(
                             data: controller.data.value,
+                            replayKey: controller.revealRevision.value,
                             onMonthChanged: controller.changeMonth,
                           ),
                         ),
@@ -154,20 +158,23 @@ class _SportDetailBackground extends StatelessWidget {
 
 class _PeriodSpecificContent extends StatelessWidget {
   final SportPeriodData data;
+  final Object? replayKey;
   final void Function(int offset) onMonthChanged;
 
   const _PeriodSpecificContent({
     required this.data,
+    required this.replayKey,
     required this.onMonthChanged,
   });
 
   @override
   Widget build(BuildContext context) {
     return switch (data.period) {
-      SportPeriod.day => _DayContent(data: data),
-      SportPeriod.week => _WeekContent(data: data),
+      SportPeriod.day => _DayContent(data: data, replayKey: replayKey),
+      SportPeriod.week => _WeekContent(data: data, replayKey: replayKey),
       SportPeriod.month => _MonthContent(
         data: data,
+        replayKey: replayKey,
         onMonthChanged: onMonthChanged,
       ),
     };
@@ -176,17 +183,18 @@ class _PeriodSpecificContent extends StatelessWidget {
 
 class _DayContent extends StatelessWidget {
   final SportPeriodData data;
+  final Object? replayKey;
 
-  const _DayContent({required this.data});
+  const _DayContent({required this.data, this.replayKey});
 
   @override
   Widget build(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        HourlyStepTrendCard(data: data.hourly),
+        HourlyStepTrendCard(data: data.hourly, replayKey: replayKey),
         SizedBox(height: AppSpacing.md),
-        _AnalysisRow(analyses: data.analyses),
+        _AnalysisRow(analyses: data.analyses, replayKey: replayKey),
         SizedBox(height: AppSpacing.md),
         SummaryCard(data: data.summary),
       ],
@@ -196,17 +204,18 @@ class _DayContent extends StatelessWidget {
 
 class _WeekContent extends StatelessWidget {
   final SportPeriodData data;
+  final Object? replayKey;
 
-  const _WeekContent({required this.data});
+  const _WeekContent({required this.data, this.replayKey});
 
   @override
   Widget build(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        WeeklyTrendCard(data: data.weekly),
+        WeeklyTrendCard(data: data.weekly, replayKey: replayKey),
         SizedBox(height: AppSpacing.md),
-        _AnalysisRow(analyses: data.analyses),
+        _AnalysisRow(analyses: data.analyses, replayKey: replayKey),
         SizedBox(height: AppSpacing.md),
         SummaryCard(data: data.summary),
       ],
@@ -216,9 +225,14 @@ class _WeekContent extends StatelessWidget {
 
 class _MonthContent extends StatelessWidget {
   final SportPeriodData data;
+  final Object? replayKey;
   final void Function(int offset) onMonthChanged;
 
-  const _MonthContent({required this.data, required this.onMonthChanged});
+  const _MonthContent({
+    required this.data,
+    required this.onMonthChanged,
+    this.replayKey,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -227,10 +241,11 @@ class _MonthContent extends StatelessWidget {
       children: [
         MonthlyHeatCalendarCard(
           days: data.monthly,
+          replayKey: replayKey,
           onMonthChanged: onMonthChanged,
         ),
         SizedBox(height: AppSpacing.md),
-        _AnalysisRow(analyses: data.analyses),
+        _AnalysisRow(analyses: data.analyses, replayKey: replayKey),
         SizedBox(height: AppSpacing.md),
         SummaryCard(data: data.summary),
       ],
@@ -240,8 +255,9 @@ class _MonthContent extends StatelessWidget {
 
 class _AnalysisRow extends StatelessWidget {
   final List<SportAnalysisData> analyses;
+  final Object? replayKey;
 
-  const _AnalysisRow({required this.analyses});
+  const _AnalysisRow({required this.analyses, this.replayKey});
 
   @override
   Widget build(BuildContext context) {
@@ -249,9 +265,19 @@ class _AnalysisRow extends StatelessWidget {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Expanded(child: SportMiniAnalysisCard(data: analyses[0])),
+        Expanded(
+          child: SportMiniAnalysisCard(
+            data: analyses[0],
+            replayKey: '$replayKey-0',
+          ),
+        ),
         SizedBox(width: AppSpacing.md),
-        Expanded(child: SportMiniAnalysisCard(data: analyses[1])),
+        Expanded(
+          child: SportMiniAnalysisCard(
+            data: analyses[1],
+            replayKey: '$replayKey-1',
+          ),
+        ),
       ],
     );
   }

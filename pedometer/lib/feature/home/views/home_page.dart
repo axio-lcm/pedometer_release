@@ -107,7 +107,12 @@ class HomePage extends GetView<HomeViewModel> {
   }
 
   Widget _mainRow() {
-    return Obx(() => SportHeroSection(data: controller.dayOverview.value));
+    return Obx(
+      () => SportHeroSection(
+        data: controller.dayOverview.value,
+        replayKey: _homeRevealTick,
+      ),
+    );
   }
 
   Widget _analysisRow() {
