@@ -46,28 +46,44 @@ class AchievementBadgePage extends StatelessWidget {
           const Positioned.fill(child: _AchievementBackground()),
           SafeArea(
             bottom: false,
-            child: SingleChildScrollView(
-              padding: EdgeInsets.fromLTRB(
-                AppSpacing.lg,
-                AppSpacing.xs,
-                AppSpacing.lg,
-                AppSpacing.xxl,
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  AppTopNavigationBar(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Padding(
+                  padding: EdgeInsets.fromLTRB(
+                    AppSpacing.lg,
+                    AppSpacing.xs,
+                    AppSpacing.lg,
+                    0,
+                  ),
+                  child: AppTopNavigationBar(
                     title: WorkoutResource.achievementBadge,
                     onBack: _back,
                   ),
-                  SizedBox(height: AppSpacing.lg),
-                  // 运动结束后累积统计变更时刷新进度。
-                  ValueListenableBuilder<int>(
-                    valueListenable: AchievementStatsStore.revision,
-                    builder: (context, _, _) => _BadgeGrid(items: _items()),
+                ),
+                Expanded(
+                  child: SingleChildScrollView(
+                    padding: EdgeInsets.fromLTRB(
+                      AppSpacing.lg,
+                      AppSpacing.sm,
+                      AppSpacing.lg,
+                      AppSpacing.xxl,
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        SizedBox(height: AppSpacing.sm),
+                        // 运动结束后累积统计变更时刷新进度。
+                        ValueListenableBuilder<int>(
+                          valueListenable: AchievementStatsStore.revision,
+                          builder: (context, _, _) =>
+                              _BadgeGrid(items: _items()),
+                        ),
+                      ],
+                    ),
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
         ],
@@ -251,9 +267,7 @@ class _ProgressBar extends StatelessWidget {
         child: Stack(
           children: [
             // 未完成区域：铺满整行的灰色底槽（进度为 0 时也始终可见）。
-            const Positioned.fill(
-              child: ColoredBox(color: Color(0xFF2A323B)),
-            ),
+            const Positioned.fill(child: ColoredBox(color: Color(0xFF2A323B))),
             // 已完成区域：按比例叠加的绿色填充。
             Positioned.fill(
               child: FractionallySizedBox(
@@ -262,10 +276,7 @@ class _ProgressBar extends StatelessWidget {
                 child: DecoratedBox(
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
-                      colors: [
-                        AppColors.brandGreenLight,
-                        AppColors.brandGreen,
-                      ],
+                      colors: [AppColors.brandGreenLight, AppColors.brandGreen],
                     ),
                   ),
                 ),
