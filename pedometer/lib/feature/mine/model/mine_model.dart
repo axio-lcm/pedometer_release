@@ -102,11 +102,12 @@ class MinePageData {
         ),
       ],
       entries: [
-        MineEntry(
-          icon: Icons.palette_rounded,
-          color: _purple,
-          title: MineResource.themeSetting,
-        ),
+        // 暂时隐藏主题设置入口，保留以便后续恢复。
+        // MineEntry(
+        //   icon: Icons.palette_rounded,
+        //   color: _purple,
+        //   title: MineResource.themeSetting,
+        // ),
         MineEntry(
           icon: Icons.language_rounded,
           color: _blue,
@@ -179,11 +180,12 @@ class MinePageData {
       ),
     ],
     entries: [
-      MineEntry(
-        icon: Icons.palette_rounded,
-        color: _purple,
-        title: MineText.themeSetting,
-      ),
+      // 暂时隐藏主题设置入口，保留以便后续恢复。
+      // MineEntry(
+      //   icon: Icons.palette_rounded,
+      //   color: _purple,
+      //   title: MineText.themeSetting,
+      // ),
       MineEntry(
         icon: Icons.language_rounded,
         color: _blue,
