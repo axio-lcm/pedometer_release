@@ -22,7 +22,9 @@ class MineViewModel extends GetxController implements IBaseViewModel {
   Worker? _languageWorker;
 
   @override
-  void init() {}
+  void init() {
+    refreshLocalizedData();
+  }
 
   @override
   void unInit() {}
@@ -30,7 +32,7 @@ class MineViewModel extends GetxController implements IBaseViewModel {
   @override
   void onInit() {
     super.onInit();
-    _loadBodyData();
+    init();
     // 切换语言后重建本地化数据，使设置入口/身体指标文案随之刷新。
     if (Get.isRegistered<LanguageService>()) {
       _languageWorker = ever<int>(
