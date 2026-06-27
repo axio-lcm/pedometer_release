@@ -1,6 +1,12 @@
-import 'package:flutter/material.dart';
+import 'dart:async';
+import 'dart:convert';
 import 'dart:typed_data';
+
+import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:path/path.dart' as p;
+import 'package:sqflite/sqflite.dart';
+
 import 'package:pedometer/feature/workout/model/achievement_stats_store.dart';
 import 'package:pedometer/feature/workout/resources/workout_resource.dart';
 
@@ -182,11 +188,14 @@ class WorkoutRouteHistoryRecord {
   });
 }
 
+/// 运动轨迹历史：内存缓存 + sqflite 持久化。
+/// 启动时 [load] 从库恢复；[add] 同时写缓存与库；列表页读 [records]（懒加载渲染）。
 class WorkoutRouteHistoryStore {
   WorkoutRouteHistoryStore._();
 
   static final revision = ValueNotifier<int>(0);
   static final List<WorkoutRouteHistoryRecord> _records = [];
+  static final _WorkoutRouteHistoryDb _db = _WorkoutRouteHistoryDb();
 
   static List<WorkoutRouteHistoryRecord> get records =>
       List<WorkoutRouteHistoryRecord>.unmodifiable(_records);
@@ -194,10 +203,132 @@ class WorkoutRouteHistoryStore {
   static WorkoutRouteHistoryRecord? get latest =>
       _records.isEmpty ? null : _records.first;
 
+  /// 启动时从持久化恢复（按结束时间倒序）。
+  static Future<void> load() async {
+    try {
+      final stored = await _db.loadAll();
+      _records
+        ..clear()
+        ..addAll(stored);
+      revision.value++;
+    } catch (_) {
+      // 读取失败不影响功能，按空历史处理。
+    }
+  }
+
   static void add(WorkoutRouteHistoryRecord record) {
     _records.removeWhere((item) => item.id == record.id);
     _records.insert(0, record);
     revision.value++;
+    unawaited(_db.insert(record));
+  }
+}
+
+/// 运动轨迹历史的 sqflite 存储（独立库文件）。
+class _WorkoutRouteHistoryDb {
+  static const _dbName = 'pedometer_workout_routes.db';
+  static const _table = 'route_history';
+
+  Database? _db;
+  Future<Database>? _opening;
+
+  Future<Database> get _database {
+    final db = _db;
+    if (db != null) return Future.value(db);
+    return _opening ??= _open();
+  }
+
+  Future<Database> _open() async {
+    final dir = await getDatabasesPath();
+    final path = p.join(dir, _dbName);
+    final db = await openDatabase(
+      path,
+      version: 1,
+      onCreate: (db, version) async {
+        await db.execute('''
+          CREATE TABLE $_table (
+            id TEXT PRIMARY KEY,
+            ended_at INTEGER NOT NULL,
+            sport_type TEXT NOT NULL,
+            distance_km TEXT NOT NULL,
+            duration TEXT NOT NULL,
+            average_pace TEXT NOT NULL,
+            start_point TEXT,
+            end_point TEXT,
+            route_points TEXT NOT NULL,
+            map_snapshot BLOB
+          )
+        ''');
+      },
+    );
+    _db = db;
+    return db;
+  }
+
+  Future<void> insert(WorkoutRouteHistoryRecord record) async {
+    final db = await _database;
+    await db.insert(
+      _table,
+      _toRow(record),
+      conflictAlgorithm: ConflictAlgorithm.replace,
+    );
+  }
+
+  Future<List<WorkoutRouteHistoryRecord>> loadAll() async {
+    final db = await _database;
+    final rows = await db.query(_table, orderBy: 'ended_at DESC');
+    return [for (final row in rows) _fromRow(row)];
+  }
+
+  Map<String, Object?> _toRow(WorkoutRouteHistoryRecord r) => {
+    'id': r.id,
+    'ended_at': r.endedAt.millisecondsSinceEpoch,
+    'sport_type': r.sportType,
+    'distance_km': r.distanceKm,
+    'duration': r.duration,
+    'average_pace': r.averagePace,
+    'start_point': _encodePoint(r.startPoint),
+    'end_point': _encodePoint(r.endPoint),
+    'route_points': jsonEncode([
+      for (final pt in r.routePoints) [pt.latitude, pt.longitude],
+    ]),
+    'map_snapshot': r.mapSnapshot,
+  };
+
+  WorkoutRouteHistoryRecord _fromRow(Map<String, Object?> row) {
+    final decoded = jsonDecode(row['route_points'] as String) as List;
+    final points = [
+      for (final e in decoded)
+        LatLng((e[0] as num).toDouble(), (e[1] as num).toDouble()),
+    ];
+    final snapshot = row['map_snapshot'];
+    return WorkoutRouteHistoryRecord(
+      id: row['id'] as String,
+      sportType: row['sport_type'] as String,
+      endedAt: DateTime.fromMillisecondsSinceEpoch(row['ended_at'] as int),
+      distanceKm: row['distance_km'] as String,
+      duration: row['duration'] as String,
+      averagePace: row['average_pace'] as String,
+      startPoint: _decodePoint(row['start_point'] as String?),
+      endPoint: _decodePoint(row['end_point'] as String?),
+      routePoints: List<LatLng>.unmodifiable(points),
+      mapSnapshot: snapshot is Uint8List
+          ? snapshot
+          : (snapshot is List<int> ? Uint8List.fromList(snapshot) : null),
+    );
+  }
+
+  static String? _encodePoint(LatLng? point) =>
+      point == null ? null : '${point.latitude},${point.longitude}';
+
+  static LatLng? _decodePoint(String? value) {
+    if (value == null || value.isEmpty) return null;
+    final parts = value.split(',');
+    if (parts.length != 2) return null;
+    final lat = double.tryParse(parts[0]);
+    final lng = double.tryParse(parts[1]);
+    if (lat == null || lng == null) return null;
+    return LatLng(lat, lng);
   }
 }
 

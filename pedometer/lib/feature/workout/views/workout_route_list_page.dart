@@ -35,61 +35,67 @@ class WorkoutRouteListPage extends StatelessWidget {
           const Positioned.fill(child: _RouteListBackground()),
           SafeArea(
             bottom: false,
-            child: SingleChildScrollView(
-              padding: EdgeInsets.fromLTRB(
-                AppSpacing.lg,
-                AppSpacing.xs,
-                AppSpacing.lg,
-                AppSpacing.xxl,
-              ),
-              child: ValueListenableBuilder<int>(
-                valueListenable: WorkoutRouteHistoryStore.revision,
-                builder: (context, _, _) => _RouteListContent(
-                  records: WorkoutRouteHistoryStore.records,
-                  onBack: _back,
-                  onRouteTap: _openDetail,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Padding(
+                  padding: EdgeInsets.fromLTRB(
+                    AppSpacing.lg,
+                    AppSpacing.xs,
+                    AppSpacing.lg,
+                    0,
+                  ),
+                  child: AppTopNavigationBar(
+                    title: WorkoutResource.routeHistoryTitle,
+                    onBack: _back,
+                  ),
                 ),
-              ),
+                SizedBox(height: AppSpacing.lg),
+                Expanded(
+                  child: ValueListenableBuilder<int>(
+                    valueListenable: WorkoutRouteHistoryStore.revision,
+                    builder: (context, _, _) {
+                      final records = WorkoutRouteHistoryStore.records;
+                      if (records.isEmpty) {
+                        return SingleChildScrollView(
+                          padding: EdgeInsets.fromLTRB(
+                            AppSpacing.lg,
+                            0,
+                            AppSpacing.lg,
+                            AppSpacing.xxl,
+                          ),
+                          child: const _RouteListEmptyState(),
+                        );
+                      }
+                      // 懒加载：仅构建可见项，避免长列表一次性建全部条目与解码全部地图截图。
+                      return ListView.separated(
+                        padding: EdgeInsets.fromLTRB(
+                          AppSpacing.lg,
+                          0,
+                          AppSpacing.lg,
+                          AppSpacing.xxl,
+                        ),
+                        itemCount: records.length,
+                        separatorBuilder: (context, _) =>
+                            SizedBox(height: AppSpacing.md),
+                        itemBuilder: (context, index) {
+                          final record = records[index];
+                          return _RouteListItem(
+                            record: record,
+                            onTap: _isIndoorRecord(record)
+                                ? null
+                                : () => _openDetail(record),
+                          );
+                        },
+                      );
+                    },
+                  ),
+                ),
+              ],
             ),
           ),
         ],
       ),
-    );
-  }
-}
-
-class _RouteListContent extends StatelessWidget {
-  final List<WorkoutRouteHistoryRecord> records;
-  final VoidCallback onBack;
-  final ValueChanged<WorkoutRouteHistoryRecord> onRouteTap;
-
-  const _RouteListContent({
-    required this.records,
-    required this.onBack,
-    required this.onRouteTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        AppTopNavigationBar(
-          title: WorkoutResource.routeHistoryTitle,
-          onBack: onBack,
-        ),
-        SizedBox(height: AppSpacing.lg),
-        if (records.isEmpty) const _RouteListEmptyState(),
-        for (var i = 0; i < records.length; i++) ...[
-          _RouteListItem(
-            record: records[i],
-            onTap: _isIndoorRecord(records[i])
-                ? null
-                : () => onRouteTap(records[i]),
-          ),
-          if (i != records.length - 1) SizedBox(height: AppSpacing.md),
-        ],
-      ],
     );
   }
 }

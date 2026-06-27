@@ -13,6 +13,7 @@ import 'package:pedometer/feature/home/model/health_repository.dart';
 import 'package:pedometer/feature/home/model/health_sync_models.dart';
 import 'package:pedometer/feature/subscription/service/subscription_service.dart';
 import 'package:pedometer/feature/workout/model/achievement_stats_store.dart';
+import 'package:pedometer/feature/workout/model/workout_model.dart';
 import 'package:pedometer/feature/workout/service/step_goal_service.dart';
 import 'package:pedometer/products/init/app.dart';
 
@@ -48,6 +49,7 @@ class AppStartup {
     await stepGoalService.init();
     Get.put(stepGoalService, permanent: true);
     await AchievementStatsStore.load();
+    await WorkoutRouteHistoryStore.load();
     await _hydrateHealthData();
     await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
     if (subscriptionService.isVip.value) {
