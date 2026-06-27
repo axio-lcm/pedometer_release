@@ -1,0 +1,6 @@
+"NSHealthShareUsageDescription" = "用于同步步数、距离、卡路里和活动时间，并展示在首页及日周月统计中。";
+"NSHealthUpdateUsageDescription" = "用于在获得授权后同步健康数据。";
+"NSLocalNetworkUsageDescription" = "用于在调试模式下连接 Dart VM Service。";
+"NSLocationWhenInUseUsageDescription" = "用于在户外时显示当前位置并记录运动轨迹。";
+"NSMotionUsageDescription" = "用于读取设备步数、距离和活动数据，并展示在运动统计中。";
+"WorkoutPreciseLocation" = "需要精确位置来在户外地图中显示准确当前位置。";

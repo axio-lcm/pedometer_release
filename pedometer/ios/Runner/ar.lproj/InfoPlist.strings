@@ -1,0 +1,6 @@
+"NSHealthShareUsageDescription" = "يُستخدم لمزامنة الخطوات والمسافة والسعرات ووقت النشاط وعرضها في الشاشة الرئيسية وإحصاءات اليوم والأسبوع والشهر.";
+"NSHealthUpdateUsageDescription" = "يُستخدم لمزامنة بيانات الصحة بعد منح الإذن.";
+"NSLocalNetworkUsageDescription" = "يُستخدم للاتصال بخدمة Dart VM في وضع التصحيح.";
+"NSLocationWhenInUseUsageDescription" = "يُستخدم لعرض موقعك الحالي في الخارج وتسجيل مسارات التمرين.";
+"NSMotionUsageDescription" = "يُستخدم لقراءة خطوات الجهاز والمسافة وبيانات النشاط وعرضها في إحصاءات التمرين.";
+"WorkoutPreciseLocation" = "يلزم الموقع الدقيق لعرض موقعك الحالي بدقة على الخرائط الخارجية.";

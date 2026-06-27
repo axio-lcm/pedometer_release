@@ -1,0 +1,6 @@
+"NSHealthShareUsageDescription" = "Dùng để đồng bộ số bước, quãng đường, calo và thời gian hoạt động, rồi hiển thị trên màn hình chính và thống kê ngày, tuần, tháng.";
+"NSHealthUpdateUsageDescription" = "Dùng để đồng bộ dữ liệu sức khỏe sau khi bạn cấp quyền.";
+"NSLocalNetworkUsageDescription" = "Dùng để kết nối Dart VM Service trong chế độ gỡ lỗi.";
+"NSLocationWhenInUseUsageDescription" = "Dùng để hiển thị vị trí hiện tại ngoài trời và ghi lại lộ trình tập luyện.";
+"NSMotionUsageDescription" = "Dùng để đọc số bước, quãng đường và dữ liệu hoạt động của thiết bị, rồi hiển thị trong thống kê tập luyện.";
+"WorkoutPreciseLocation" = "Cần vị trí chính xác để hiển thị đúng vị trí hiện tại của bạn trên bản đồ ngoài trời.";

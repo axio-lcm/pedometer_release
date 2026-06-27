@@ -1,0 +1,6 @@
+"NSHealthShareUsageDescription" = "Digunakan untuk menyinkronkan langkah, jarak, kalori, dan waktu aktif, lalu menampilkannya di beranda serta statistik harian, mingguan, dan bulanan.";
+"NSHealthUpdateUsageDescription" = "Digunakan untuk menyinkronkan data kesehatan setelah kamu memberi izin.";
+"NSLocalNetworkUsageDescription" = "Digunakan untuk terhubung ke Dart VM Service dalam mode debug.";
+"NSLocationWhenInUseUsageDescription" = "Digunakan untuk menampilkan lokasi saat ini di luar ruangan dan merekam rute olahraga.";
+"NSMotionUsageDescription" = "Digunakan untuk membaca langkah, jarak, dan data aktivitas perangkat, lalu menampilkannya dalam statistik olahraga.";
+"WorkoutPreciseLocation" = "Lokasi akurat diperlukan untuk menampilkan posisi saat ini secara tepat di peta luar ruangan.";

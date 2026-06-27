@@ -1,0 +1,6 @@
+"NSHealthShareUsageDescription" = "歩数、距離、カロリー、アクティブ時間を同期し、ホーム画面および日・週・月の統計に表示するために使用します。";
+"NSHealthUpdateUsageDescription" = "許可後にヘルスデータを同期するために使用します。";
+"NSLocalNetworkUsageDescription" = "デバッグモードで Dart VM Service に接続するために使用します。";
+"NSLocationWhenInUseUsageDescription" = "屋外で現在地を表示し、ワークアウトのルートを記録するために使用します。";
+"NSMotionUsageDescription" = "デバイスの歩数、距離、アクティビティデータを読み取り、ワークアウト統計に表示するために使用します。";
+"WorkoutPreciseLocation" = "屋外マップで正確な現在地を表示するには、正確な位置情報が必要です。";
