@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -17,35 +19,52 @@ class PurchaseLoading extends StatefulWidget {
 
   static bool _isShowing = false;
   static BuildContext? _dialogContext;
+  static Future<void>? _dialogFuture;
 
   @override
   State<PurchaseLoading> createState() => _PurchaseLoadingState();
 
+  static bool get isShowing => _isShowing;
+
   static Future<void> show({int type = 1}) {
-    if (_isShowing) return Future.value();
+    if (_isShowing) return _dialogFuture ?? Future.value();
     final context = Get.context;
     if (context == null) return Future.value();
     _isShowing = true;
-    return showDialog(
-      context: context,
-      useSafeArea: false,
-      barrierDismissible: false,
-      builder: (dialogContext) {
-        _dialogContext = dialogContext;
-        return PurchaseLoading(type: type);
-      },
-    ).whenComplete(() {
-      _isShowing = false;
-      _dialogContext = null;
-    });
+    final future =
+        showDialog<void>(
+          context: context,
+          useSafeArea: false,
+          barrierDismissible: false,
+          builder: (dialogContext) {
+            _dialogContext = dialogContext;
+            return PurchaseLoading(type: type);
+          },
+        ).whenComplete(() {
+          _isShowing = false;
+          _dialogContext = null;
+          _dialogFuture = null;
+        });
+    _dialogFuture = future;
+    return future;
   }
 
-  static void dismiss() {
+  static Future<void> dismiss() async {
     if (!_isShowing) return;
     final context = _dialogContext;
     if (context == null) return;
     try {
       Navigator.of(context, rootNavigator: true).pop();
+    } catch (_) {}
+    final future = _dialogFuture;
+    if (future == null) {
+      await Future<void>.delayed(const Duration(milliseconds: 80));
+      return;
+    }
+    try {
+      await future.timeout(const Duration(milliseconds: 350));
+    } on TimeoutException {
+      await Future<void>.delayed(const Duration(milliseconds: 80));
     } catch (_) {}
   }
 }

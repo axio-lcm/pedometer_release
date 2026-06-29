@@ -4,6 +4,7 @@ import 'package:get/get.dart';
 import 'package:pp_inapp_purchase/inapp_purchase.dart';
 
 import 'package:pedometer/feature/home/service/health_auto_sync_service.dart';
+import 'package:pedometer/feature/subscription/components/purchase_loading.dart';
 import 'package:pedometer/feature/subscription/config/subscription_config.dart';
 import 'package:pedometer/feature/subscription/resources/subscription_resource.dart';
 import 'package:pedometer/feature/subscription/service/subscription_service.dart';
@@ -33,6 +34,7 @@ class SubscriptionViewModel extends GetxController {
   SubscriptionSource source = SubscriptionSource.subscription;
   Worker? _vipWorker;
   bool _closed = false;
+  bool _closing = false;
 
   @override
   void onInit() {
@@ -42,7 +44,7 @@ class SubscriptionViewModel extends GetxController {
     final service = Get.find<SubscriptionService>();
     // 订阅成功（拿到有效会员）即关页，不做试用取消的挽留判断。
     _vipWorker = ever<bool>(service.isVip, (isVip) {
-      if (isVip) _closePage();
+      if (isVip) unawaited(_closePage());
     });
   }
 
@@ -89,7 +91,7 @@ class SubscriptionViewModel extends GetxController {
     await service.loadLocalVipStatus();
     // 已是会员则不展示订阅页，直接关闭。
     if (service.isVip.value) {
-      _closePage();
+      await _closePage();
       return;
     }
     await loadProducts();
@@ -104,13 +106,13 @@ class SubscriptionViewModel extends GetxController {
     final plan = plans[selectedIndex.value];
     final service = Get.find<SubscriptionService>();
     await service.purchase(plan.productId, source);
-    if (service.isVip.value) _closePage();
+    if (service.isVip.value) await _closePage();
   }
 
   Future<void> restore() async {
     final service = Get.find<SubscriptionService>();
     await service.restore(source);
-    if (service.isVip.value) _closePage();
+    if (service.isVip.value) await _closePage();
   }
 
   Future<void> manageSubscriptions() async {
@@ -138,13 +140,20 @@ class SubscriptionViewModel extends GetxController {
     }
   }
 
-  void _closePage() {
-    if (_closed) return;
-    // 不可 pop 时（如导航过渡态）先不置位，留待后续会员状态回调重试，避免被永久拦截。
-    if (!(Get.key.currentState?.canPop() ?? false)) return;
-    _closed = true;
-    Get.back(result: true);
-    unawaited(_syncHealthDataAfterClose());
+  Future<void> _closePage() async {
+    if (_closed || _closing) return;
+    _closing = true;
+    try {
+      await PurchaseLoading.dismiss();
+      await Future<void>.delayed(const Duration(milliseconds: 80));
+      // 不可 pop 时（如导航过渡态）先不置位，留待后续会员状态回调重试，避免被永久拦截。
+      if (!(Get.key.currentState?.canPop() ?? false)) return;
+      _closed = true;
+      Get.back(result: true);
+      unawaited(_syncHealthDataAfterClose());
+    } finally {
+      if (!_closed) _closing = false;
+    }
   }
 
   Future<void> _syncHealthDataAfterClose() async {

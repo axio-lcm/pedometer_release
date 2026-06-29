@@ -162,7 +162,12 @@ class SubscriptionService extends GetxService {
     } catch (e, st) {
       debugPrint('[SubscriptionService] purchase failed: $e\n$st');
     } finally {
-      Future.delayed(const Duration(milliseconds: 500), PurchaseLoading.dismiss);
+      unawaited(
+        Future<void>.delayed(
+          const Duration(milliseconds: 500),
+          PurchaseLoading.dismiss,
+        ),
+      );
     }
   }
 
@@ -179,7 +184,12 @@ class SubscriptionService extends GetxService {
     } catch (e, st) {
       debugPrint('[SubscriptionService] restore failed: $e\n$st');
     } finally {
-      Future.delayed(const Duration(milliseconds: 500), PurchaseLoading.dismiss);
+      unawaited(
+        Future<void>.delayed(
+          const Duration(milliseconds: 500),
+          PurchaseLoading.dismiss,
+        ),
+      );
     }
   }
 
@@ -199,7 +209,6 @@ class SubscriptionService extends GetxService {
     await loadLocalVipStatus();
     return !isVip.value;
   }
-
 
   Future<void> syncSubscriptionStatus() async {
     if (!Platform.isIOS || _isSyncing) return;
@@ -239,7 +248,7 @@ class SubscriptionService extends GetxService {
     final type = stateMap['type']?.toString() ?? '';
     switch (type) {
       case StoreKitState.purchaseSuccess:
-        PurchaseLoading.dismiss();
+        await PurchaseLoading.dismiss();
         final raw = stateMap['transaction'];
         if (raw is Map) {
           final transaction = Transaction.fromMap(
@@ -252,7 +261,7 @@ class SubscriptionService extends GetxService {
         break;
       case StoreKitState.purchaseCancelled:
       case StoreKitState.purchaseFailed:
-        PurchaseLoading.dismiss();
+        await PurchaseLoading.dismiss();
         break;
       case StoreKitState.restorePurchasesSuccess:
       case StoreKitState.purchaseRefunded:
