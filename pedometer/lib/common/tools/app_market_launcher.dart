@@ -2,6 +2,8 @@ import 'dart:io';
 
 import 'package:in_app_review/in_app_review.dart';
 
+import 'package:pedometer/common/config/app_config.dart';
+
 /// 应用商店 / 应用内评价的统一入口（当前仅 iOS）。
 ///
 /// 复用自 al_led_banner 的实现思路，按 pedometer 的 iOS-only 目标裁剪：
@@ -10,9 +12,8 @@ abstract final class AppMarketLauncher {
   static final InAppReview _inAppReview = InAppReview.instance;
 
   /// App Store 数字 ID，用于评价 API 不可用时回退到商店详情页。
-  /// 应用上架后在此填入真实 ID（App Store Connect → App 信息 → Apple ID）；
-  /// 留空时直接跳过回退，不影响系统应用内评价弹窗。
-  static const String _appStoreId = '';
+  /// 与服务端 Header 使用的 App Store Connect Apple ID 保持一致。
+  static const String _appStoreId = Constants.appleId;
 
   /// 调起 iOS 系统应用内评价弹窗（SKStoreReviewController）。
   ///

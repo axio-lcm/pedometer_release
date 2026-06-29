@@ -2,6 +2,7 @@ import 'package:flutter/widgets.dart';
 import 'package:get/get.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:pedometer/common/config/app_config.dart';
 import 'package:pedometer/common/config/prefs_keys.dart';
 import 'package:pedometer/common/mvvm/ibase_view_model.dart';
 import 'package:pedometer/common/storage/language_service.dart';
@@ -65,8 +66,7 @@ class MineViewModel extends GetxController implements IBaseViewModel {
       shareApp(origin: origin);
       return;
     }
-    if (entry.title == MineResource.rateUs ||
-        entry.title == MineText.rateUs) {
+    if (entry.title == MineResource.rateUs || entry.title == MineText.rateUs) {
       showMineRateDialog();
       return;
     }
@@ -104,7 +104,7 @@ class MineViewModel extends GetxController implements IBaseViewModel {
     try {
       final result = await SharePlus.instance.share(
         ShareParams(
-          text: MineResource.shareAppContent,
+          text: '${MineResource.shareAppContent}\n\n${Constants.appStoreUrl}',
           subject: MineResource.shareAppSubject,
           sharePositionOrigin: anchor,
         ),
