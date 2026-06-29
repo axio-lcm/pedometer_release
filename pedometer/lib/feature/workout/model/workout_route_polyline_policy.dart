@@ -12,7 +12,7 @@ class WorkoutRoutePolylinePolicy {
         polylineId: const PolylineId('workout-route'),
         points: snapshot,
         color: const Color(0xFF24F04E),
-        width: 6,
+        width: 16,
         startCap: Cap.roundCap,
         endCap: Cap.roundCap,
         jointType: JointType.round,
