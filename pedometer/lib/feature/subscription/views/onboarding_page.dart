@@ -7,6 +7,7 @@ import 'package:get/get.dart';
 import 'package:pedometer/common/config/app_colors.dart';
 import 'package:pedometer/common/config/app_dimens.dart';
 import 'package:pedometer/common/config/localized_text.dart';
+import 'package:pedometer/feature/legal/legal_navigation.dart';
 import 'package:pedometer/feature/subscription/components/free_trial_switch_intro_overlay.dart';
 import 'package:pedometer/feature/subscription/model/subscription_assets.dart';
 import 'package:pedometer/feature/subscription/viewmodel/onboarding_view_model.dart';
@@ -175,9 +176,7 @@ class _GuideTitle extends StatelessWidget {
           for (var i = 0; i < segments.length; i++)
             TextSpan(
               text: segments[i],
-              style: i.isOdd
-                  ? TextStyle(color: AppColors.brandGreen)
-                  : null,
+              style: i.isOdd ? TextStyle(color: AppColors.brandGreen) : null,
             ),
         ],
       ),
@@ -241,9 +240,7 @@ class _SubscriptionOnboardingBody extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Center(
-                    child: _PremiumTitle(),
-                  ),
+                  Center(child: _PremiumTitle()),
                   SizedBox(height: isIntroOffer ? 25.h : 20.h),
                   Text(
                     lt('Get all permissions', '解锁全部权限'),
@@ -495,9 +492,21 @@ class _LegalLinks extends StatelessWidget {
           fontWeight: FontWeight.w600,
         ),
         children: [
-          TextSpan(text: lt('Privacy Policy', '隐私政策')),
+          TextSpan(
+            text: lt('Privacy Policy', '隐私政策'),
+            recognizer: TapGestureRecognizer()
+              ..onTap = () => LegalNavigation.openPrivacyPolicy<void>(
+                title: lt('Privacy Policy', '隐私政策'),
+              ),
+          ),
           const TextSpan(text: '  |  '),
-          TextSpan(text: lt('Terms', '用户协议')),
+          TextSpan(
+            text: lt('Terms', '用户协议'),
+            recognizer: TapGestureRecognizer()
+              ..onTap = () => LegalNavigation.openUserAgreement<void>(
+                title: lt('Terms', '用户协议'),
+              ),
+          ),
           const TextSpan(text: '  |  '),
           TextSpan(
             text: lt('Subscribe', '订阅'),

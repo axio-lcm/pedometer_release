@@ -53,6 +53,8 @@ dependencies:
   path: ^1.9.0
   # SVG 图标资源
   flutter_svg: ^2.0.17
+  # 应用内网页加载（隐私政策 / 用户协议）
+  webview_flutter: ^4.13.0
   file_picker: ^11.0.2
   just_audio: ^0.10.5
   # 应用内评价（iOS SKStoreReviewController）

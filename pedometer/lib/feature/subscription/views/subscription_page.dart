@@ -6,6 +6,7 @@ import 'package:get/get.dart';
 
 import 'package:pedometer/common/config/app_colors.dart';
 import 'package:pedometer/common/config/app_dimens.dart';
+import 'package:pedometer/feature/legal/legal_navigation.dart';
 import 'package:pedometer/feature/subscription/config/subscription_config.dart';
 import 'package:pedometer/feature/subscription/model/subscription_assets.dart';
 import 'package:pedometer/feature/subscription/resources/subscription_resource.dart';
@@ -524,9 +525,21 @@ class _LegalLinks extends StatelessWidget {
           fontWeight: FontWeight.w500,
         ),
         children: [
-          TextSpan(text: SubscriptionResource.privacyPolicy),
+          TextSpan(
+            text: SubscriptionResource.privacyPolicy,
+            recognizer: TapGestureRecognizer()
+              ..onTap = () => LegalNavigation.openPrivacyPolicy<void>(
+                title: SubscriptionResource.privacyPolicy,
+              ),
+          ),
           const TextSpan(text: '  |  '),
-          TextSpan(text: SubscriptionResource.terms),
+          TextSpan(
+            text: SubscriptionResource.terms,
+            recognizer: TapGestureRecognizer()
+              ..onTap = () => LegalNavigation.openUserAgreement<void>(
+                title: SubscriptionResource.terms,
+              ),
+          ),
           const TextSpan(text: '  |  '),
           TextSpan(
             text: SubscriptionResource.subscription,

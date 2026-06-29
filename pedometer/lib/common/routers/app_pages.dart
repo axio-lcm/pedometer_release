@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:pedometer/common/config/localized_text.dart';
+import 'package:pedometer/feature/legal/views/legal_web_page.dart';
 import 'package:pedometer/feature/home/resources/home_resource.dart';
 import 'package:pedometer/feature/home/views/sync_data_detail_page.dart';
 import 'package:pedometer/feature/home/views/sync_source_detail_page.dart';
@@ -81,6 +82,11 @@ class AppPages {
       binding: BindingsBuilder(() {
         Get.lazyPut<SubscriptionViewModel>(() => SubscriptionViewModel());
       }),
+    ),
+    GetPage(
+      name: LegalWebPage.routeName,
+      page: () => const LegalWebPage(),
+      transition: Transition.rightToLeft,
     ),
     GetPage(
       name: MainPage.routeName,

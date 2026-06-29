@@ -5,6 +5,11 @@
 abstract final class Constants {
   static const String appName = 'Pedometer';
 
+  static const String privacyPolicyUrl =
+      'https://pedometer.mobiunityhk.com/legal/privacy/';
+  static const String userAgreementUrl =
+      'https://pedometer.mobiunityhk.com/legal/terms/';
+
   /// 后端识别用的数字 App Store ID（已在 al.asmyapp.com 白名单注册）。
   /// 作为请求头 `appId` 发送，服务端据此校验来源 app。
   static const String appleId = '6779515132';
