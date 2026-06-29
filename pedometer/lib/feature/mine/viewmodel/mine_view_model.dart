@@ -7,6 +7,7 @@ import 'package:pedometer/common/config/prefs_keys.dart';
 import 'package:pedometer/common/mvvm/ibase_view_model.dart';
 import 'package:pedometer/common/storage/language_service.dart';
 import 'package:pedometer/common/tools/app_market_launcher.dart';
+import 'package:pedometer/feature/legal/legal_navigation.dart';
 import 'package:pedometer/feature/mine/model/mine_model.dart';
 import 'package:pedometer/feature/mine/resources/mine_resource.dart';
 import 'package:pedometer/feature/mine/views/edit_body_data_page.dart';
@@ -73,6 +74,20 @@ class MineViewModel extends GetxController implements IBaseViewModel {
     if (entry.title == MineResource.suggestion ||
         entry.title == MineText.suggestion) {
       Get.toNamed(SuggestionPage.routeName);
+      return;
+    }
+    if (entry.title == MineResource.userAgreement ||
+        entry.title == MineText.userAgreement) {
+      LegalNavigation.openUserAgreement<void>(
+        title: MineResource.userAgreement,
+      );
+      return;
+    }
+    if (entry.title == MineResource.privacyPolicy ||
+        entry.title == MineText.privacyPolicy) {
+      LegalNavigation.openPrivacyPolicy<void>(
+        title: MineResource.privacyPolicy,
+      );
       return;
     }
   }
