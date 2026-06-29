@@ -117,6 +117,7 @@ class SubscriptionPage extends GetView<SubscriptionViewModel> {
                           buttonText: buttonText,
                           onSubscribe: controller.purchase,
                           onRestore: controller.restore,
+                          onManage: controller.manageSubscriptions,
                         ),
                       ),
                     ],
@@ -161,12 +162,14 @@ class _FixedSubscriptionAction extends StatelessWidget {
   final String buttonText;
   final VoidCallback onSubscribe;
   final VoidCallback onRestore;
+  final VoidCallback onManage;
 
   const _FixedSubscriptionAction({
     required this.compact,
     required this.buttonText,
     required this.onSubscribe,
     required this.onRestore,
+    required this.onManage,
   });
 
   @override
@@ -197,7 +200,7 @@ class _FixedSubscriptionAction extends StatelessWidget {
           children: [
             _SubscribeButton(text: buttonText, onTap: onSubscribe),
             SizedBox(height: compact ? 14.h : 18.h),
-            _LegalLinks(onRestore: onRestore),
+            _LegalLinks(onRestore: onRestore, onManage: onManage),
           ],
         ),
       ),
@@ -506,8 +509,9 @@ class _SubscribeButton extends StatelessWidget {
 
 class _LegalLinks extends StatelessWidget {
   final VoidCallback onRestore;
+  final VoidCallback onManage;
 
-  const _LegalLinks({required this.onRestore});
+  const _LegalLinks({required this.onRestore, required this.onManage});
 
   @override
   Widget build(BuildContext context) {
@@ -524,7 +528,10 @@ class _LegalLinks extends StatelessWidget {
           const TextSpan(text: '  |  '),
           TextSpan(text: SubscriptionResource.terms),
           const TextSpan(text: '  |  '),
-          TextSpan(text: SubscriptionResource.subscription),
+          TextSpan(
+            text: SubscriptionResource.subscription,
+            recognizer: TapGestureRecognizer()..onTap = onManage,
+          ),
           const TextSpan(text: '  |  '),
           TextSpan(
             text: SubscriptionResource.restore,

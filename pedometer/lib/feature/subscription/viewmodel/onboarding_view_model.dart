@@ -125,6 +125,10 @@ class OnboardingViewModel extends GetxController {
     if (Get.find<SubscriptionService>().isVip.value) _enterApp();
   }
 
+  Future<void> manageSubscriptions() async {
+    await Get.find<SubscriptionService>().manageSubscriptions();
+  }
+
   Future<void> _loadProductInfo() async {
     final service = Get.find<SubscriptionService>();
     await service.getAllProducts();

@@ -177,6 +177,17 @@ class SubscriptionService extends GetxService {
     }
   }
 
+  /// 打开系统订阅管理界面（StoreKit 的「管理订阅」面板，可在此查看 / 取消订阅）。
+  Future<void> manageSubscriptions() async {
+    if (!Platform.isIOS) return;
+    await initInAppPurchase();
+    try {
+      await _purchaser.showManageSubscriptionsSheet();
+    } catch (e, st) {
+      debugPrint('[SubscriptionService] manage subscriptions failed: $e\n$st');
+    }
+  }
+
   /// 订阅页展示规则：会员不展示，非会员展示。不做试用取消的挽留再展示。
   Future<bool> shouldShowSubscriptionPage() async {
     await loadLocalVipStatus();

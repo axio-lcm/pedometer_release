@@ -275,7 +275,10 @@ class _SubscriptionOnboardingBody extends StatelessWidget {
                   ],
                   _PremiumTrialButton(text: buttonText, onTap: controller.next),
                   SizedBox(height: 18.h),
-                  _LegalLinks(onRestore: controller.restore),
+                  _LegalLinks(
+                    onRestore: controller.restore,
+                    onManage: controller.manageSubscriptions,
+                  ),
                 ],
               ),
             ),
@@ -477,8 +480,9 @@ class _OnboardingWeeklyPlanTile extends StatelessWidget {
 
 class _LegalLinks extends StatelessWidget {
   final VoidCallback onRestore;
+  final VoidCallback onManage;
 
-  const _LegalLinks({required this.onRestore});
+  const _LegalLinks({required this.onRestore, required this.onManage});
 
   @override
   Widget build(BuildContext context) {
@@ -495,7 +499,10 @@ class _LegalLinks extends StatelessWidget {
           const TextSpan(text: '  |  '),
           TextSpan(text: lt('Terms', '用户协议')),
           const TextSpan(text: '  |  '),
-          TextSpan(text: lt('Subscribe', '订阅')),
+          TextSpan(
+            text: lt('Subscribe', '订阅'),
+            recognizer: TapGestureRecognizer()..onTap = onManage,
+          ),
           const TextSpan(text: '  |  '),
           TextSpan(
             text: lt('Restore', '恢复购买'),

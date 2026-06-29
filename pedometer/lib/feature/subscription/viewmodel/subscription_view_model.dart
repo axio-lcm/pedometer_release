@@ -113,6 +113,10 @@ class SubscriptionViewModel extends GetxController {
     if (service.isVip.value) _closePage();
   }
 
+  Future<void> manageSubscriptions() async {
+    await Get.find<SubscriptionService>().manageSubscriptions();
+  }
+
   Future<void> _refreshSelectedProduct() async {
     final plan = plans[selectedIndex.value];
     final service = Get.find<SubscriptionService>();
