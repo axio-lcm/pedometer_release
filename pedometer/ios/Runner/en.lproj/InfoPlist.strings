@@ -2,5 +2,7 @@
 "NSHealthUpdateUsageDescription" = "Used to sync health data after you grant permission.";
 "NSLocalNetworkUsageDescription" = "Used to connect to Dart VM Service in debug mode.";
 "NSLocationWhenInUseUsageDescription" = "Used to show your current location outdoors and record workout routes.";
+"NSLocationAlwaysAndWhenInUseUsageDescription" = "Used to keep recording outdoor workout routes, distance, and current location during a workout, even when the screen is locked.";
 "NSMotionUsageDescription" = "Used to read device steps, distance, and activity data, and show them in workout stats.";
+"NSPhotoLibraryUsageDescription" = "Used to add feedback attachments or import related files from your photo library when you choose them.";
 "WorkoutPreciseLocation" = "Precise location is needed to show your accurate current position on outdoor maps.";

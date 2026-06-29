@@ -2,5 +2,7 @@
 "NSHealthUpdateUsageDescription" = "許可後にヘルスデータを同期するために使用します。";
 "NSLocalNetworkUsageDescription" = "デバッグモードで Dart VM Service に接続するために使用します。";
 "NSLocationWhenInUseUsageDescription" = "屋外で現在地を表示し、ワークアウトのルートを記録するために使用します。";
+"NSLocationAlwaysAndWhenInUseUsageDescription" = "屋外ワークアウト中に、画面がロックされていてもルート、距離、現在地の記録を継続するために使用します。";
 "NSMotionUsageDescription" = "デバイスの歩数、距離、アクティビティデータを読み取り、ワークアウト統計に表示するために使用します。";
+"NSPhotoLibraryUsageDescription" = "選択した場合に、フィードバックの添付ファイルを追加したり、写真ライブラリから関連ファイルを読み込んだりするために使用します。";
 "WorkoutPreciseLocation" = "屋外マップで正確な現在地を表示するには、正確な位置情報が必要です。";

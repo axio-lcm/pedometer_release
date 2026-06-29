@@ -33,12 +33,21 @@ class SubscriptionService extends GetxService {
     return this;
   }
 
+  bool get _isAndroidVipMode => Platform.isAndroid;
+
   /// 冷启动后台初始化（替代原启动加载页）：
   /// 重置本会话订阅展示标记、初始化内购、上报归因，并刷新本地会员状态。
   /// 静默执行、不阻塞首屏；会员状态变更经 [isVip] 通知相关页面。
   Future<void> runStartupTasks() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool(PrefsKeys.isShowedSubOnThisSession, false);
+    if (_isAndroidVipMode) {
+      isVip.value = true;
+      isTrialCanceled.value = false;
+      isInitialized.value = true;
+      await prefs.setBool(PrefsKeys.isFirstLaunch, false);
+      return;
+    }
     await initInAppPurchase();
     await SubscriptionUploadApi.saveAttributionJson();
     unawaited(SubscriptionUploadApi.uploadAttributionRegister());
@@ -47,6 +56,12 @@ class SubscriptionService extends GetxService {
   }
 
   Future<void> loadLocalVipStatus() async {
+    if (_isAndroidVipMode) {
+      isVip.value = true;
+      isTrialCanceled.value = false;
+      isInitialized.value = true;
+      return;
+    }
     final prefs = await SharedPreferences.getInstance();
     final savedVip = prefs.getBool(PrefsKeys.isVip) ?? false;
     final expireTime = prefs.getInt(PrefsKeys.vipExpireTime) ?? 0;
@@ -211,6 +226,7 @@ class SubscriptionService extends GetxService {
   /// - 试用期内已取消续订的会员：仍是会员，但再次触发会员功能时展示非首订页。
   /// - 正常会员：不展示订阅页。
   Future<bool> shouldShowSubscriptionPage() async {
+    if (_isAndroidVipMode) return false;
     await loadLocalVipStatus();
     return !isVip.value || isTrialCanceled.value;
   }
@@ -387,6 +403,10 @@ class SubscriptionService extends GetxService {
     dynamic arguments,
     SubscriptionSource source = SubscriptionSource.subscription,
   }) async {
+    if (_isAndroidVipMode) {
+      Get.toNamed(destination, arguments: arguments);
+      return;
+    }
     await syncSubscriptionStatus();
     await loadLocalVipStatus();
     final wasVip = isVip.value;

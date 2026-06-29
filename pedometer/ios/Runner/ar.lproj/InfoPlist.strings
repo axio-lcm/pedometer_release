@@ -2,5 +2,7 @@
 "NSHealthUpdateUsageDescription" = "يُستخدم لمزامنة بيانات الصحة بعد منح الإذن.";
 "NSLocalNetworkUsageDescription" = "يُستخدم للاتصال بخدمة Dart VM في وضع التصحيح.";
 "NSLocationWhenInUseUsageDescription" = "يُستخدم لعرض موقعك الحالي في الخارج وتسجيل مسارات التمرين.";
+"NSLocationAlwaysAndWhenInUseUsageDescription" = "يُستخدم لمواصلة تسجيل المسار والمسافة والموقع الحالي أثناء التمرين في الخارج، حتى عند قفل الشاشة.";
 "NSMotionUsageDescription" = "يُستخدم لقراءة خطوات الجهاز والمسافة وبيانات النشاط وعرضها في إحصاءات التمرين.";
+"NSPhotoLibraryUsageDescription" = "يُستخدم لإضافة مرفقات للتعليقات أو استيراد ملفات ذات صلة من مكتبة الصور عند اختيارك لها.";
 "WorkoutPreciseLocation" = "يلزم الموقع الدقيق لعرض موقعك الحالي بدقة على الخرائط الخارجية.";

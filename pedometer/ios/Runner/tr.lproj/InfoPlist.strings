@@ -2,5 +2,7 @@
 "NSHealthUpdateUsageDescription" = "İzin verdikten sonra sağlık verilerini eşitlemek için kullanılır.";
 "NSLocalNetworkUsageDescription" = "Hata ayıklama modunda Dart VM Service bağlantısı için kullanılır.";
 "NSLocationWhenInUseUsageDescription" = "Dışarıda mevcut konumunu göstermek ve egzersiz rotalarını kaydetmek için kullanılır.";
+"NSLocationAlwaysAndWhenInUseUsageDescription" = "Açık hava egzersizi sırasında ekran kilitli olsa bile rota, mesafe ve mevcut konumu kaydetmeye devam etmek için kullanılır.";
 "NSMotionUsageDescription" = "Cihaz adımlarını, mesafeyi ve aktivite verilerini okuyup egzersiz istatistiklerinde göstermek için kullanılır.";
+"NSPhotoLibraryUsageDescription" = "Seçtiğinde geri bildirim ekleri eklemek veya fotoğraf arşivinden ilgili dosyaları içe aktarmak için kullanılır.";
 "WorkoutPreciseLocation" = "Dış mekan haritalarında mevcut konumunu doğru göstermek için hassas konum gerekir.";

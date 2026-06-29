@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
 import 'package:pedometer/common/config/localized_text.dart';
 import 'package:pedometer/feature/legal/views/legal_web_page.dart';
@@ -49,6 +50,9 @@ class AppPages {
 
   /// 启动后的业务首屏：会员进首页；非会员进引导页。
   static String get postStartupRoute {
+    if (defaultTargetPlatform == TargetPlatform.android) {
+      return MainPage.routeName;
+    }
     final isVip =
         Get.isRegistered<SubscriptionService>() &&
         Get.find<SubscriptionService>().isVip.value;

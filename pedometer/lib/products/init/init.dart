@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/date_symbol_data_local.dart';
@@ -52,24 +54,29 @@ class AppStartup {
     await AchievementStatsStore.load();
     await WorkoutRouteHistoryStore.load();
     await _hydrateHealthData();
-    await Firebase.initializeApp(
-      options: DefaultFirebaseOptions.currentPlatform,
-    );
+    if (Platform.isIOS) {
+      await Firebase.initializeApp(
+        options: DefaultFirebaseOptions.currentPlatform,
+      );
+    }
     _bootstrapped = true;
   }
 
   /// 冷启动用本地持久化历史 hydrate 运行时，使首屏即展示历史而非 mock。
   ///
-  /// 首页数据只来自「健康同步」(HealthKit)，因此仅 hydrate Apple Health 来源；
-  /// 历史上由运动与健身(CMPedometer)写入的 motionSensor 记录不再进入首页底座。
+  /// 首页数据只来自「健康同步」来源；Android 走 Health Connect，iOS 走 Apple Health。
+  /// 历史上由运动与健身(CMPedometer / Step Counter)写入的 motionSensor 记录不再进入首页底座。
   static Future<void> _hydrateHealthData() async {
     try {
       final summaries = await HealthDataStore.instance.loadSummaries();
-      final healthKitSummaries = [
+      final preferredSource = Platform.isAndroid
+          ? HealthSyncSource.healthConnect
+          : HealthSyncSource.appleHealth;
+      final preferredSummaries = [
         for (final summary in summaries)
-          if (summary.source == HealthSyncSource.appleHealth) summary,
+          if (summary.source == preferredSource) summary,
       ];
-      HealthSyncRuntime.hydrateBase(healthKitSummaries);
+      HealthSyncRuntime.hydrateBase(preferredSummaries);
       final history = await HealthDataStore.instance.loadSyncHistory();
       HealthSyncHistory.hydrate(history);
     } catch (_) {
