@@ -6,7 +6,7 @@ import 'package:pedometer/common/config/app_config.dart';
 import 'package:pedometer/common/config/prefs_keys.dart';
 import 'package:pedometer/common/mvvm/ibase_view_model.dart';
 import 'package:pedometer/common/storage/language_service.dart';
-import 'package:pedometer/feature/mine/components/mine_rate_dialog.dart';
+import 'package:pedometer/common/tools/app_market_launcher.dart';
 import 'package:pedometer/feature/mine/model/mine_model.dart';
 import 'package:pedometer/feature/mine/resources/mine_resource.dart';
 import 'package:pedometer/feature/mine/views/edit_body_data_page.dart';
@@ -67,7 +67,7 @@ class MineViewModel extends GetxController implements IBaseViewModel {
       return;
     }
     if (entry.title == MineResource.rateUs || entry.title == MineText.rateUs) {
-      showMineRateDialog();
+      AppMarketLauncher.openAppStoreReview();
       return;
     }
     if (entry.title == MineResource.suggestion ||

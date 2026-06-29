@@ -85,12 +85,6 @@ class MineResource {
       _string('share_app_subject', MineText.shareAppSubject);
   static String get rateUs => _string('rate_us', MineText.rateUs);
   static String get suggestion => _string('suggestion', MineText.suggestion);
-  static String get rateDialogTitle =>
-      _string('rate_dialog_title', MineText.rateDialogTitle);
-  static String get rateDialogMessage =>
-      _string('rate_dialog_message', MineText.rateDialogMessage);
-  static String get rateDialogSubmit =>
-      _string('rate_dialog_submit', MineText.rateDialogSubmit);
   static String get suggestionTitle =>
       _string('suggestion_title', MineText.suggestionTitle);
   static String get suggestionEmailLabel =>
@@ -128,9 +122,6 @@ class MineResource {
 
   static const membershipCrownIcon = 'assets/membership_crown.svg';
   static const membershipArrowIcon = 'assets/membership_arrow.svg';
-  static const rateIllustration = 'assets/rate_illustration.png';
-  static const rateStarFilled = 'assets/rate_star_filled.png';
-  static const rateStarEmpty = 'assets/rate_star_empty.png';
 }
 
 /// 我的页模块 const 文案。供 const mock / 默认数据使用；动态读取请走 [MineResource]。
@@ -182,10 +173,6 @@ class MineText {
       'I am using this pedometer app to track steps and workouts every day. Join me!';
   static const rateUs = 'Rate Us';
   static const suggestion = 'Suggestion';
-  static const rateDialogTitle = 'Enjoying the app?';
-  static const rateDialogMessage =
-      'Your rating is our biggest motivation. Tap the stars to rate us.';
-  static const rateDialogSubmit = 'Submit';
   static const suggestionTitle = 'Suggestion';
   static const suggestionEmailLabel = 'Email';
   static const suggestionEmailHint = 'Enter your email';
