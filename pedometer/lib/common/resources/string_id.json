@@ -175,5 +175,7 @@
   "lt_template_intro_offer_desc": "Uji coba gratis 3 hari, lalu {{price}} per minggu. Batal kapan saja.",
   "lt_template_subscribe_unlock_desc": "Berlangganan untuk membuka tujuan, hadiah, pelacakan rute, sinkronisasi kesehatan, dan wawasan latihan. {{price}} per minggu. Batal kapan saja.",
   "lt_template_price_per_year": "{{price}} per tahun, batal kapan saja.",
-  "lt_template_price_per_weekly": "{{price}} per minggu, batal kapan saja."
+  "lt_template_price_per_weekly": "{{price}} per minggu, batal kapan saja.",
+  "lt_cancel_anytime": "Batalkan kapan saja",
+  "lt_no_payment_now": "Tidak ada pembayaran sekarang"
 }

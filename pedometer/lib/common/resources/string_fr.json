@@ -175,5 +175,7 @@
   "lt_template_intro_offer_desc": "3 jours d'essai gratuit, puis {{price}} par semaine. Annulable à tout moment.",
   "lt_template_subscribe_unlock_desc": "Abonnez-vous pour débloquer objectifs, récompenses, suivi d'itinéraire, synchro santé et analyses d'entraînement. {{price}} par semaine. Annulable à tout moment.",
   "lt_template_price_per_year": "{{price}} par an, annulable à tout moment.",
-  "lt_template_price_per_weekly": "{{price}} par semaine, annulable à tout moment."
+  "lt_template_price_per_weekly": "{{price}} par semaine, annulable à tout moment.",
+  "lt_cancel_anytime": "Annulable à tout moment",
+  "lt_no_payment_now": "Aucun paiement maintenant"
 }

@@ -175,5 +175,7 @@
   "lt_template_intro_offer_desc": "3 gün ücretsiz, sonra haftalık {{price}}. İstediğin zaman iptal et.",
   "lt_template_subscribe_unlock_desc": "Hedefleri, ödülleri, rota takibini, sağlık senkronizasyonunu ve antrenman analizlerini açmak için abone ol. Haftalık {{price}}. İstediğin zaman iptal et.",
   "lt_template_price_per_year": "Yıllık {{price}}, istediğin zaman iptal et.",
-  "lt_template_price_per_weekly": "Haftalık {{price}}, istediğin zaman iptal et."
+  "lt_template_price_per_weekly": "Haftalık {{price}}, istediğin zaman iptal et.",
+  "lt_cancel_anytime": "İstediğin zaman iptal et",
+  "lt_no_payment_now": "Şimdi ödeme yok"
 }

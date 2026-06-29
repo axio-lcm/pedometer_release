@@ -175,5 +175,7 @@
   "lt_template_intro_offer_desc": "3-day free trial, then weekly {{price}}. Cancel anytime.",
   "lt_template_subscribe_unlock_desc": "Subscribe to unlock goals, rewards, route tracking, health sync, and training insights. Weekly {{price}}. Cancel anytime.",
   "lt_template_price_per_year": "{{price}} per year, cancel anytime.",
-  "lt_template_price_per_weekly": "{{price}} per weekly, cancel anytime."
+  "lt_template_price_per_weekly": "{{price}} per weekly, cancel anytime.",
+  "lt_cancel_anytime": "Cancel anytime",
+  "lt_no_payment_now": "No payment now"
 }

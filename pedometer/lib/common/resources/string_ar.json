@@ -175,5 +175,7 @@
   "lt_template_intro_offer_desc": "تجربة مجانية لمدة 3 أيام، ثم {{price}} أسبوعيًا. يمكنك الإلغاء في أي وقت.",
   "lt_template_subscribe_unlock_desc": "اشترك لفتح الأهداف والمكافآت وتتبع المسار ومزامنة الصحة ورؤى التدريب. {{price}} أسبوعيًا. ألغِ في أي وقت.",
   "lt_template_price_per_year": "{{price}} سنويًا، يمكنك الإلغاء في أي وقت.",
-  "lt_template_price_per_weekly": "{{price}} أسبوعيًا، يمكنك الإلغاء في أي وقت."
+  "lt_template_price_per_weekly": "{{price}} أسبوعيًا، يمكنك الإلغاء في أي وقت.",
+  "lt_cancel_anytime": "يمكنك الإلغاء في أي وقت",
+  "lt_no_payment_now": "لا يوجد دفع الآن"
 }

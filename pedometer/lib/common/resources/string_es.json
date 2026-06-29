@@ -175,5 +175,7 @@
   "lt_template_intro_offer_desc": "3 días de prueba gratis, luego {{price}} por semana. Cancela cuando quieras.",
   "lt_template_subscribe_unlock_desc": "Suscríbete para desbloquear objetivos, recompensas, seguimiento de ruta, sincronización de salud y análisis de entrenamiento. {{price}} por semana. Cancela cuando quieras.",
   "lt_template_price_per_year": "{{price}} al año, cancela cuando quieras.",
-  "lt_template_price_per_weekly": "{{price}} por semana, cancela cuando quieras."
+  "lt_template_price_per_weekly": "{{price}} por semana, cancela cuando quieras.",
+  "lt_cancel_anytime": "Cancela cuando quieras",
+  "lt_no_payment_now": "Sin pago ahora"
 }

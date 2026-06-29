@@ -175,5 +175,7 @@
   "lt_template_intro_offer_desc": "免費試用 3 天，之後每週 {{price}}，可隨時取消。",
   "lt_template_subscribe_unlock_desc": "訂閱即可解鎖目標、獎勵、路線記錄、健康同步和訓練洞察。每週 {{price}}，可隨時取消。",
   "lt_template_price_per_year": "每年 {{price}}，可隨時取消。",
-  "lt_template_price_per_weekly": "每週 {{price}}，可隨時取消。"
+  "lt_template_price_per_weekly": "每週 {{price}}，可隨時取消。",
+  "lt_cancel_anytime": "可隨時取消",
+  "lt_no_payment_now": "現在無需付款"
 }

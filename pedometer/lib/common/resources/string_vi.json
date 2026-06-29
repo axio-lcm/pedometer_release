@@ -175,5 +175,7 @@
   "lt_template_intro_offer_desc": "Dùng thử miễn phí 3 ngày, sau đó {{price}} mỗi tuần. Hủy bất cứ lúc nào.",
   "lt_template_subscribe_unlock_desc": "Đăng ký để mở khóa mục tiêu, phần thưởng, theo dõi lộ trình, đồng bộ sức khỏe và phân tích luyện tập. {{price}} mỗi tuần. Hủy bất cứ lúc nào.",
   "lt_template_price_per_year": "{{price}} mỗi năm, hủy bất cứ lúc nào.",
-  "lt_template_price_per_weekly": "{{price}} mỗi tuần, hủy bất cứ lúc nào."
+  "lt_template_price_per_weekly": "{{price}} mỗi tuần, hủy bất cứ lúc nào.",
+  "lt_cancel_anytime": "Hủy bất cứ lúc nào",
+  "lt_no_payment_now": "Chưa cần thanh toán ngay"
 }

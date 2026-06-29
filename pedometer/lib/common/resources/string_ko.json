@@ -175,5 +175,7 @@
   "lt_template_intro_offer_desc": "3일 무료 체험 후 주당 {{price}}. 언제든 취소 가능.",
   "lt_template_subscribe_unlock_desc": "구독하면 목표, 보상, 경로 추적, 건강 동기화, 운동 분석을 사용할 수 있습니다. 주당 {{price}}. 언제든 취소 가능.",
   "lt_template_price_per_year": "연 {{price}}, 언제든 취소 가능.",
-  "lt_template_price_per_weekly": "주 {{price}}, 언제든 취소 가능."
+  "lt_template_price_per_weekly": "주 {{price}}, 언제든 취소 가능.",
+  "lt_cancel_anytime": "언제든 취소 가능",
+  "lt_no_payment_now": "지금 결제 없음"
 }

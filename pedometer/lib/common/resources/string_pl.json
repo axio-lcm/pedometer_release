@@ -175,5 +175,7 @@
   "lt_template_intro_offer_desc": "3 dni za darmo, potem {{price}} tygodniowo. Anuluj w dowolnej chwili.",
   "lt_template_subscribe_unlock_desc": "Subskrybuj, aby odblokować cele, nagrody, śledzenie trasy, synchronizację zdrowia i analizy treningów. {{price}} tygodniowo. Anuluj w dowolnej chwili.",
   "lt_template_price_per_year": "{{price}} rocznie, anuluj w dowolnej chwili.",
-  "lt_template_price_per_weekly": "{{price}} tygodniowo, anuluj w dowolnej chwili."
+  "lt_template_price_per_weekly": "{{price}} tygodniowo, anuluj w dowolnej chwili.",
+  "lt_cancel_anytime": "Anuluj w dowolnej chwili",
+  "lt_no_payment_now": "Bez płatności teraz"
 }

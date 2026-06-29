@@ -175,5 +175,7 @@
   "lt_template_intro_offer_desc": "3 dias grátis, depois {{price}} por semana. Cancele quando quiser.",
   "lt_template_subscribe_unlock_desc": "Assine para desbloquear metas, recompensas, rastreamento de rota, sincronização de saúde e análises de treino. {{price}} por semana. Cancele quando quiser.",
   "lt_template_price_per_year": "{{price}} por ano, cancele quando quiser.",
-  "lt_template_price_per_weekly": "{{price}} por semana, cancele quando quiser."
+  "lt_template_price_per_weekly": "{{price}} por semana, cancele quando quiser.",
+  "lt_cancel_anytime": "Cancele quando quiser",
+  "lt_no_payment_now": "Sem pagamento agora"
 }

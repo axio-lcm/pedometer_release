@@ -175,5 +175,7 @@
   "lt_template_intro_offer_desc": "3日間無料、その後は週 {{price}}。いつでも解約可能。",
   "lt_template_subscribe_unlock_desc": "登録すると目標、ご褒美、ルート記録、ヘルス同期、トレーニング分析が使えます。週 {{price}}。いつでも解約可能。",
   "lt_template_price_per_year": "年 {{price}}、いつでも解約可能。",
-  "lt_template_price_per_weekly": "週 {{price}}、いつでも解約可能。"
+  "lt_template_price_per_weekly": "週 {{price}}、いつでも解約可能。",
+  "lt_cancel_anytime": "いつでも解約可能",
+  "lt_no_payment_now": "今すぐの支払いは不要"
 }

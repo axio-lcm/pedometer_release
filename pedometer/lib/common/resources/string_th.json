@@ -175,5 +175,7 @@
   "lt_template_intro_offer_desc": "ทดลองใช้ฟรี 3 วัน จากนั้น {{price}} ต่อสัปดาห์ ยกเลิกได้ทุกเมื่อ",
   "lt_template_subscribe_unlock_desc": "สมัครสมาชิกเพื่อปลดล็อกเป้าหมาย รางวัล การติดตามเส้นทาง การซิงค์สุขภาพ และข้อมูลเชิงลึกการฝึก {{price}} ต่อสัปดาห์ ยกเลิกได้ทุกเมื่อ",
   "lt_template_price_per_year": "{{price}} ต่อปี ยกเลิกได้ทุกเมื่อ",
-  "lt_template_price_per_weekly": "{{price}} ต่อสัปดาห์ ยกเลิกได้ทุกเมื่อ"
+  "lt_template_price_per_weekly": "{{price}} ต่อสัปดาห์ ยกเลิกได้ทุกเมื่อ",
+  "lt_cancel_anytime": "ยกเลิกได้ทุกเมื่อ",
+  "lt_no_payment_now": "ยังไม่ต้องชำระเงินตอนนี้"
 }

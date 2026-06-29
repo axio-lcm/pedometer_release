@@ -175,5 +175,7 @@
   "lt_template_intro_offer_desc": "3 giorni di prova gratis, poi {{price}} a settimana. Disdici quando vuoi.",
   "lt_template_subscribe_unlock_desc": "Abbonati per sbloccare obiettivi, premi, tracciamento percorso, sincronizzazione salute e analisi degli allenamenti. {{price}} a settimana. Disdici quando vuoi.",
   "lt_template_price_per_year": "{{price}} all'anno, disdici quando vuoi.",
-  "lt_template_price_per_weekly": "{{price}} a settimana, disdici quando vuoi."
+  "lt_template_price_per_weekly": "{{price}} a settimana, disdici quando vuoi.",
+  "lt_cancel_anytime": "Annulla quando vuoi",
+  "lt_no_payment_now": "Nessun pagamento ora"
 }

@@ -175,5 +175,7 @@
   "lt_template_intro_offer_desc": "3 Tage kostenlos, danach {{price}} pro Woche. Jederzeit kündbar.",
   "lt_template_subscribe_unlock_desc": "Abonniere, um Ziele, Belohnungen, Routenverfolgung, Health-Sync und Trainingsanalysen freizuschalten. {{price}} pro Woche. Jederzeit kündbar.",
   "lt_template_price_per_year": "{{price}} pro Jahr, jederzeit kündbar.",
-  "lt_template_price_per_weekly": "{{price}} pro Woche, jederzeit kündbar."
+  "lt_template_price_per_weekly": "{{price}} pro Woche, jederzeit kündbar.",
+  "lt_cancel_anytime": "Jederzeit kündbar",
+  "lt_no_payment_now": "Jetzt keine Zahlung"
 }

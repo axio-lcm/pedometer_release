@@ -175,5 +175,7 @@
   "lt_template_intro_offer_desc": "3 дня бесплатно, затем {{price}} в неделю. Отмена в любое время.",
   "lt_template_subscribe_unlock_desc": "Оформите подписку, чтобы открыть цели, награды, отслеживание маршрута, синхронизацию здоровья и аналитику тренировок. {{price}} в неделю. Отмена в любое время.",
   "lt_template_price_per_year": "{{price}} в год, отмена в любое время.",
-  "lt_template_price_per_weekly": "{{price}} в неделю, отмена в любое время."
+  "lt_template_price_per_weekly": "{{price}} в неделю, отмена в любое время.",
+  "lt_cancel_anytime": "Отмена в любое время",
+  "lt_no_payment_now": "Оплата сейчас не требуется"
 }
