@@ -57,7 +57,8 @@ class SubscriptionService extends GetxService {
       return;
     }
     isVip.value = active;
-    isTrialCanceled.value = prefs.getBool(PrefsKeys.isTrialCanceled) ?? false;
+    isTrialCanceled.value =
+        active && (prefs.getBool(PrefsKeys.isTrialCanceled) ?? false);
   }
 
   Future<void> initInAppPurchase() async {
@@ -204,10 +205,19 @@ class SubscriptionService extends GetxService {
     }
   }
 
-  /// 订阅页展示规则：会员不展示，非会员展示。不做试用取消的挽留再展示。
+  /// 订阅页展示规则：
+  ///
+  /// - 非会员：展示订阅页。
+  /// - 试用期内已取消续订的会员：仍是会员，但再次触发会员功能时展示非首订页。
+  /// - 正常会员：不展示订阅页。
   Future<bool> shouldShowSubscriptionPage() async {
     await loadLocalVipStatus();
-    return !isVip.value;
+    return !isVip.value || isTrialCanceled.value;
+  }
+
+  @visibleForTesting
+  Future<void> handleStateChangedForTest(Map<String, dynamic> stateMap) {
+    return _handleStateChanged(stateMap);
   }
 
   Future<void> syncSubscriptionStatus() async {
@@ -269,12 +279,50 @@ class SubscriptionService extends GetxService {
         await syncSubscriptionStatus();
         break;
       case StoreKitState.subscriptionCancelled:
-        // 取消订阅（关闭自动续订）：仅刷新本地会员状态，不做挽留 / 重启。
-        await syncSubscriptionStatus();
+        await _handleSubscriptionCancelled(stateMap);
         break;
       default:
         break;
     }
+  }
+
+  Future<void> _handleSubscriptionCancelled(
+    Map<String, dynamic> stateMap,
+  ) async {
+    debugPrint('[SubscriptionService] subscription cancelled: $stateMap');
+    final trialCanceled =
+        stateMap['isSubscribedButFreeTrailCancelled'] as bool? ?? false;
+    final productId = stateMap['productId']?.toString() ?? '';
+
+    await syncSubscriptionStatus();
+    await loadLocalVipStatus();
+
+    if (!trialCanceled) return;
+
+    final prefs = await SharedPreferences.getInstance();
+    final savedProductId = prefs.getString(PrefsKeys.vipProductId) ?? '';
+    final sameProduct =
+        productId.isEmpty ||
+        savedProductId.isEmpty ||
+        productId == savedProductId;
+    if (!sameProduct) {
+      debugPrint(
+        '[SubscriptionService] ignored trial cancellation for product: '
+        '$productId, current: $savedProductId',
+      );
+      return;
+    }
+
+    final expireTime = prefs.getInt(PrefsKeys.vipExpireTime) ?? 0;
+    final active =
+        (prefs.getBool(PrefsKeys.isVip) ?? false) &&
+        expireTime > DateTime.now().millisecondsSinceEpoch;
+    if (!active) return;
+
+    await prefs.setBool(PrefsKeys.isTrialCanceled, true);
+    await prefs.setBool(PrefsKeys.isShowedSubOnThisSession, false);
+    isVip.value = true;
+    isTrialCanceled.value = true;
   }
 
   Future<void> _cacheFirstSubscription(Transaction transaction) async {
@@ -332,17 +380,34 @@ class SubscriptionService extends GetxService {
   /// VIP 导航门控。
   ///
   /// - 非会员：弹出订阅页，关闭后**不**跳转目标页。
+  /// - 试用期内已取消续订的会员：先弹出非首订页，关闭后仍可进入目标页。
   /// - 会员：直接跳转目标页。
   Future<void> navigateWithVipGate({
     required String destination,
     dynamic arguments,
     SubscriptionSource source = SubscriptionSource.subscription,
   }) async {
-    if (!isVip.value) {
+    await syncSubscriptionStatus();
+    await loadLocalVipStatus();
+    final wasVip = isVip.value;
+    if (await shouldShowSubscriptionPage()) {
+      if (wasVip && isTrialCanceled.value) {
+        final prefs = await SharedPreferences.getInstance();
+        final showed =
+            prefs.getBool(PrefsKeys.isShowedSubOnThisSession) ?? false;
+        if (!showed) {
+          await prefs.setBool(PrefsKeys.isShowedSubOnThisSession, true);
+          await Get.toNamed(SubscriptionPage.routeName, arguments: source);
+          await loadLocalVipStatus();
+        }
+        if (isVip.value) Get.toNamed(destination, arguments: arguments);
+        return;
+      }
       await Get.toNamed(SubscriptionPage.routeName, arguments: source);
-      return;
+      await loadLocalVipStatus();
+      if (!wasVip) return;
     }
-    Get.toNamed(destination, arguments: arguments);
+    if (isVip.value) Get.toNamed(destination, arguments: arguments);
   }
 
   String get _languageCode {

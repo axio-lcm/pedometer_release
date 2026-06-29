@@ -33,6 +33,7 @@ class SubscriptionViewModel extends GetxController {
 
   SubscriptionSource source = SubscriptionSource.subscription;
   Worker? _vipWorker;
+  Worker? _trialCanceledWorker;
   bool _closed = false;
   bool _closing = false;
 
@@ -42,9 +43,12 @@ class SubscriptionViewModel extends GetxController {
     final args = Get.arguments;
     if (args is SubscriptionSource) source = args;
     final service = Get.find<SubscriptionService>();
-    // 订阅成功（拿到有效会员）即关页，不做试用取消的挽留判断。
+    // 订阅成功且不是“试用期内取消续订”状态时才关页。
     _vipWorker = ever<bool>(service.isVip, (isVip) {
-      if (isVip) unawaited(_closePage());
+      if (isVip && !service.isTrialCanceled.value) unawaited(_closePage());
+    });
+    _trialCanceledWorker = ever<bool>(service.isTrialCanceled, (isCanceled) {
+      if (!isCanceled && service.isVip.value) unawaited(_closePage());
     });
   }
 
@@ -57,6 +61,7 @@ class SubscriptionViewModel extends GetxController {
   @override
   void onClose() {
     _vipWorker?.dispose();
+    _trialCanceledWorker?.dispose();
     super.onClose();
   }
 
@@ -89,8 +94,8 @@ class SubscriptionViewModel extends GetxController {
   Future<void> _preparePage() async {
     final service = Get.find<SubscriptionService>();
     await service.loadLocalVipStatus();
-    // 已是会员则不展示订阅页，直接关闭。
-    if (service.isVip.value) {
+    // 正常会员不展示订阅页；试用期内已取消续订的会员需要展示非首订页。
+    if (service.isVip.value && !service.isTrialCanceled.value) {
       await _closePage();
       return;
     }
@@ -106,13 +111,17 @@ class SubscriptionViewModel extends GetxController {
     final plan = plans[selectedIndex.value];
     final service = Get.find<SubscriptionService>();
     await service.purchase(plan.productId, source);
-    if (service.isVip.value) await _closePage();
+    if (service.isVip.value && !service.isTrialCanceled.value) {
+      await _closePage();
+    }
   }
 
   Future<void> restore() async {
     final service = Get.find<SubscriptionService>();
     await service.restore(source);
-    if (service.isVip.value) await _closePage();
+    if (service.isVip.value && !service.isTrialCanceled.value) {
+      await _closePage();
+    }
   }
 
   Future<void> manageSubscriptions() async {
@@ -122,20 +131,34 @@ class SubscriptionViewModel extends GetxController {
   Future<void> _refreshSelectedProduct() async {
     final plan = plans[selectedIndex.value];
     final service = Get.find<SubscriptionService>();
-    final eligible = await service.isEligibleForIntroOffer(plan.productId);
+    final forceNonIntroOffer =
+        service.isVip.value && service.isTrialCanceled.value;
+    final eligible = forceNonIntroOffer
+        ? false
+        : await service.isEligibleForIntroOffer(plan.productId);
     isEligibleForIntroOffer.value = eligible;
     if (plan.kind == SubscriptionPlanKind.weekly) {
       weeklyIntroOfferEligible.value = eligible;
+    }
+    if (forceNonIntroOffer) {
+      buttonText.value = SubscriptionResource.subscribe;
+      return;
     }
     final text = await service.buttonText(plan.productId);
     buttonText.value = text.isEmpty ? SubscriptionResource.subscribe : text;
   }
 
   Future<void> _refreshWeeklyIntroOfferEligibility() async {
+    final service = Get.find<SubscriptionService>();
+    if (service.isVip.value && service.isTrialCanceled.value) {
+      weeklyIntroOfferEligible.value = false;
+      return;
+    }
     for (final plan in plans) {
       if (plan.kind != SubscriptionPlanKind.weekly) continue;
-      weeklyIntroOfferEligible.value = await Get.find<SubscriptionService>()
-          .isEligibleForIntroOffer(plan.productId);
+      weeklyIntroOfferEligible.value = await service.isEligibleForIntroOffer(
+        plan.productId,
+      );
       return;
     }
   }

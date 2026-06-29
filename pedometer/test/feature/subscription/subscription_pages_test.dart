@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:get/get.dart';
+import 'package:pp_inapp_purchase/inapp_purchase.dart';
 import 'package:pedometer/common/config/app_screen.dart';
 import 'package:pedometer/common/config/prefs_keys.dart';
 import 'package:pedometer/common/config/resource_loader.dart';
@@ -80,6 +81,50 @@ void main() {
     expect(find.text('subscription route'), findsOneWidget);
     expect(find.text('root'), findsNothing);
     expect(tester.takeException(), isNull);
+  });
+
+  test('cancelled trial member should show subscription page', () async {
+    Get.reset();
+    SharedPreferences.setMockInitialValues({
+      PrefsKeys.isVip: true,
+      PrefsKeys.isTrialCanceled: true,
+      PrefsKeys.vipExpireTime: DateTime.now()
+          .add(const Duration(days: 3))
+          .millisecondsSinceEpoch,
+    });
+    final service = SubscriptionService();
+    await service.init();
+
+    expect(service.isVip.value, isTrue);
+    expect(service.isTrialCanceled.value, isTrue);
+    expect(await service.shouldShowSubscriptionPage(), isTrue);
+  });
+
+  test('subscription cancelled event marks trial cancelled member', () async {
+    Get.reset();
+    SharedPreferences.setMockInitialValues({
+      PrefsKeys.isVip: true,
+      PrefsKeys.vipProductId: 'pedometer_weekly_pro_ia',
+      PrefsKeys.isTrialCanceled: false,
+      PrefsKeys.isShowedSubOnThisSession: true,
+      PrefsKeys.vipExpireTime: DateTime.now()
+          .add(const Duration(days: 3))
+          .millisecondsSinceEpoch,
+    });
+    final service = SubscriptionService();
+    await service.init();
+
+    await service.handleStateChangedForTest({
+      'type': StoreKitState.subscriptionCancelled,
+      'productId': 'pedometer_weekly_pro_ia',
+      'isSubscribedButFreeTrailCancelled': true,
+    });
+    final prefs = await SharedPreferences.getInstance();
+
+    expect(service.isVip.value, isTrue);
+    expect(service.isTrialCanceled.value, isTrue);
+    expect(prefs.getBool(PrefsKeys.isTrialCanceled), isTrue);
+    expect(prefs.getBool(PrefsKeys.isShowedSubOnThisSession), isFalse);
   });
 
   testWidgets(
