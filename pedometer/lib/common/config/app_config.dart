@@ -9,6 +9,8 @@ abstract final class Constants {
       'https://pedometer.mobiunityhk.com/legal/privacy/';
   static const String userAgreementUrl =
       'https://pedometer.mobiunityhk.com/legal/terms/';
+  static const String subscriptionTermsUrl =
+      'https://pedometer.mobiunityhk.com/legal/subscription/';
 
   /// 后端识别用的数字 App Store ID（已在 al.asmyapp.com 白名单注册）。
   /// 作为请求头 `appId` 发送，服务端据此校验来源 app。

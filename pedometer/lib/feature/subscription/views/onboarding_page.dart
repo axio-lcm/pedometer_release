@@ -272,10 +272,7 @@ class _SubscriptionOnboardingBody extends StatelessWidget {
                   ],
                   _PremiumTrialButton(text: buttonText, onTap: controller.next),
                   SizedBox(height: 18.h),
-                  _LegalLinks(
-                    onRestore: controller.restore,
-                    onManage: controller.manageSubscriptions,
-                  ),
+                  _LegalLinks(onRestore: controller.restore),
                 ],
               ),
             ),
@@ -477,9 +474,8 @@ class _OnboardingWeeklyPlanTile extends StatelessWidget {
 
 class _LegalLinks extends StatelessWidget {
   final VoidCallback onRestore;
-  final VoidCallback onManage;
 
-  const _LegalLinks({required this.onRestore, required this.onManage});
+  const _LegalLinks({required this.onRestore});
 
   @override
   Widget build(BuildContext context) {
@@ -510,7 +506,10 @@ class _LegalLinks extends StatelessWidget {
           const TextSpan(text: '  |  '),
           TextSpan(
             text: lt('Subscribe', '订阅'),
-            recognizer: TapGestureRecognizer()..onTap = onManage,
+            recognizer: TapGestureRecognizer()
+              ..onTap = () => LegalNavigation.openSubscriptionTerms<void>(
+                title: lt('Subscribe', '订阅'),
+              ),
           ),
           const TextSpan(text: '  |  '),
           TextSpan(

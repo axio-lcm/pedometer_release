@@ -12,6 +12,10 @@ abstract final class LegalNavigation {
     return _open<T>(title: title, url: Constants.userAgreementUrl);
   }
 
+  static Future<T?> openSubscriptionTerms<T>({required String title}) {
+    return _open<T>(title: title, url: Constants.subscriptionTermsUrl);
+  }
+
   static Future<T?> _open<T>({required String title, required String url}) {
     return Get.toNamed<T>(
           LegalWebPage.routeName,
