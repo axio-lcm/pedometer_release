@@ -30,5 +30,22 @@ void main() {
 
       expect(smoothed, route);
     });
+
+    test('removes lateral GPS jitter from straight routes', () {
+      const route = [
+        LatLng(31.230000, 121.4700),
+        LatLng(31.230070, 121.4701),
+        LatLng(31.229940, 121.4702),
+        LatLng(31.230080, 121.4703),
+        LatLng(31.229930, 121.4704),
+        LatLng(31.230000, 121.4705),
+      ];
+
+      final smoothed = WorkoutRoutePolylinePolicy.smoothForDisplay(route);
+
+      expect(smoothed.length, lessThan(route.length));
+      expect(smoothed.first, route.first);
+      expect(smoothed.last, route.last);
+    });
   });
 }

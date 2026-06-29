@@ -22,12 +22,14 @@ void main() {
         const LatLng(0, 0.001),
       );
       expect(controller.distanceMeters.value, 0);
+      expect(controller.pathPoints, [const LatLng(0, 0)]);
 
       controller.onFix(
         _position(0, 0.01, start.add(const Duration(seconds: 61)), accuracy: 5),
         const LatLng(0, 0.01),
       );
       expect(controller.distanceMeters.value, 0);
+      expect(controller.pathPoints, [const LatLng(0, 0)]);
 
       controller.onFix(
         _position(

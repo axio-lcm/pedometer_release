@@ -546,8 +546,8 @@ class _WorkoutMapViewState extends State<WorkoutMapView>
 
     if (isStable || isFirstFix) {
       unawaited(_moveCamera(latLng, immediate: isFirstFix));
+      _controller.onFix(position, latLng);
     }
-    _controller.onFix(position, latLng);
   }
 
   Future<void> _moveCamera(LatLng target, {bool immediate = false}) async {

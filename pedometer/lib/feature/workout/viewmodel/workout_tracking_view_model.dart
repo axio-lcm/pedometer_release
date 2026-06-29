@@ -29,6 +29,7 @@ class WorkoutTrackingViewModel extends GetxController
     this.minMoveMeters = 2.5,
     this.minRoutePointMeters = 1.5,
     this.maxMetricAccuracyMeters = 35,
+    this.maxRouteAccuracyMeters = 35,
     this.maxMetricSpeedKmh = 30,
   }) : _caloriePolicy = caloriePolicy ?? const WorkoutCaloriePolicy(),
        _pacePolicy = pacePolicy ?? WorkoutPacePolicy();
@@ -51,6 +52,9 @@ class WorkoutTrackingViewModel extends GetxController
 
   /// 只有精度足够的 GPS 点才参与距离 / 配速 / 卡路里计算，避免弱信号漂移放大运动量。
   final double maxMetricAccuracyMeters;
+
+  /// 只有精度足够的 GPS 点才进入可视轨迹；当前位置 marker 仍可显示较弱信号。
+  final double maxRouteAccuracyMeters;
 
   /// 跑步 / 健走 / 徒步场景的异常速度上限；超过时认为该 GPS 段不可信。
   final double maxMetricSpeedKmh;
@@ -128,13 +132,13 @@ class WorkoutTrackingViewModel extends GetxController
     endPoint.value = null;
     _pacePolicy.reset();
     _lastRaw = _usableMetricRawOrNull(_currentRaw);
-    _lastRouteRaw = _currentRaw;
+    _lastRouteRaw = _usableRouteRawOrNull(_currentRaw);
     _lastSpeedKmh = 0;
     _lastSpeedUpdatedAt = null;
     _lastMotionPaceAt = null;
     _routeHistorySaved = false;
 
-    final pos = currentPosition.value;
+    final pos = _lastRouteRaw == null ? null : currentPosition.value;
     startPoint.value = pos;
     if (pos != null) pathPoints.add(pos);
 
@@ -446,14 +450,15 @@ class WorkoutTrackingViewModel extends GetxController
     currentPosition.value = display;
 
     if (!_isMetricFixUsable(raw)) {
-      _appendVisibleRoutePointIfNeeded(raw, display);
       return;
     }
 
     final last = _lastRaw;
     if (last == null) {
       _lastRaw = raw;
-      if (status.value == WorkoutStatus.running && pathPoints.isEmpty) {
+      if (status.value == WorkoutStatus.running &&
+          pathPoints.isEmpty &&
+          _isRouteFixUsable(raw)) {
         startPoint.value ??= display;
         pathPoints.add(display);
         _lastRouteRaw = raw;
@@ -473,7 +478,6 @@ class WorkoutTrackingViewModel extends GetxController
       raw.timestamp,
     );
     if (segmentSpeedKmh <= 0 || segmentSpeedKmh > maxMetricSpeedKmh) {
-      _appendVisibleRoutePointIfNeeded(raw, display);
       return;
     }
 
@@ -507,6 +511,7 @@ class WorkoutTrackingViewModel extends GetxController
 
   void _appendVisibleRoutePointIfNeeded(Position raw, LatLng display) {
     if (status.value != WorkoutStatus.running) return;
+    if (!_isRouteFixUsable(raw)) return;
 
     final lastRoute = _lastRouteRaw;
     if (lastRoute == null) {
@@ -525,6 +530,7 @@ class WorkoutTrackingViewModel extends GetxController
   }
 
   void _appendRoutePoint(Position raw, LatLng display) {
+    if (!_isRouteFixUsable(raw)) return;
     if (pathPoints.isEmpty) {
       startPoint.value ??= display;
     }
@@ -547,8 +553,20 @@ class WorkoutTrackingViewModel extends GetxController
         accuracy <= maxMetricAccuracyMeters;
   }
 
+  bool _isRouteFixUsable(Position raw) {
+    final accuracy = raw.accuracy;
+    return accuracy.isFinite &&
+        accuracy > 0 &&
+        accuracy <= maxRouteAccuracyMeters;
+  }
+
   Position? _usableMetricRawOrNull(Position? raw) {
     if (raw == null || !_isMetricFixUsable(raw)) return null;
+    return raw;
+  }
+
+  Position? _usableRouteRawOrNull(Position? raw) {
+    if (raw == null || !_isRouteFixUsable(raw)) return null;
     return raw;
   }
 
@@ -577,11 +595,8 @@ class WorkoutTrackingViewModel extends GetxController
   /// 室内运动无 GPS，距离 / 步数改用计步器（CMPedometer）按会话基线增量累积。
   void _startMotionStepIfNeeded() {
     if (defaultTargetPlatform != TargetPlatform.iOS) return;
-    _motionStepSubscription ??=
-        MotionFitnessPermissionService.todayStepStream().listen(
-          _onMotionStep,
-          onError: (_) {},
-        );
+    _motionStepSubscription ??= MotionFitnessPermissionService.todayStepStream()
+        .listen(_onMotionStep, onError: (_) {});
   }
 
   void _onMotionStep(MotionFitnessSample sample) {
