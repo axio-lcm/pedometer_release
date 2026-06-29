@@ -170,10 +170,16 @@ class SubscriptionService extends GetxService {
     if (!Platform.isIOS) return;
     _source = source;
     await initInAppPurchase();
+    // 复用购买流程的 loading 动画（普通样式，无试用）。
+    unawaited(PurchaseLoading.show(type: 1));
     try {
       await _purchaser.restorePurchases();
+      // 恢复完成后立即同步会员状态，确保调用方读到的 isVip 为最新值。
+      await syncSubscriptionStatus();
     } catch (e, st) {
       debugPrint('[SubscriptionService] restore failed: $e\n$st');
+    } finally {
+      Future.delayed(const Duration(milliseconds: 500), PurchaseLoading.dismiss);
     }
   }
 
