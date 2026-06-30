@@ -47,6 +47,8 @@
 	<string>用于在户外运动期间持续记录路线、距离和当前位置，即使屏幕锁定也能保持运动轨迹准确。</string>
 	<key>NSMotionUsageDescription</key>
 	<string>用于读取设备步数、距离和活动数据，并展示在运动统计中。</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>仅在你主动选择本地媒体文件时使用，用于导入运动音乐。未经你选择，我们不会访问你的照片资料库。</string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>

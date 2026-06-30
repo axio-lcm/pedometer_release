@@ -3,5 +3,6 @@
 "NSLocationWhenInUseUsageDescription" = "屋外で現在地を表示し、ワークアウトのルートを記録するために使用します。";
 "NSLocationAlwaysAndWhenInUseUsageDescription" = "屋外ワークアウト中に、画面がロックされていてもルート、距離、現在地の記録を継続するために使用します。";
 "NSMotionUsageDescription" = "デバイスの歩数、距離、アクティビティデータを読み取り、ワークアウト統計に表示するために使用します。";
+"NSPhotoLibraryUsageDescription" = "ワークアウト用音楽を読み込むため、ローカルのメディアファイルを選択した場合にのみ使用します。ファイルを選択しない限り、写真ライブラリにはアクセスしません。";
 "WorkoutPreciseLocation" = "屋外マップで正確な現在地を表示するには、正確な位置情報が必要です。";
 "NSHealthUpdateUsageDescription" = "あなたが許可した場合にのみ、ワークアウトの記録を「ヘルスケア」Appに書き込むために使用します。";

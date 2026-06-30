@@ -3,5 +3,6 @@
 "NSLocationWhenInUseUsageDescription" = "Dùng để hiển thị vị trí hiện tại ngoài trời và ghi lại lộ trình tập luyện.";
 "NSLocationAlwaysAndWhenInUseUsageDescription" = "Dùng để tiếp tục ghi lại lộ trình, quãng đường và vị trí hiện tại trong lúc tập luyện ngoài trời, ngay cả khi màn hình bị khóa.";
 "NSMotionUsageDescription" = "Dùng để đọc số bước, quãng đường và dữ liệu hoạt động của thiết bị, rồi hiển thị trong thống kê tập luyện.";
+"NSPhotoLibraryUsageDescription" = "Chỉ dùng khi bạn chọn tệp phương tiện cục bộ để nhập nhạc tập luyện. Chúng tôi không truy cập thư viện ảnh trừ khi bạn chọn tệp.";
 "WorkoutPreciseLocation" = "Cần vị trí chính xác để hiển thị đúng vị trí hiện tại của bạn trên bản đồ ngoài trời.";
 "NSHealthUpdateUsageDescription" = "Dùng để ghi dữ liệu tập luyện của bạn vào ứng dụng Sức khỏe, chỉ khi bạn cho phép.";

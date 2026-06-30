@@ -3,5 +3,6 @@
 "NSLocationWhenInUseUsageDescription" = "Usato per mostrare la posizione attuale all’aperto e registrare i percorsi di allenamento.";
 "NSLocationAlwaysAndWhenInUseUsageDescription" = "Usato per continuare a registrare percorsi, distanza e posizione attuale durante un allenamento all’aperto, anche quando lo schermo è bloccato.";
 "NSMotionUsageDescription" = "Usato per leggere passi, distanza e dati attività del dispositivo e mostrarli nelle statistiche di allenamento.";
+"NSPhotoLibraryUsageDescription" = "Usato solo quando scegli file multimediali locali per importare musica per l’allenamento. Non accediamo alla tua libreria foto se non selezioni un file.";
 "WorkoutPreciseLocation" = "La posizione precisa è necessaria per mostrare la tua posizione esatta sulle mappe all’aperto.";
 "NSHealthUpdateUsageDescription" = "Usato per scrivere i tuoi allenamenti nell'app Salute, solo quando concedi l'autorizzazione.";
