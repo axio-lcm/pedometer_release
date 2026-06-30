@@ -1155,8 +1155,8 @@ class WorkoutControlPanel extends StatelessWidget {
             data.status == WorkoutStatus.paused);
     final hintText = switch (data.status) {
       WorkoutStatus.ready => WorkoutResource.trackingStartHint,
-      WorkoutStatus.running => data.endHint,
-      WorkoutStatus.paused => data.endHint,
+      WorkoutStatus.running => WorkoutResource.trackingEndHint,
+      WorkoutStatus.paused => WorkoutResource.trackingEndHint,
       WorkoutStatus.ended => null,
     };
     return SizedBox(

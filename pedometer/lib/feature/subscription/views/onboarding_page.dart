@@ -10,6 +10,7 @@ import 'package:pedometer/common/config/localized_text.dart';
 import 'package:pedometer/feature/legal/legal_navigation.dart';
 import 'package:pedometer/feature/subscription/components/free_trial_switch_intro_overlay.dart';
 import 'package:pedometer/feature/subscription/model/subscription_assets.dart';
+import 'package:pedometer/feature/subscription/resources/subscription_resource.dart';
 import 'package:pedometer/feature/subscription/viewmodel/onboarding_view_model.dart';
 
 class OnboardingPage extends GetView<OnboardingViewModel> {
@@ -543,11 +544,11 @@ class _PremiumTitle extends StatelessWidget {
         children: [
           Transform.translate(
             offset: Offset(-30.w, 0),
-            child: Text(lt('Upgrade', 'Upgrade'), style: style),
+            child: Text(SubscriptionResource.upgrade, style: style),
           ),
           Padding(
             padding: EdgeInsets.only(left: 16.w),
-            child: Text(lt('Premium', 'Premium'), style: style),
+            child: Text(SubscriptionResource.premium, style: style),
           ),
         ],
       ),
