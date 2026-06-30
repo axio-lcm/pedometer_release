@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -28,7 +27,6 @@ class _WorkoutTrackingPageState extends State<WorkoutTrackingPage> {
   WorkoutTrackingViewModel get controller =>
       Get.find<WorkoutTrackingViewModel>();
 
-  final _mapSectionKey = GlobalKey<WorkoutMapSectionState>();
   bool _showMoreMenu = false;
   bool _controlsLocked = false;
   bool _finishingWorkout = false;
@@ -76,7 +74,6 @@ class _WorkoutTrackingPageState extends State<WorkoutTrackingPage> {
                       child: Column(
                         children: [
                           WorkoutMapSection(
-                            key: _mapSectionKey,
                             data: controller.template,
                             controller: controller,
                             showMoreMenu: _showMoreMenu,
@@ -283,24 +280,12 @@ class _WorkoutTrackingPageState extends State<WorkoutTrackingPage> {
   Future<void> _finishWorkout() async {
     _finishingWorkout = true;
     controller.end();
-    await Future<void>.delayed(const Duration(milliseconds: 120));
-    await _mapSectionKey.currentState?.prepareSnapshot();
-    await Future<void>.delayed(const Duration(milliseconds: 520));
-    final snapshot = await _takeMapSnapshot();
-    controller.saveRouteHistory(mapSnapshot: snapshot);
+    controller.saveRouteHistory();
     if (!mounted) return;
     Get.offNamed(
       ExerciseResultPage.routeName,
       arguments: controller.toResultData(),
     );
-  }
-
-  Future<Uint8List?> _takeMapSnapshot() async {
-    try {
-      return await _mapSectionKey.currentState?.takeSnapshot();
-    } catch (_) {
-      return null;
-    }
   }
 }
 

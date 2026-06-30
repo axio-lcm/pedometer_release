@@ -1,5 +1,5 @@
-import 'dart:typed_data';
-
+import 'package:flutter/foundation.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
@@ -8,7 +8,10 @@ import 'package:pedometer/common/component/asset_metric_icon.dart';
 import 'package:pedometer/common/component/glass_card.dart';
 import 'package:pedometer/common/config/app_colors.dart';
 import 'package:pedometer/common/config/app_dimens.dart';
+import 'package:pedometer/feature/workout/model/workout_map_render_policy.dart';
+import 'package:pedometer/feature/workout/model/workout_map_style.dart';
 import 'package:pedometer/feature/workout/model/workout_model.dart';
+import 'package:pedometer/feature/workout/model/workout_route_polyline_policy.dart';
 import 'package:pedometer/feature/workout/resources/workout_resource.dart';
 
 class WorkoutRouteHistoryPage extends StatelessWidget {
@@ -77,7 +80,6 @@ class _RouteHistoryContent extends StatelessWidget {
           pace: record?.averagePace ?? "--'--''",
           startPoint: record?.startPoint,
           endPoint: record?.endPoint,
-          mapSnapshot: record?.mapSnapshot,
         ),
       ],
     );
@@ -92,7 +94,6 @@ class _CurrentRouteCard extends StatelessWidget {
   final String pace;
   final LatLng? startPoint;
   final LatLng? endPoint;
-  final Uint8List? mapSnapshot;
 
   const _CurrentRouteCard({
     required this.title,
@@ -102,13 +103,16 @@ class _CurrentRouteCard extends StatelessWidget {
     required this.pace,
     required this.startPoint,
     required this.endPoint,
-    required this.mapSnapshot,
   });
 
   @override
   Widget build(BuildContext context) {
-    final hasSnapshot = mapSnapshot != null;
     final workoutType = _workoutTypeFor(title);
+    final routePoints = _normalizeRoutePoints(
+      points: points,
+      startPoint: startPoint,
+      endPoint: endPoint,
+    );
     return GlassCard(
       radius: AppRadius.xl,
       padding: EdgeInsets.all(AppSpacing.lg),
@@ -144,8 +148,8 @@ class _CurrentRouteCard extends StatelessWidget {
               ),
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(AppRadius.lg),
-                child: hasSnapshot
-                    ? Image.memory(mapSnapshot!, fit: BoxFit.cover)
+                child: routePoints.isNotEmpty
+                    ? _SavedRouteMapView(points: routePoints)
                     : _RouteEmptyState(),
               ),
             ),
@@ -184,6 +188,30 @@ class _CurrentRouteCard extends StatelessWidget {
       (type) => type.title == title,
       orElse: () => WorkoutPageData.mock.workoutTypes.first,
     );
+  }
+
+  List<LatLng> _normalizeRoutePoints({
+    required List<LatLng> points,
+    required LatLng? startPoint,
+    required LatLng? endPoint,
+  }) {
+    final route = <LatLng>[];
+    if (startPoint != null) _appendIfDistinct(route, startPoint);
+    for (final point in points) {
+      _appendIfDistinct(route, point);
+    }
+    if (endPoint != null) _appendIfDistinct(route, endPoint);
+    return List<LatLng>.unmodifiable(route);
+  }
+
+  void _appendIfDistinct(List<LatLng> points, LatLng point) {
+    if (points.isEmpty || !_samePoint(points.last, point)) {
+      points.add(point);
+    }
+  }
+
+  bool _samePoint(LatLng a, LatLng b) {
+    return a.latitude == b.latitude && a.longitude == b.longitude;
   }
 }
 
@@ -225,6 +253,163 @@ class _RouteEmptyState extends StatelessWidget {
         style: TextStyle(color: AppColors.textSecondary, fontSize: 14),
       ),
     );
+  }
+}
+
+class _SavedRouteMapView extends StatefulWidget {
+  final List<LatLng> points;
+
+  const _SavedRouteMapView({required this.points});
+
+  @override
+  State<_SavedRouteMapView> createState() => _SavedRouteMapViewState();
+}
+
+class _SavedRouteMapViewState extends State<_SavedRouteMapView> {
+  static const _defaultCameraPosition = CameraPosition(
+    target: LatLng(31.2304, 121.4737),
+    zoom: 15,
+  );
+
+  GoogleMapController? _mapController;
+
+  bool get _isWidgetTest {
+    return WidgetsBinding.instance.runtimeType.toString().contains(
+      'TestWidgetsFlutterBinding',
+    );
+  }
+
+  @override
+  void didUpdateWidget(covariant _SavedRouteMapView oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (!_sameRoute(oldWidget.points, widget.points)) {
+      WidgetsBinding.instance.addPostFrameCallback((_) => _fitRoute());
+    }
+  }
+
+  @override
+  void dispose() {
+    _mapController?.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (!WorkoutMapRenderPolicy.canCreatePlatformMap(
+      isWidgetTest: _isWidgetTest,
+    )) {
+      return const _RouteMapFallback();
+    }
+
+    return GoogleMap(
+      style: WorkoutMapStyle.night,
+      initialCameraPosition: _initialCameraPosition(),
+      minMaxZoomPreference: const MinMaxZoomPreference(3, 20),
+      myLocationEnabled: false,
+      myLocationButtonEnabled: false,
+      markers: _markers,
+      polylines: WorkoutRoutePolylinePolicy.build(widget.points),
+      mapToolbarEnabled: false,
+      zoomControlsEnabled: false,
+      compassEnabled: false,
+      zoomGesturesEnabled: true,
+      scrollGesturesEnabled: true,
+      rotateGesturesEnabled: true,
+      tiltGesturesEnabled: false,
+      gestureRecognizers: {
+        Factory<OneSequenceGestureRecognizer>(() => EagerGestureRecognizer()),
+      },
+      onMapCreated: (controller) {
+        _mapController = controller;
+        WidgetsBinding.instance.addPostFrameCallback((_) => _fitRoute());
+      },
+    );
+  }
+
+  CameraPosition _initialCameraPosition() {
+    if (widget.points.isEmpty) return _defaultCameraPosition;
+    return CameraPosition(target: widget.points.first, zoom: 15);
+  }
+
+  Set<Marker> get _markers {
+    if (widget.points.isEmpty) return const {};
+    final start = widget.points.first;
+    final end = widget.points.last;
+    return {
+      Marker(
+        markerId: const MarkerId('saved-route-start'),
+        position: start,
+        icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueGreen),
+        anchor: const Offset(0.5, 1),
+      ),
+      if (!_samePoint(start, end))
+        Marker(
+          markerId: const MarkerId('saved-route-end'),
+          position: end,
+          icon: BitmapDescriptor.defaultMarkerWithHue(
+            BitmapDescriptor.hueOrange,
+          ),
+          anchor: const Offset(0.5, 1),
+        ),
+    };
+  }
+
+  Future<void> _fitRoute() async {
+    final controller = _mapController;
+    if (controller == null || !mounted || widget.points.isEmpty) return;
+    try {
+      if (widget.points.length == 1) {
+        await controller.moveCamera(
+          CameraUpdate.newCameraPosition(
+            CameraPosition(target: widget.points.first, zoom: 15),
+          ),
+        );
+        return;
+      }
+      await controller.moveCamera(
+        CameraUpdate.newLatLngBounds(_boundsFor(widget.points), 48),
+      );
+    } catch (_) {
+      // Platform-map camera calls can fail during creation/disposal races.
+    }
+  }
+
+  LatLngBounds _boundsFor(List<LatLng> points) {
+    var minLat = points.first.latitude;
+    var maxLat = points.first.latitude;
+    var minLng = points.first.longitude;
+    var maxLng = points.first.longitude;
+    for (final point in points.skip(1)) {
+      if (point.latitude < minLat) minLat = point.latitude;
+      if (point.latitude > maxLat) maxLat = point.latitude;
+      if (point.longitude < minLng) minLng = point.longitude;
+      if (point.longitude > maxLng) maxLng = point.longitude;
+    }
+    return LatLngBounds(
+      southwest: LatLng(minLat, minLng),
+      northeast: LatLng(maxLat, maxLng),
+    );
+  }
+
+  bool _sameRoute(List<LatLng> a, List<LatLng> b) {
+    if (a.length != b.length) return false;
+    for (var i = 0; i < a.length; i++) {
+      if (!_samePoint(a[i], b[i])) return false;
+    }
+    return true;
+  }
+
+  bool _samePoint(LatLng a, LatLng b) {
+    return a.latitude == b.latitude && a.longitude == b.longitude;
+  }
+}
+
+class _RouteMapFallback extends StatelessWidget {
+  const _RouteMapFallback();
+
+  @override
+  Widget build(BuildContext context) {
+    return ColoredBox(color: AppColors.surfaceIcon.withValues(alpha: 0.44));
   }
 }
 
