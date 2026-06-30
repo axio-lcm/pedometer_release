@@ -1,3 +1,4 @@
+"NSUserTrackingUsageDescription" = "我們請求允許追蹤你在其他公司 App 和網站上的活動，以提供更好、更個人化的體驗。你可以隨時在系統設定中更改此權限。";
 "NSHealthShareUsageDescription" = "用於同步步數、距離、卡路里和活動時間，並顯示在首頁及日週月統計中。";
 "NSHealthUpdateUsageDescription" = "用於在取得授權後同步健康資料。";
 "NSLocationWhenInUseUsageDescription" = "用於在戶外時顯示目前位置並記錄運動路線。";

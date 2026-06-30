@@ -1,3 +1,4 @@
+"NSUserTrackingUsageDescription" = "Kami meminta izin untuk melacak aktivitas Anda di aplikasi dan situs web perusahaan lain agar dapat memberikan pengalaman yang lebih baik dan lebih personal. Anda dapat mengubah pengaturan ini kapan saja di pengaturan sistem.";
 "NSHealthShareUsageDescription" = "Digunakan untuk menyinkronkan langkah, jarak, kalori, dan waktu aktif, lalu menampilkannya di beranda serta statistik harian, mingguan, dan bulanan.";
 "NSHealthUpdateUsageDescription" = "Digunakan untuk menyinkronkan data kesehatan setelah kamu memberi izin.";
 "NSLocationWhenInUseUsageDescription" = "Digunakan untuk menampilkan lokasi saat ini di luar ruangan dan merekam rute olahraga.";

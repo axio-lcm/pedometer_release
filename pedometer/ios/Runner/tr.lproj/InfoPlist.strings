@@ -1,3 +1,4 @@
+"NSUserTrackingUsageDescription" = "Daha iyi ve daha kişiselleştirilmiş bir deneyim sunmak için diğer şirketlerin uygulamaları ve web sitelerindeki etkinliğinizi izleme izni istiyoruz. Bu ayarı istediğiniz zaman sistem ayarlarından değiştirebilirsiniz.";
 "NSHealthShareUsageDescription" = "Adımları, mesafeyi, kalorileri ve aktif süreyi eşitlemek; bunları ana ekranda ve günlük, haftalık, aylık istatistiklerde göstermek için kullanılır.";
 "NSHealthUpdateUsageDescription" = "İzin verdikten sonra sağlık verilerini eşitlemek için kullanılır.";
 "NSLocationWhenInUseUsageDescription" = "Dışarıda mevcut konumunu göstermek ve egzersiz rotalarını kaydetmek için kullanılır.";

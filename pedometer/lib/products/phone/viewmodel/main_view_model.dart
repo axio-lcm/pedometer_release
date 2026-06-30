@@ -1,5 +1,8 @@
+import 'dart:async';
+
 import 'package:get/get.dart';
 import 'package:pedometer/common/mvvm/ibase_view_model.dart';
+import 'package:pedometer/common/service/app_tracking_transparency_service.dart';
 
 /// 手机主容器 view model：底部导航选中态。
 class MainViewModel extends GetxController implements IBaseViewModel {
@@ -10,6 +13,12 @@ class MainViewModel extends GetxController implements IBaseViewModel {
 
   @override
   void init() {}
+
+  @override
+  void onReady() {
+    super.onReady();
+    unawaited(_requestTrackingAuthorizationAfterHomeShown());
+  }
 
   @override
   void unInit() {}
@@ -23,5 +32,10 @@ class MainViewModel extends GetxController implements IBaseViewModel {
   void selectTab(int index) {
     currentIndex.value = index;
     if (index == 0) homeRevealTick.value++;
+  }
+
+  Future<void> _requestTrackingAuthorizationAfterHomeShown() async {
+    await Future<void>.delayed(const Duration(milliseconds: 800));
+    await AppTrackingTransparencyService.requestAuthorizationIfNeeded();
   }
 }

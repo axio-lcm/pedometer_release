@@ -37,6 +37,8 @@ dependencies:
   google_maps_flutter: ^2.17.1
   # 高精度定位与运行时位置权限
   geolocator: ^14.0.2
+  # 统一运行时权限请求（ATT / 系统权限）
+  permission_handler: ^12.0.3
   # 设备磁力计罗盘朝向（当前位置箭头随手机方向旋转）
   flutter_compass: ^0.8.1
   # 本地健康数据同步：iOS Apple Health / Android Health Connect

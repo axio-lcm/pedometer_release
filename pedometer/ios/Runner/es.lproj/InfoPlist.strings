@@ -1,3 +1,4 @@
+"NSUserTrackingUsageDescription" = "Solicitamos permiso para rastrear tu actividad en apps y sitios web de otras empresas para ofrecerte una experiencia mejor y más personalizada. Puedes cambiar este ajuste en cualquier momento en los ajustes del sistema.";
 "NSHealthShareUsageDescription" = "Se usa para sincronizar pasos, distancia, calorías y tiempo activo, y mostrarlos en la pantalla principal y en estadísticas diarias, semanales y mensuales.";
 "NSHealthUpdateUsageDescription" = "Se usa para sincronizar datos de salud después de que concedas permiso.";
 "NSLocationWhenInUseUsageDescription" = "Se usa para mostrar tu ubicación actual al aire libre y registrar rutas de entrenamiento.";

@@ -1,3 +1,4 @@
+"NSUserTrackingUsageDescription" = "Chúng tôi xin quyền theo dõi hoạt động của bạn trên ứng dụng và trang web của các công ty khác để mang lại trải nghiệm tốt hơn và cá nhân hóa hơn. Bạn có thể thay đổi cài đặt này bất kỳ lúc nào trong cài đặt hệ thống.";
 "NSHealthShareUsageDescription" = "Dùng để đồng bộ số bước, quãng đường, calo và thời gian hoạt động, rồi hiển thị trên màn hình chính và thống kê ngày, tuần, tháng.";
 "NSHealthUpdateUsageDescription" = "Dùng để đồng bộ dữ liệu sức khỏe sau khi bạn cấp quyền.";
 "NSLocationWhenInUseUsageDescription" = "Dùng để hiển thị vị trí hiện tại ngoài trời và ghi lại lộ trình tập luyện.";

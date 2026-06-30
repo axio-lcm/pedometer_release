@@ -1,3 +1,4 @@
+"NSUserTrackingUsageDescription" = "より良く、よりパーソナライズされた体験を提供するため、他社のAppやWebサイトでのアクティビティを追跡する許可を求めます。この設定はいつでもシステム設定で変更できます。";
 "NSHealthShareUsageDescription" = "歩数、距離、カロリー、アクティブ時間を同期し、ホーム画面および日・週・月の統計に表示するために使用します。";
 "NSHealthUpdateUsageDescription" = "許可後にヘルスデータを同期するために使用します。";
 "NSLocationWhenInUseUsageDescription" = "屋外で現在地を表示し、ワークアウトのルートを記録するために使用します。";
