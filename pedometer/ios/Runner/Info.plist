@@ -34,6 +34,8 @@
 	<true/>
 	<key>NSHealthShareUsageDescription</key>
 	<string>用于同步步数、距离、卡路里和活动时间，并展示在首页及日周月统计中。</string>
+	<key>NSHealthUpdateUsageDescription</key>
+	<string>仅在你主动授权时，用于将运动记录同步写入「健康」App。</string>
 	<key>NSLocationTemporaryUsageDescriptionDictionary</key>
 	<dict>
 		<key>WorkoutPreciseLocation</key>

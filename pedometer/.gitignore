@@ -36,6 +36,8 @@ migrate_working_dir/
 
 # Symbolication related
 app.*.symbols
+# Generated obfuscation/symbol output (flutter build --split-debug-info)
+symbols/
 
 # Obfuscation related
 app.*.map.json

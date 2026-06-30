@@ -4,3 +4,4 @@
 "NSLocationAlwaysAndWhenInUseUsageDescription" = "Usado para continuar registrando rotas, distância e localização atual durante treinos ao ar livre, mesmo quando a tela está bloqueada.";
 "NSMotionUsageDescription" = "Usado para ler passos, distância e dados de atividade do dispositivo, e exibi-los nas estatísticas de treino.";
 "WorkoutPreciseLocation" = "A localização precisa é necessária para mostrar sua posição atual exata em mapas ao ar livre.";
+"NSHealthUpdateUsageDescription" = "Usado para gravar seus registros de treino no app Saúde, apenas quando você autoriza.";

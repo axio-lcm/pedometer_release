@@ -81,6 +81,11 @@ class WorkoutTrackingViewModel extends GetxController
   /// 是否为室内运动：室内无 GPS 地图，运动区域显示纯色背景且累积里程固定居中。
   final isIndoor = false.obs;
 
+  /// 定位放行信号：页面打开时为 false，地图只占位、不请求定位权限；
+  /// 用户点「开始」且系统授权通过后由页面置 true，驱动地图首次启动定位。
+  /// 这样把权限请求延后到用户表达运动意图之后（更低摩擦、更顺的合规叙事）。
+  final locationActivated = false.obs;
+
   /// 室内会话累计步数（来自计步器，按会话基线增量累积）。
   final steps = 0.obs;
 
@@ -112,6 +117,11 @@ class WorkoutTrackingViewModel extends GetxController
   ];
 
   // ---- 状态机 ----
+
+  /// 用户点「开始」且定位授权通过后调用：放行地图开始定位。
+  void activateLocation() {
+    if (!locationActivated.value) locationActivated.value = true;
+  }
 
   void start() {
     if (status.value == WorkoutStatus.running) return;

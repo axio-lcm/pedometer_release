@@ -4,3 +4,4 @@
 "NSLocationAlwaysAndWhenInUseUsageDescription" = "Açık hava egzersizi sırasında ekran kilitli olsa bile rota, mesafe ve mevcut konumu kaydetmeye devam etmek için kullanılır.";
 "NSMotionUsageDescription" = "Cihaz adımlarını, mesafeyi ve aktivite verilerini okuyup egzersiz istatistiklerinde göstermek için kullanılır.";
 "WorkoutPreciseLocation" = "Dış mekan haritalarında mevcut konumunu doğru göstermek için hassas konum gerekir.";
+"NSHealthUpdateUsageDescription" = "Yalnızca izin verdiğinizde, antrenman kayıtlarınızı Sağlık uygulamasına yazmak için kullanılır.";

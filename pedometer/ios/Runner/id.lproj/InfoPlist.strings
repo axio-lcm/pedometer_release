@@ -4,3 +4,4 @@
 "NSLocationAlwaysAndWhenInUseUsageDescription" = "Digunakan untuk terus merekam rute, jarak, dan lokasi saat ini selama olahraga luar ruangan, bahkan saat layar terkunci.";
 "NSMotionUsageDescription" = "Digunakan untuk membaca langkah, jarak, dan data aktivitas perangkat, lalu menampilkannya dalam statistik olahraga.";
 "WorkoutPreciseLocation" = "Lokasi akurat diperlukan untuk menampilkan posisi saat ini secara tepat di peta luar ruangan.";
+"NSHealthUpdateUsageDescription" = "Digunakan untuk menulis catatan latihan Anda ke aplikasi Kesehatan, hanya saat Anda mengizinkan.";

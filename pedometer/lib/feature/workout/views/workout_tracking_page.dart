@@ -33,7 +33,6 @@ class _WorkoutTrackingPageState extends State<WorkoutTrackingPage> {
   bool _controlsLocked = false;
   bool _finishingWorkout = false;
   bool _preparingWorkoutStart = false;
-  bool _backgroundLocationIntroShown = false;
   String? _countdownLabel;
   int _countdownStep = 0;
   Timer? _countdownTimer;
@@ -170,16 +169,22 @@ class _WorkoutTrackingPageState extends State<WorkoutTrackingPage> {
   Future<void> _prepareStartWorkout() async {
     _preparingWorkoutStart = true;
     try {
-      if (!controller.isIndoor.value && !_backgroundLocationIntroShown) {
-        await _refreshCurrentLanguageResources();
+      // 仅当户外且系统授权框「这一次确实会弹出」时，才先展示后台定位用途说明，
+      // 让前置说明紧贴系统弹窗之前出现一次；已授权后两者都不再打扰。
+      if (!controller.isIndoor.value) {
+        final willPrompt =
+            await WorkoutLocationService().willPromptSystemAuthorization();
         if (!mounted) return;
-        final confirmed = await Get.dialog<bool>(
-          const _BackgroundLocationIntroDialog(),
-          barrierDismissible: false,
-          barrierColor: Colors.black.withValues(alpha: 0.55),
-        );
-        if (!mounted || confirmed != true) return;
-        _backgroundLocationIntroShown = true;
+        if (willPrompt) {
+          await _refreshCurrentLanguageResources();
+          if (!mounted) return;
+          final confirmed = await Get.dialog<bool>(
+            const _BackgroundLocationIntroDialog(),
+            barrierDismissible: false,
+            barrierColor: Colors.black.withValues(alpha: 0.55),
+          );
+          if (!mounted || confirmed != true) return;
+        }
       }
       await _checkPermissionAndStart();
     } finally {
@@ -200,6 +205,8 @@ class _WorkoutTrackingPageState extends State<WorkoutTrackingPage> {
     final auth = await WorkoutLocationService().ensureAuthorized();
     if (!mounted) return;
     if (auth == WorkoutLocationAuth.authorized) {
+      // 授权通过后才放行地图定位（页面打开时地图不请求权限、只占位）。
+      controller.activateLocation();
       _startCountdown();
       return;
     }

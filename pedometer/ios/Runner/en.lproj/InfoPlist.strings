@@ -4,3 +4,4 @@
 "NSLocationAlwaysAndWhenInUseUsageDescription" = "Used to keep recording outdoor workout routes, distance, and current location during a workout, even when the screen is locked.";
 "NSMotionUsageDescription" = "Used to read device steps, distance, and activity data, and show them in workout stats.";
 "WorkoutPreciseLocation" = "Precise location is needed to show your accurate current position on outdoor maps.";
+"NSHealthUpdateUsageDescription" = "Used to write your workout records to the Health app, only when you grant permission.";

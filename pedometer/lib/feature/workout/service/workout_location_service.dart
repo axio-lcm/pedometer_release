@@ -16,6 +16,18 @@ class WorkoutLocationService {
 
   final TargetPlatform platform;
 
+  /// 下一次 [ensureAuthorized] 是否会真正弹出系统定位授权框。
+  ///
+  /// 仅当「定位服务已开 且 权限尚未决定（denied）」时为 true。已授权 /
+  /// 永久拒绝 / 服务未开都不会再弹系统框，调用方据此决定是否展示前置用途说明，
+  /// 避免在已授权后仍反复弹自定义说明弹窗。
+  Future<bool> willPromptSystemAuthorization() async {
+    final serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!serviceEnabled) return false;
+    final permission = await Geolocator.checkPermission();
+    return permission == LocationPermission.denied;
+  }
+
   Future<WorkoutLocationAuth> ensureAuthorized() async {
     final serviceEnabled = await Geolocator.isLocationServiceEnabled();
     if (!serviceEnabled) return WorkoutLocationAuth.serviceDisabled;

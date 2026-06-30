@@ -259,6 +259,7 @@ class _WorkoutMapViewState extends State<WorkoutMapView>
   StreamSubscription<Position>? _positionSubscription;
   StreamSubscription<double>? _compassSubscription;
   Worker? _statusWorker;
+  Worker? _locationActivationWorker;
   BitmapDescriptor? _currentLocationMarkerIcon;
   LatLng? _currentPosition;
   double _currentZoom = WorkoutMapZoomPolicy.defaultZoom;
@@ -284,11 +285,21 @@ class _WorkoutMapViewState extends State<WorkoutMapView>
         _controller.status,
         _handleWorkoutStatusChanged,
       );
+      // 定位延后到用户点「开始」授权后再启动：页面打开时不请求定位权限，
+      // 仅当 locationActivated 置 true 时才首次准备定位。
+      _locationActivationWorker = ever<bool>(_controller.locationActivated, (
+        activated,
+      ) {
+        if (activated) unawaited(_prepareLocation());
+      });
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (!mounted) return;
         unawaited(_loadCurrentLocationMarkerIcon());
-        unawaited(_prepareLocation());
         _startCompass();
+        // 返回页面时若已处于已授权的运动流程，直接恢复定位。
+        if (_controller.locationActivated.value) {
+          unawaited(_prepareLocation());
+        }
       });
     }
   }
@@ -324,6 +335,7 @@ class _WorkoutMapViewState extends State<WorkoutMapView>
     _positionSubscription?.cancel();
     _compassSubscription?.cancel();
     _statusWorker?.dispose();
+    _locationActivationWorker?.dispose();
     _mapController?.dispose();
     super.dispose();
   }
@@ -331,7 +343,10 @@ class _WorkoutMapViewState extends State<WorkoutMapView>
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     // 用户去系统设置开启权限/定位服务后回到前台，自动重新检查并恢复定位。
+    // 仅在已进入运动定位流程（点过开始并放行）后才自动重试，
+    // 避免页面打开即在前后台切换时请求定位权限。
     if (state == AppLifecycleState.resumed &&
+        _controller.locationActivated.value &&
         _locationAuth != WorkoutLocationAuth.authorized) {
       unawaited(_prepareLocation());
     }
@@ -430,7 +445,12 @@ class _WorkoutMapViewState extends State<WorkoutMapView>
   }
 
   void _handleWorkoutStatusChanged(WorkoutStatus status) {
-    if (!_locationAuthorized || !mounted) return;
+    if (!mounted) return;
+    if (!_locationAuthorized) {
+      // 兜底：已点开始放行但定位尚未就绪时，补一次准备。
+      if (_controller.locationActivated.value) unawaited(_prepareLocation());
+      return;
+    }
     _syncPositionStreamWithStatus(status);
     if (_usesTrackingLocationSettings(status)) {
       unawaited(_requestPreciseLocationIfNeeded());

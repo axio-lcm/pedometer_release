@@ -4,3 +4,4 @@
 "NSLocationAlwaysAndWhenInUseUsageDescription" = "用于在户外运动期间持续记录路线、距离和当前位置，即使屏幕锁定也能保持运动轨迹准确。";
 "NSMotionUsageDescription" = "用于读取设备步数、距离和活动数据，并展示在运动统计中。";
 "WorkoutPreciseLocation" = "需要精确位置来在户外地图中显示准确当前位置。";
+"NSHealthUpdateUsageDescription" = "仅在你主动授权时，用于将运动记录同步写入「健康」App。";
