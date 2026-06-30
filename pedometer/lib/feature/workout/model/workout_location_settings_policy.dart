@@ -40,8 +40,8 @@ class WorkoutLocationSettingsPolicy {
           accuracy: LocationAccuracy.bestForNavigation,
           distanceFilter: 1,
           pauseLocationUpdatesAutomatically: false,
-          allowBackgroundLocationUpdates: false,
-          showBackgroundLocationIndicator: false,
+          allowBackgroundLocationUpdates: true,
+          showBackgroundLocationIndicator: true,
         );
       case TargetPlatform.android:
         return AndroidSettings(
@@ -101,8 +101,8 @@ class WorkoutLocationSettingsPolicy {
           timeLimit: WorkoutLocationStartupPolicy.currentFixTimeout,
           pauseLocationUpdatesAutomatically:
               base.pauseLocationUpdatesAutomatically,
-          allowBackgroundLocationUpdates: false,
-          showBackgroundLocationIndicator: false,
+          allowBackgroundLocationUpdates: base.allowBackgroundLocationUpdates,
+          showBackgroundLocationIndicator: base.showBackgroundLocationIndicator,
         );
       case AndroidSettings():
         return AndroidSettings(

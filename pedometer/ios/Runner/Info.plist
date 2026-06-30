@@ -4,6 +4,8 @@
 <dict>
 	<key>CADisableMinimumFrameDurationOnPhone</key>
 	<true/>
+    <key>NSUserTrackingUsageDescription</key>
+        <string>We request permission to track your activity to provide a better, more personalized experience. You can change this setting at any time in system settings.</string>
     <key>ITSAppUsesNonExemptEncryption</key>
     <false/>
 	<key>CFBundleDevelopmentRegion</key>
@@ -70,6 +72,10 @@
 	</dict>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>location</string>
+	</array>
 	<key>UILaunchStoryboardName</key>
 	<string>LaunchScreen</string>
 	<key>UIMainStoryboardFile</key>

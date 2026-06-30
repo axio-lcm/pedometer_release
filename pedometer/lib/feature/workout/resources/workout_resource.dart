@@ -78,20 +78,16 @@ class WorkoutResource {
       _string('badge_desc_time_master', WorkoutText.badgeDescTimeMaster);
   static String get badgeDesc200Km =>
       _string('badge_desc_200km', WorkoutText.badgeDesc200Km);
-  static String get badgeDescCalorieMaster => _string(
-    'badge_desc_calorie_master',
-    WorkoutText.badgeDescCalorieMaster,
-  );
+  static String get badgeDescCalorieMaster =>
+      _string('badge_desc_calorie_master', WorkoutText.badgeDescCalorieMaster);
   static String get badgeDescPeakClimber =>
       _string('badge_desc_peak_climber', WorkoutText.badgeDescPeakClimber);
   static String get badgeDescAdvancedRunner => _string(
     'badge_desc_advanced_runner',
     WorkoutText.badgeDescAdvancedRunner,
   );
-  static String get badgeDescWeeklyCheckin => _string(
-    'badge_desc_weekly_checkin',
-    WorkoutText.badgeDescWeeklyCheckin,
-  );
+  static String get badgeDescWeeklyCheckin =>
+      _string('badge_desc_weekly_checkin', WorkoutText.badgeDescWeeklyCheckin);
   static String get badgeDescMonthlyStar =>
       _string('badge_desc_monthly_star', WorkoutText.badgeDescMonthlyStar);
   static String get badgeDescStepsMaster =>
@@ -216,10 +212,8 @@ class WorkoutResource {
       _string('music_list_title', WorkoutText.musicListTitle);
   static String get musicListEmpty =>
       _string('music_list_empty', WorkoutText.musicListEmpty);
-  static String get locationPermissionTitle => _string(
-    'location_permission_title',
-    WorkoutText.locationPermissionTitle,
-  );
+  static String get locationPermissionTitle =>
+      _string('location_permission_title', WorkoutText.locationPermissionTitle);
   static String get locationServiceDisabledMessage => _string(
     'location_service_disabled_msg',
     WorkoutText.locationServiceDisabledMessage,
@@ -240,11 +234,25 @@ class WorkoutResource {
   );
   static String get locationRetryAction =>
       _string('location_retry_action', WorkoutText.locationRetryAction);
-  static String get locationPermissionCancel =>
-      _string('location_permission_cancel', WorkoutText.locationPermissionCancel);
+  static String get locationPermissionCancel => _string(
+    'location_permission_cancel',
+    WorkoutText.locationPermissionCancel,
+  );
   static String get locationPermissionGoSettings => _string(
     'location_permission_go_settings',
     WorkoutText.locationPermissionGoSettings,
+  );
+  static String get backgroundLocationIntroTitle => _string(
+    'background_location_intro_title',
+    WorkoutText.backgroundLocationIntroTitle,
+  );
+  static String get backgroundLocationIntroMessage => _string(
+    'background_location_intro_msg',
+    WorkoutText.backgroundLocationIntroMessage,
+  );
+  static String get backgroundLocationIntroContinue => _string(
+    'background_location_intro_continue',
+    WorkoutText.backgroundLocationIntroContinue,
   );
 
   static String trackingTarget(String value) {
@@ -399,8 +407,12 @@ class WorkoutText {
   static const locationOpenServiceAction = 'Turn on Location';
   static const locationOpenSettingsAction = 'Open Settings';
   static const locationRetryAction = 'Retry';
-  static const locationPermissionCancel = '取消';
-  static const locationPermissionGoSettings = '去设置';
+  static const locationPermissionCancel = 'Cancel';
+  static const locationPermissionGoSettings = 'Open Settings';
+  static const backgroundLocationIntroTitle = 'Allow background location';
+  static const backgroundLocationIntroMessage =
+      'After an outdoor workout starts, we keep recording your route, distance, and current location even when the screen is locked or the app is in the background. Location is used only for this workout and stops when you end it.';
+  static const backgroundLocationIntroContinue = 'Continue';
 }
 
 /// 运动页模块路由定义（对齐 HomeRouteTable 写法）。

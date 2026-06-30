@@ -6,6 +6,8 @@ import 'package:pedometer/common/component/app_top_navigation_bar.dart';
 import 'package:pedometer/common/component/asset_metric_icon.dart';
 import 'package:pedometer/common/config/app_colors.dart';
 import 'package:pedometer/common/config/app_dimens.dart';
+import 'package:pedometer/common/config/resource_loader.dart';
+import 'package:pedometer/common/storage/language_service.dart';
 import 'package:pedometer/feature/workout/components/workout_tracking_components.dart';
 import 'package:pedometer/feature/workout/model/workout_model.dart';
 import 'package:pedometer/feature/workout/resources/workout_resource.dart';
@@ -30,6 +32,8 @@ class _WorkoutTrackingPageState extends State<WorkoutTrackingPage> {
   bool _showMoreMenu = false;
   bool _controlsLocked = false;
   bool _finishingWorkout = false;
+  bool _preparingWorkoutStart = false;
+  bool _backgroundLocationIntroShown = false;
   String? _countdownLabel;
   int _countdownStep = 0;
   Timer? _countdownTimer;
@@ -154,12 +158,39 @@ class _WorkoutTrackingPageState extends State<WorkoutTrackingPage> {
 
   void _handlePrimaryTap() {
     if (_controlsLocked) return;
+    if (_preparingWorkoutStart) return;
     if (_countdownLabel != null) return;
     if (controller.status.value == WorkoutStatus.ready) {
-      _checkPermissionAndStart();
+      unawaited(_prepareStartWorkout());
       return;
     }
     controller.togglePrimary();
+  }
+
+  Future<void> _prepareStartWorkout() async {
+    _preparingWorkoutStart = true;
+    try {
+      if (!controller.isIndoor.value && !_backgroundLocationIntroShown) {
+        await _refreshCurrentLanguageResources();
+        if (!mounted) return;
+        final confirmed = await Get.dialog<bool>(
+          const _BackgroundLocationIntroDialog(),
+          barrierDismissible: false,
+          barrierColor: Colors.black.withValues(alpha: 0.55),
+        );
+        if (!mounted || confirmed != true) return;
+        _backgroundLocationIntroShown = true;
+      }
+      await _checkPermissionAndStart();
+    } finally {
+      _preparingWorkoutStart = false;
+    }
+  }
+
+  Future<void> _refreshCurrentLanguageResources() async {
+    if (!Get.isRegistered<LanguageService>()) return;
+    final languageService = Get.find<LanguageService>();
+    await ResourceLoader.setLanguageCode(languageService.resourceLanguageCode);
   }
 
   Future<void> _checkPermissionAndStart() async {
@@ -478,6 +509,91 @@ class _DialogButton extends StatelessWidget {
             fontSize: 15,
             fontWeight: FontWeight.w600,
           ),
+        ),
+      ),
+    );
+  }
+}
+
+/// 后台定位用途说明：自定义样式，展示在系统定位授权弹窗之前。
+class _BackgroundLocationIntroDialog extends StatelessWidget {
+  const _BackgroundLocationIntroDialog();
+
+  @override
+  Widget build(BuildContext context) {
+    return Dialog(
+      backgroundColor: Colors.transparent,
+      elevation: 0,
+      insetPadding: EdgeInsets.symmetric(horizontal: AppSpacing.xxxl),
+      child: Container(
+        padding: EdgeInsets.all(AppSpacing.xxl),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(AppRadius.xl),
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              Color.alphaBlend(AppColors.surfaceCardTop, AppColors.bgPrimary),
+              Color.alphaBlend(
+                AppColors.surfaceCardBottom,
+                AppColors.bgPrimary,
+              ),
+            ],
+          ),
+          border: Border.all(color: AppColors.strokeCard, width: 1),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.45),
+              blurRadius: 28,
+              offset: const Offset(0, 10),
+            ),
+          ],
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.route_rounded, color: AppColors.brandGreen, size: 44),
+            SizedBox(height: AppSpacing.lg),
+            Text(
+              WorkoutResource.backgroundLocationIntroTitle,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: AppColors.textPrimary,
+                fontSize: 17,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            SizedBox(height: AppSpacing.sm),
+            Text(
+              WorkoutResource.backgroundLocationIntroMessage,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: AppColors.textSecondary,
+                fontSize: 13,
+                height: 1.5,
+              ),
+            ),
+            SizedBox(height: AppSpacing.xl),
+            Row(
+              children: [
+                Expanded(
+                  child: _DialogButton(
+                    label: WorkoutResource.locationPermissionCancel,
+                    filled: false,
+                    onTap: () => Get.back<bool>(result: false),
+                  ),
+                ),
+                SizedBox(width: AppSpacing.md),
+                Expanded(
+                  child: _DialogButton(
+                    label: WorkoutResource.backgroundLocationIntroContinue,
+                    filled: true,
+                    onTap: () => Get.back<bool>(result: true),
+                  ),
+                ),
+              ],
+            ),
+          ],
         ),
       ),
     );
