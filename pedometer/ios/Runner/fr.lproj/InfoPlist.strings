@@ -1,6 +1,5 @@
 "NSHealthShareUsageDescription" = "Utilisé pour synchroniser les pas, la distance, les calories et le temps actif, puis les afficher sur l’accueil et dans les statistiques quotidiennes, hebdomadaires et mensuelles.";
 "NSHealthUpdateUsageDescription" = "Utilisé pour synchroniser les données de santé après votre autorisation.";
-"NSLocalNetworkUsageDescription" = "Utilisé pour se connecter au Dart VM Service en mode débogage.";
 "NSLocationWhenInUseUsageDescription" = "Utilisé pour afficher votre position actuelle en extérieur et enregistrer vos parcours d’entraînement.";
 "NSLocationAlwaysAndWhenInUseUsageDescription" = "Utilisé pour continuer à enregistrer les parcours, la distance et la position actuelle pendant un entraînement en extérieur, même lorsque l’écran est verrouillé.";
 "NSMotionUsageDescription" = "Utilisé pour lire les pas, la distance et les données d’activité de l’appareil, puis les afficher dans les statistiques d’entraînement.";

@@ -1,6 +1,5 @@
 "NSHealthShareUsageDescription" = "Used to sync steps, distance, calories, and active time, and show them on the home screen and daily, weekly, and monthly stats.";
 "NSHealthUpdateUsageDescription" = "Used to sync health data after you grant permission.";
-"NSLocalNetworkUsageDescription" = "Used to connect to Dart VM Service in debug mode.";
 "NSLocationWhenInUseUsageDescription" = "Used to show your current location outdoors and record workout routes.";
 "NSLocationAlwaysAndWhenInUseUsageDescription" = "Used to keep recording outdoor workout routes, distance, and current location during a workout, even when the screen is locked.";
 "NSMotionUsageDescription" = "Used to read device steps, distance, and activity data, and show them in workout stats.";
