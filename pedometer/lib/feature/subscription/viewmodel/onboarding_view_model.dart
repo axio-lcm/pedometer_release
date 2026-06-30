@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:get/get.dart';
 
 import 'package:pedometer/common/config/localized_text.dart';
@@ -96,17 +98,22 @@ class OnboardingViewModel extends GetxController {
   }
 
   Future<void> next() async {
-    // 引导阶段未到末页：继续翻页，翻到订阅页（仅非会员）时加载产品信息。
+    // 引导阶段未到末页：先翻页，绝不在翻页前 await StoreKit 网络请求，
+    // 否则商品查询慢或挂起会导致翻页卡顿甚至跳不过去。
     if (index.value < _maxIndex) {
       final nextIndex = index.value + 1;
       if (!_isMember && nextIndex == _subscriptionPageIndex) {
-        await _loadProductInfo();
+        // onReady 已预载产品信息：若资格已就绪且符合条件，沿用原交互——
+        // 先弹试用切换说明，关闭后再进订阅页（hideFreeTrialSwitchIntro 负责跳转）。
         if (isEligibleForIntroOffer.value && !_trialSwitchIntroShown) {
           _trialSwitchIntroShown = true;
           _showSubscriptionAfterIntro = true;
           showFreeTrialSwitchIntro.value = true;
           return;
         }
+        // 资格尚未就绪也不阻塞：直接进订阅页；产品信息与（如符合）试用弹窗
+        // 由 _loadProductInfo 就绪后通过响应式变量异步补齐。
+        unawaited(_loadProductInfo());
       }
       index.value = nextIndex;
       return;
