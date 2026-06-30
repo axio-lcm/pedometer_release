@@ -158,25 +158,25 @@ echo "✅ $SYMBOL_FILE 符号表上传完成"
 
 echo "✅ $SYMBOL_dSYM_FILE 符号表上传完成"
 
-# 上传到 App Store
-echo "准备上传到 App Store..."
-
-# 检查 xcrun 命令是否可用
-if ! command -v xcrun &> /dev/null; then
- echo "❌ 找不到 xcrun 命令"
- cleanup
-fi
-
-echo "正在上传 IPA 到 App Store..."
-xcrun altool --upload-app -f build/ios/ipa/*.ipa \
- -t ios \
- -u "$APPLE_ID" \
- -p "$APP_PASSWORD" \
- || { echo "❌ IPA上传失败"; cleanup; }
-#  --show-progress || { echo "❌ IPA上传失败"; cleanup; }
-
-echo "✅ IPA 成功上传到AppStore！"
-
-# 移除中断信号捕获
-trap - INT TERM
-echo "✅ 所有任务已完成"
+## 上传到 App Store
+#echo "准备上传到 App Store..."
+#
+## 检查 xcrun 命令是否可用
+#if ! command -v xcrun &> /dev/null; then
+# echo "❌ 找不到 xcrun 命令"
+# cleanup
+#fi
+#
+#echo "正在上传 IPA 到 App Store..."
+#xcrun altool --upload-app -f build/ios/ipa/*.ipa \
+# -t ios \
+# -u "$APPLE_ID" \
+# -p "$APP_PASSWORD" \
+# || { echo "❌ IPA上传失败"; cleanup; }
+##  --show-progress || { echo "❌ IPA上传失败"; cleanup; }
+#
+#echo "✅ IPA 成功上传到AppStore！"
+#
+## 移除中断信号捕获
+#trap - INT TERM
+#echo "✅ 所有任务已完成"
