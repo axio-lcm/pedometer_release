@@ -1,8 +1,6 @@
 "NSUserTrackingUsageDescription" = "Kami meminta izin untuk melacak aktivitas Anda di aplikasi dan situs web perusahaan lain agar dapat memberikan pengalaman yang lebih baik dan lebih personal. Anda dapat mengubah pengaturan ini kapan saja di pengaturan sistem.";
 "NSHealthShareUsageDescription" = "Digunakan untuk menyinkronkan langkah, jarak, kalori, dan waktu aktif, lalu menampilkannya di beranda serta statistik harian, mingguan, dan bulanan.";
-"NSHealthUpdateUsageDescription" = "Digunakan untuk menyinkronkan data kesehatan setelah kamu memberi izin.";
 "NSLocationWhenInUseUsageDescription" = "Digunakan untuk menampilkan lokasi saat ini di luar ruangan dan merekam rute olahraga.";
 "NSLocationAlwaysAndWhenInUseUsageDescription" = "Digunakan untuk terus merekam rute, jarak, dan lokasi saat ini selama olahraga luar ruangan, bahkan saat layar terkunci.";
 "NSMotionUsageDescription" = "Digunakan untuk membaca langkah, jarak, dan data aktivitas perangkat, lalu menampilkannya dalam statistik olahraga.";
-"NSPhotoLibraryUsageDescription" = "Digunakan untuk menambahkan lampiran masukan atau mengimpor file terkait dari perpustakaan foto saat kamu memilihnya.";
 "WorkoutPreciseLocation" = "Lokasi akurat diperlukan untuk menampilkan posisi saat ini secara tepat di peta luar ruangan.";

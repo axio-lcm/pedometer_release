@@ -1,8 +1,6 @@
 "NSUserTrackingUsageDescription" = "Chúng tôi xin quyền theo dõi hoạt động của bạn trên ứng dụng và trang web của các công ty khác để mang lại trải nghiệm tốt hơn và cá nhân hóa hơn. Bạn có thể thay đổi cài đặt này bất kỳ lúc nào trong cài đặt hệ thống.";
 "NSHealthShareUsageDescription" = "Dùng để đồng bộ số bước, quãng đường, calo và thời gian hoạt động, rồi hiển thị trên màn hình chính và thống kê ngày, tuần, tháng.";
-"NSHealthUpdateUsageDescription" = "Dùng để đồng bộ dữ liệu sức khỏe sau khi bạn cấp quyền.";
 "NSLocationWhenInUseUsageDescription" = "Dùng để hiển thị vị trí hiện tại ngoài trời và ghi lại lộ trình tập luyện.";
 "NSLocationAlwaysAndWhenInUseUsageDescription" = "Dùng để tiếp tục ghi lại lộ trình, quãng đường và vị trí hiện tại trong lúc tập luyện ngoài trời, ngay cả khi màn hình bị khóa.";
 "NSMotionUsageDescription" = "Dùng để đọc số bước, quãng đường và dữ liệu hoạt động của thiết bị, rồi hiển thị trong thống kê tập luyện.";
-"NSPhotoLibraryUsageDescription" = "Dùng để thêm tệp đính kèm phản hồi hoặc nhập tệp liên quan từ thư viện ảnh khi bạn chọn.";
 "WorkoutPreciseLocation" = "Cần vị trí chính xác để hiển thị đúng vị trí hiện tại của bạn trên bản đồ ngoài trời.";

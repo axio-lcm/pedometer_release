@@ -1,8 +1,6 @@
 "NSUserTrackingUsageDescription" = "Solicitamos permiso para rastrear tu actividad en apps y sitios web de otras empresas para ofrecerte una experiencia mejor y más personalizada. Puedes cambiar este ajuste en cualquier momento en los ajustes del sistema.";
 "NSHealthShareUsageDescription" = "Se usa para sincronizar pasos, distancia, calorías y tiempo activo, y mostrarlos en la pantalla principal y en estadísticas diarias, semanales y mensuales.";
-"NSHealthUpdateUsageDescription" = "Se usa para sincronizar datos de salud después de que concedas permiso.";
 "NSLocationWhenInUseUsageDescription" = "Se usa para mostrar tu ubicación actual al aire libre y registrar rutas de entrenamiento.";
 "NSLocationAlwaysAndWhenInUseUsageDescription" = "Se usa para seguir registrando rutas, distancia y ubicación actual durante un entrenamiento al aire libre, incluso cuando la pantalla está bloqueada.";
 "NSMotionUsageDescription" = "Se usa para leer pasos, distancia y datos de actividad del dispositivo, y mostrarlos en estadísticas de entrenamiento.";
-"NSPhotoLibraryUsageDescription" = "Se usa para añadir archivos adjuntos a tus comentarios o importar archivos relacionados desde tu fototeca cuando los eliges.";
 "WorkoutPreciseLocation" = "Se necesita la ubicación precisa para mostrar tu posición actual exacta en mapas al aire libre.";

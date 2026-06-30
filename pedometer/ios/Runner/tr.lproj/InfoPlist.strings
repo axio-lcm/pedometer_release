@@ -1,8 +1,6 @@
 "NSUserTrackingUsageDescription" = "Daha iyi ve daha kişiselleştirilmiş bir deneyim sunmak için diğer şirketlerin uygulamaları ve web sitelerindeki etkinliğinizi izleme izni istiyoruz. Bu ayarı istediğiniz zaman sistem ayarlarından değiştirebilirsiniz.";
 "NSHealthShareUsageDescription" = "Adımları, mesafeyi, kalorileri ve aktif süreyi eşitlemek; bunları ana ekranda ve günlük, haftalık, aylık istatistiklerde göstermek için kullanılır.";
-"NSHealthUpdateUsageDescription" = "İzin verdikten sonra sağlık verilerini eşitlemek için kullanılır.";
 "NSLocationWhenInUseUsageDescription" = "Dışarıda mevcut konumunu göstermek ve egzersiz rotalarını kaydetmek için kullanılır.";
 "NSLocationAlwaysAndWhenInUseUsageDescription" = "Açık hava egzersizi sırasında ekran kilitli olsa bile rota, mesafe ve mevcut konumu kaydetmeye devam etmek için kullanılır.";
 "NSMotionUsageDescription" = "Cihaz adımlarını, mesafeyi ve aktivite verilerini okuyup egzersiz istatistiklerinde göstermek için kullanılır.";
-"NSPhotoLibraryUsageDescription" = "Seçtiğinde geri bildirim ekleri eklemek veya fotoğraf arşivinden ilgili dosyaları içe aktarmak için kullanılır.";
 "WorkoutPreciseLocation" = "Dış mekan haritalarında mevcut konumunu doğru göstermek için hassas konum gerekir.";

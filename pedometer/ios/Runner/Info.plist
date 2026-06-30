@@ -34,8 +34,6 @@
 	<true/>
 	<key>NSHealthShareUsageDescription</key>
 	<string>用于同步步数、距离、卡路里和活动时间，并展示在首页及日周月统计中。</string>
-	<key>NSHealthUpdateUsageDescription</key>
-	<string>用于在获得授权后同步健康数据。</string>
 	<key>NSLocationTemporaryUsageDescriptionDictionary</key>
 	<dict>
 		<key>WorkoutPreciseLocation</key>
@@ -47,8 +45,6 @@
 	<string>用于在户外运动期间持续记录路线、距离和当前位置，即使屏幕锁定也能保持运动轨迹准确。</string>
 	<key>NSMotionUsageDescription</key>
 	<string>用于读取设备步数、距离和活动数据，并展示在运动统计中。</string>
-	<key>NSPhotoLibraryUsageDescription</key>
-	<string>用于在你主动选择时从照片库添加反馈附件或导入相关文件。</string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>
