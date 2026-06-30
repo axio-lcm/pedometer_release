@@ -212,6 +212,18 @@ class WorkoutResource {
       _string('music_list_title', WorkoutText.musicListTitle);
   static String get musicListEmpty =>
       _string('music_list_empty', WorkoutText.musicListEmpty);
+  static String get photoLibraryPermissionTitle => _string(
+    'photo_library_permission_title',
+    WorkoutText.photoLibraryPermissionTitle,
+  );
+  static String get photoLibraryDeniedMessage => _string(
+    'photo_library_denied_msg',
+    WorkoutText.photoLibraryDeniedMessage,
+  );
+  static String get photoLibraryDeniedForeverMessage => _string(
+    'photo_library_denied_forever_msg',
+    WorkoutText.photoLibraryDeniedForeverMessage,
+  );
   static String get locationPermissionTitle =>
       _string('location_permission_title', WorkoutText.locationPermissionTitle);
   static String get locationServiceDisabledMessage => _string(
@@ -397,6 +409,11 @@ class WorkoutText {
   static const routeHistoryEmpty = 'No workout data';
   static const musicListTitle = 'Music List';
   static const musicListEmpty = 'No music yet. Import music files first.';
+  static const photoLibraryPermissionTitle = 'Photo library permission needed';
+  static const photoLibraryDeniedMessage =
+      'Photo library permission is required to import workout music from local media.';
+  static const photoLibraryDeniedForeverMessage =
+      'Photo library access is denied. Allow it in system Settings to import workout music.';
   static const locationPermissionTitle = 'Location permission needed';
   static const locationServiceDisabledMessage =
       'Location services are off. Turn them on to record your route.';

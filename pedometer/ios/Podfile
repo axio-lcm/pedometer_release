@@ -41,6 +41,7 @@ post_install do |installer|
     target.build_configurations.each do |config|
       definitions = config.build_settings['GCC_PREPROCESSOR_DEFINITIONS'] ||= ['$(inherited)']
       definitions << 'PERMISSION_APP_TRACKING_TRANSPARENCY=1' unless definitions.include?('PERMISSION_APP_TRACKING_TRANSPARENCY=1')
+      definitions << 'PERMISSION_PHOTOS=1' unless definitions.include?('PERMISSION_PHOTOS=1')
     end
   end
 end

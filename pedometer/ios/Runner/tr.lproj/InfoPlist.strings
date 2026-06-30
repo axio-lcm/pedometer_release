@@ -3,6 +3,6 @@
 "NSLocationWhenInUseUsageDescription" = "Dışarıda mevcut konumunu göstermek ve egzersiz rotalarını kaydetmek için kullanılır.";
 "NSLocationAlwaysAndWhenInUseUsageDescription" = "Açık hava egzersizi sırasında ekran kilitli olsa bile rota, mesafe ve mevcut konumu kaydetmeye devam etmek için kullanılır.";
 "NSMotionUsageDescription" = "Cihaz adımlarını, mesafeyi ve aktivite verilerini okuyup egzersiz istatistiklerinde göstermek için kullanılır.";
-"NSPhotoLibraryUsageDescription" = "Egzersiz müziği içe aktarmak için yalnızca yerel medya dosyalarını seçtiğinizde kullanılır. Bir dosya seçmediğiniz sürece fotoğraf arşivinize erişmeyiz.";
+"NSPhotoLibraryUsageDescription" = "Egzersiz müziği içe aktarmak için yalnızca yerel medya dosyalarını veya fotoğraf arşivindeki medyayı seçtiğinizde kullanılır. Bir dosya seçmediğiniz sürece fotoğraf arşivinize erişmeyiz.";
 "WorkoutPreciseLocation" = "Dış mekan haritalarında mevcut konumunu doğru göstermek için hassas konum gerekir.";
 "NSHealthUpdateUsageDescription" = "Yalnızca izin verdiğinizde, antrenman kayıtlarınızı Sağlık uygulamasına yazmak için kullanılır.";

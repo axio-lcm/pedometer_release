@@ -11,6 +11,7 @@ import 'package:pedometer/common/config/app_colors.dart';
 import 'package:pedometer/common/config/localized_text.dart';
 import 'package:pedometer/common/mvvm/ibase_view_model.dart';
 import 'package:pedometer/common/service/motion_fitness_permission_service.dart';
+import 'package:pedometer/common/service/photo_library_permission_service.dart';
 import 'package:pedometer/feature/workout/model/achievement_stats_store.dart';
 import 'package:pedometer/feature/workout/model/workout_calorie_policy.dart';
 import 'package:pedometer/feature/workout/model/workout_model.dart';
@@ -256,14 +257,25 @@ class WorkoutTrackingViewModel extends GetxController
 
   // ---- 运动音乐 ----
 
-  Future<void> importMusic() async {
+  Future<WorkoutMusicImportResult> importMusic() async {
+    final auth =
+        await PhotoLibraryPermissionService.ensureAuthorizedForImport();
+    switch (auth) {
+      case PhotoLibraryImportAuth.authorized:
+        break;
+      case PhotoLibraryImportAuth.denied:
+        return WorkoutMusicImportResult.permissionDenied;
+      case PhotoLibraryImportAuth.deniedForever:
+        return WorkoutMusicImportResult.permissionDeniedForever;
+    }
+
     final result = await FilePicker.pickFiles(
       allowMultiple: true,
       type: FileType.custom,
       allowedExtensions: _musicExtensions,
       withData: false,
     );
-    if (result == null) return;
+    if (result == null) return WorkoutMusicImportResult.completed;
 
     final pickedTracks = result.files
         .map(_trackFromPickedFile)
@@ -277,7 +289,7 @@ class WorkoutTrackingViewModel extends GetxController
             selectedPaths.add(track.path))
           track,
     ];
-    if (newTracks.isEmpty) return;
+    if (newTracks.isEmpty) return WorkoutMusicImportResult.completed;
 
     final previousTracks = _musicTracks;
     final player = _ensureMusicPlayer();
@@ -314,12 +326,12 @@ class WorkoutTrackingViewModel extends GetxController
         musicStatus.value = WorkoutResource.trackingMusicIdle;
       }
     }
+    return WorkoutMusicImportResult.completed;
   }
 
-  Future<void> toggleMusic() async {
+  Future<WorkoutMusicImportResult> toggleMusic() async {
     if (!hasMusic.value) {
-      await importMusic();
-      return;
+      return importMusic();
     }
     final player = _ensureMusicPlayer();
     if (player.playing) {
@@ -327,6 +339,7 @@ class WorkoutTrackingViewModel extends GetxController
     } else {
       await player.play();
     }
+    return WorkoutMusicImportResult.completed;
   }
 
   Future<void> nextMusic() async {
@@ -827,6 +840,12 @@ class WorkoutTrackingViewModel extends GetxController
         title == '室内' ||
         title == '室内';
   }
+}
+
+enum WorkoutMusicImportResult {
+  completed,
+  permissionDenied,
+  permissionDeniedForever,
 }
 
 class _WorkoutMusicTrack {

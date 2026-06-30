@@ -3,6 +3,6 @@
 "NSLocationWhenInUseUsageDescription" = "用於在戶外時顯示目前位置並記錄運動路線。";
 "NSLocationAlwaysAndWhenInUseUsageDescription" = "用於在戶外運動期間持續記錄路線、距離和目前位置，即使螢幕鎖定也能保持運動軌跡準確。";
 "NSMotionUsageDescription" = "用於讀取裝置步數、距離和活動資料，並顯示在運動統計中。";
-"NSPhotoLibraryUsageDescription" = "僅在你主動選擇本機媒體檔案時使用，用於匯入運動音樂。未經你選擇，我們不會存取你的照片資料庫。";
+"NSPhotoLibraryUsageDescription" = "僅在你主動選擇本機媒體檔案或照片資料庫中的媒體時使用，用於匯入運動音樂。未經你選擇，我們不會存取你的照片資料庫。";
 "WorkoutPreciseLocation" = "需要精確位置，才能在戶外地圖中顯示準確的目前位置。";
 "NSHealthUpdateUsageDescription" = "僅在你主動授權時，用於將運動記錄同步寫入「健康」App。";

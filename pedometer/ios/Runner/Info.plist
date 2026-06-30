@@ -48,7 +48,7 @@
 	<key>NSMotionUsageDescription</key>
 	<string>用于读取设备步数、距离和活动数据，并展示在运动统计中。</string>
 	<key>NSPhotoLibraryUsageDescription</key>
-	<string>仅在你主动选择本地媒体文件时使用，用于导入运动音乐。未经你选择，我们不会访问你的照片资料库。</string>
+	<string>仅在你主动选择本地媒体文件或照片资料库中的媒体时使用，用于导入运动音乐。未经你选择，我们不会访问你的照片资料库。</string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>

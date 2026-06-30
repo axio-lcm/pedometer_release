@@ -7,6 +7,7 @@ import 'package:pedometer/common/component/asset_metric_icon.dart';
 import 'package:pedometer/common/config/app_colors.dart';
 import 'package:pedometer/common/config/app_dimens.dart';
 import 'package:pedometer/common/config/resource_loader.dart';
+import 'package:pedometer/common/service/photo_library_permission_service.dart';
 import 'package:pedometer/common/storage/language_service.dart';
 import 'package:pedometer/feature/workout/components/workout_tracking_components.dart';
 import 'package:pedometer/feature/workout/model/workout_model.dart';
@@ -113,7 +114,7 @@ class _WorkoutTrackingPageState extends State<WorkoutTrackingPage> {
                                     data: data,
                                     onPlayPause: _controlsLocked
                                         ? null
-                                        : controller.toggleMusic,
+                                        : _toggleMusic,
                                     onNext: _controlsLocked
                                         ? null
                                         : controller.nextMusic,
@@ -172,8 +173,8 @@ class _WorkoutTrackingPageState extends State<WorkoutTrackingPage> {
       // 仅当户外且系统授权框「这一次确实会弹出」时，才先展示后台定位用途说明，
       // 让前置说明紧贴系统弹窗之前出现一次；已授权后两者都不再打扰。
       if (!controller.isIndoor.value) {
-        final willPrompt =
-            await WorkoutLocationService().willPromptSystemAuthorization();
+        final willPrompt = await WorkoutLocationService()
+            .willPromptSystemAuthorization();
         if (!mounted) return;
         if (willPrompt) {
           await _refreshCurrentLanguageResources();
@@ -285,7 +286,37 @@ class _WorkoutTrackingPageState extends State<WorkoutTrackingPage> {
   Future<void> _importMusic() async {
     if (_controlsLocked) return;
     _dismissMoreMenu();
-    await controller.importMusic();
+    final result = await controller.importMusic();
+    if (!mounted) return;
+    _handleMusicImportResult(result);
+  }
+
+  Future<void> _toggleMusic() async {
+    if (_controlsLocked) return;
+    final result = await controller.toggleMusic();
+    if (!mounted) return;
+    _handleMusicImportResult(result);
+  }
+
+  void _handleMusicImportResult(WorkoutMusicImportResult result) {
+    switch (result) {
+      case WorkoutMusicImportResult.completed:
+        return;
+      case WorkoutMusicImportResult.permissionDenied:
+      case WorkoutMusicImportResult.permissionDeniedForever:
+        Get.dialog<void>(
+          _PhotoLibraryPermissionDialog(
+            permanentlyDenied:
+                result == WorkoutMusicImportResult.permissionDeniedForever,
+            onSettings: _openPhotoLibrarySettings,
+          ),
+        );
+    }
+  }
+
+  Future<void> _openPhotoLibrarySettings() async {
+    Get.back<void>();
+    await PhotoLibraryPermissionService.openSettings();
   }
 
   void _openMusicList() {
@@ -599,6 +630,104 @@ class _BackgroundLocationIntroDialog extends StatelessWidget {
                     label: WorkoutResource.backgroundLocationIntroContinue,
                     filled: true,
                     onTap: () => Get.back<bool>(result: true),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _PhotoLibraryPermissionDialog extends StatelessWidget {
+  final bool permanentlyDenied;
+  final VoidCallback onSettings;
+
+  const _PhotoLibraryPermissionDialog({
+    required this.permanentlyDenied,
+    required this.onSettings,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final message = permanentlyDenied
+        ? WorkoutResource.photoLibraryDeniedForeverMessage
+        : WorkoutResource.photoLibraryDeniedMessage;
+
+    return Dialog(
+      backgroundColor: Colors.transparent,
+      elevation: 0,
+      insetPadding: EdgeInsets.symmetric(horizontal: AppSpacing.xxxl),
+      child: Container(
+        padding: EdgeInsets.all(AppSpacing.xxl),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(AppRadius.xl),
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              Color.alphaBlend(AppColors.surfaceCardTop, AppColors.bgPrimary),
+              Color.alphaBlend(
+                AppColors.surfaceCardBottom,
+                AppColors.bgPrimary,
+              ),
+            ],
+          ),
+          border: Border.all(color: AppColors.strokeCard, width: 1),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.45),
+              blurRadius: 28,
+              offset: const Offset(0, 10),
+            ),
+          ],
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              Icons.photo_library_rounded,
+              color: AppColors.brandGreen,
+              size: 44,
+            ),
+            SizedBox(height: AppSpacing.lg),
+            Text(
+              WorkoutResource.photoLibraryPermissionTitle,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: AppColors.textPrimary,
+                fontSize: 17,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            SizedBox(height: AppSpacing.sm),
+            Text(
+              message,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: AppColors.textSecondary,
+                fontSize: 13,
+                height: 1.5,
+              ),
+            ),
+            SizedBox(height: AppSpacing.xl),
+            Row(
+              children: [
+                Expanded(
+                  child: _DialogButton(
+                    label: WorkoutResource.locationPermissionCancel,
+                    filled: false,
+                    onTap: () => Get.back<void>(),
+                  ),
+                ),
+                SizedBox(width: AppSpacing.md),
+                Expanded(
+                  child: _DialogButton(
+                    label: WorkoutResource.locationPermissionGoSettings,
+                    filled: true,
+                    onTap: onSettings,
                   ),
                 ),
               ],
