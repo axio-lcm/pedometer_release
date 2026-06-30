@@ -138,7 +138,9 @@ class ResourceLoader {
     ]);
   }
 
-  /// 取某模块某语言的译文：目标语言 → 系统语言 → 英文安全兜底 → 简体默认。
+  /// 取某模块某语言的译文：目标语言 → 英文安全兜底 → 系统语言 → 简体默认。
+  /// 英文优先级高于系统语言，确保"译文恰好等于英文而被当占位剔除"的 key
+  /// 回退到英文，而不是回退到（中文系统下的）系统语言导致串中文。
   /// 简体中文沿用既有的 `string.json`，其余语言用 `string_<code>.json`。
   static Future<Map<String, String>> _resolveModuleStrings(
     String module,
@@ -168,11 +170,11 @@ class ResourceLoader {
     final english = loaded['en'] ?? const {};
     final chain = <(String code, Map<String, String> strings)>[
       ('zh_Hans', loaded['zh_Hans'] ?? const {}),
-      ('en', english),
       (
         _systemFallbackLanguageCode,
         loaded[_systemFallbackLanguageCode] ?? const {},
       ),
+      ('en', english),
       (code, loaded[code] ?? const {}),
     ];
     final merged = <String, String>{};
