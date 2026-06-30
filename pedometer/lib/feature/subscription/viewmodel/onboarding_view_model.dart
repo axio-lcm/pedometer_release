@@ -1,8 +1,10 @@
 import 'package:get/get.dart';
 
 import 'package:pedometer/common/config/localized_text.dart';
+import 'package:pedometer/common/storage/language_service.dart';
 import 'package:pedometer/feature/subscription/config/subscription_config.dart';
 import 'package:pedometer/feature/subscription/model/subscription_assets.dart';
+import 'package:pedometer/feature/subscription/resources/subscription_resource.dart';
 import 'package:pedometer/feature/subscription/service/subscription_service.dart';
 import 'package:pedometer/products/phone/views/main_page.dart';
 
@@ -16,6 +18,7 @@ class OnboardingViewModel extends GetxController {
   final isEligibleForIntroOffer = false.obs;
   final showFreeTrialSwitchIntro = false.obs;
   Worker? _vipWorker;
+  Worker? _languageWorker;
   bool _completed = false;
   bool _trialSwitchIntroShown = false;
   bool _showSubscriptionAfterIntro = false;
@@ -70,6 +73,12 @@ class OnboardingViewModel extends GetxController {
     _vipWorker = ever<bool>(service.isVip, (isVip) {
       if (isVip) _enterApp();
     });
+    if (Get.isRegistered<LanguageService>()) {
+      _languageWorker = ever<int>(
+        Get.find<LanguageService>().localeRevision,
+        (_) => _refreshLocalizedProductText(),
+      );
+    }
   }
 
   @override
@@ -82,6 +91,7 @@ class OnboardingViewModel extends GetxController {
   @override
   void onClose() {
     _vipWorker?.dispose();
+    _languageWorker?.dispose();
     super.onClose();
   }
 
@@ -145,19 +155,21 @@ class OnboardingViewModel extends GetxController {
         ? product!.displayPrice!
         : r'$9.99';
     productPrice.value = price;
-    productDescription.value = eligible
-        ? lt(
-            '3-day free trial, then weekly $price. Cancel anytime.',
-            '免费试用 3 天，之后每周 $price，可随时取消。',
-          )
-        : lt(
-            'Subscribe to unlock goals, rewards, route tracking, health sync, and training insights. Weekly $price. Cancel anytime.',
-            '订阅即可解锁目标、奖励、路线记录、健康同步和训练洞察。每周 $price，可随时取消。',
-          );
+    _refreshLocalizedProductText();
     if (isLast && eligible && !_trialSwitchIntroShown) {
       _trialSwitchIntroShown = true;
       showFreeTrialSwitchIntro.value = true;
     }
+  }
+
+  void _refreshLocalizedProductText() {
+    final price = productPrice.value;
+    productDescription.value = isEligibleForIntroOffer.value
+        ? SubscriptionResource.introOfferDescription(price)
+        : lt(
+            'Subscribe to unlock goals, rewards, route tracking, health sync, and training insights. Weekly $price. Cancel anytime.',
+            '订阅即可解锁目标、奖励、路线记录、健康同步和训练洞察。每周 $price，可随时取消。',
+          );
   }
 
   void hideFreeTrialSwitchIntro() {

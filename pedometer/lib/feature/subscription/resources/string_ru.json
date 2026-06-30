@@ -9,7 +9,7 @@
   "route_tracking": "Отслеживание маршрута",
   "health_data_sync": "Синхронизация данных о здоровье",
   "workout_trends": "Тренды тренировок",
-  "unlock_premium": "Открыть Premium",
+  "unlock_premium": "Открыть премиум-версию",
   "three_days_free_trial": "3 дня бесплатно",
   "best_badge": "ЛУЧШЕЕ",
   "privacy_policy": "Политика конфиденциальности",
@@ -17,8 +17,9 @@
   "subscription": "Подписка",
   "restore": "Восстановить",
   "upgrade": "Обновить",
-  "premium": "Premium",
+  "premium": "Премиум-версия",
   "intro_offer_description": "3 дня бесплатно, затем {{price}} в неделю. Отмена в любое время.",
   "yearly_description": "{{price}} в год, отмена в любое время.",
-  "weekly_description": "{{price}} в неделю, отмена в любое время."
+  "weekly_description": "{{price}} в неделю, отмена в любое время.",
+  "free_trial_enabled": "активирован!"
 }

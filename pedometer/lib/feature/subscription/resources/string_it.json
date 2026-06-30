@@ -9,16 +9,17 @@
   "route_tracking": "Tracciamento del percorso",
   "health_data_sync": "Sincronizzazione dati salute",
   "workout_trends": "Tendenze allenamento",
-  "unlock_premium": "Sblocca Premium",
+  "unlock_premium": "Sblocca la versione premium",
   "three_days_free_trial": "3 giorni di prova gratis",
   "best_badge": "MIGLIORE",
   "privacy_policy": "Privacy",
   "terms": "Termini",
   "subscription": "Abbonamento",
   "restore": "Ripristina",
-  "upgrade": "Upgrade",
-  "premium": "Premium",
+  "upgrade": "Aggiorna",
+  "premium": "Versione premium",
   "intro_offer_description": "3 giorni di prova gratis, poi {{price}} a settimana. Disdici quando vuoi.",
   "yearly_description": "{{price}} all'anno, disdici quando vuoi.",
-  "weekly_description": "{{price}} a settimana, disdici quando vuoi."
+  "weekly_description": "{{price}} a settimana, disdici quando vuoi.",
+  "free_trial_enabled": "è attiva!"
 }

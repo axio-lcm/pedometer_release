@@ -6,6 +6,7 @@ import 'package:get/get.dart';
 
 import 'package:pedometer/common/config/app_colors.dart';
 import 'package:pedometer/common/config/app_dimens.dart';
+import 'package:pedometer/common/storage/language_service.dart';
 import 'package:pedometer/feature/legal/legal_navigation.dart';
 import 'package:pedometer/feature/subscription/config/subscription_config.dart';
 import 'package:pedometer/feature/subscription/model/subscription_assets.dart';
@@ -38,6 +39,9 @@ class SubscriptionPage extends GetView<SubscriptionViewModel> {
           const Positioned.fill(child: _SubscriptionScrim()),
           SafeArea(
             child: Obx(() {
+              if (Get.isRegistered<LanguageService>()) {
+                Get.find<LanguageService>().localeRevision.value;
+              }
               final plans = controller.plans;
               final selectedIndex = controller.selectedIndex.value;
               final selectedPlan = plans[selectedIndex];
@@ -53,9 +57,7 @@ class SubscriptionPage extends GetView<SubscriptionViewModel> {
                   ? SubscriptionResource.introOfferDescription(selectedPrice)
                   : _descriptionFor(selectedPlan);
               final buttonText = isIntroOffer
-                  ? (controller.buttonText.value.isEmpty
-                        ? SubscriptionResource.startFreeTrial
-                        : controller.buttonText.value)
+                  ? SubscriptionResource.startFreeTrial
                   : SubscriptionResource.subscribe;
 
               return LayoutBuilder(

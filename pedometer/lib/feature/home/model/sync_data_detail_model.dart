@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:pedometer/common/config/app_icon_source.dart';
 import 'package:pedometer/common/config/localized_text.dart';
 import 'package:pedometer/common/config/app_metric_assets.dart';
+import 'package:pedometer/feature/home/model/health_sync_models.dart';
 
 /// Health 同步详情页本地展示数据。
 class SyncDataDetailData {
@@ -380,10 +381,25 @@ class SyncSourceDetailData {
         ),
       ],
       manualItems: [
-        ManualSyncSelectionItem(title: lt('Steps', '步数'), selected: true),
-        ManualSyncSelectionItem(title: lt('Distance', '距离'), selected: true),
-        ManualSyncSelectionItem(title: lt('Calories', '卡路里'), selected: true),
-        ManualSyncSelectionItem(title: lt('Time', '时间')),
+        ManualSyncSelectionItem(
+          type: HealthSyncDataType.steps,
+          title: lt('Steps', '步数'),
+          selected: true,
+        ),
+        ManualSyncSelectionItem(
+          type: HealthSyncDataType.distance,
+          title: lt('Distance', '距离'),
+          selected: true,
+        ),
+        ManualSyncSelectionItem(
+          type: HealthSyncDataType.calories,
+          title: lt('Calories', '卡路里'),
+          selected: true,
+        ),
+        ManualSyncSelectionItem(
+          type: HealthSyncDataType.activeMinutes,
+          title: lt('Time', '时间'),
+        ),
       ],
       safetyText: lt(
         'Your health data is read only after authorization and is encrypted in transit.',
@@ -418,8 +434,13 @@ class SyncModeOption {
 }
 
 class ManualSyncSelectionItem {
+  final HealthSyncDataType type;
   final String title;
   final bool selected;
 
-  const ManualSyncSelectionItem({required this.title, this.selected = false});
+  const ManualSyncSelectionItem({
+    required this.type,
+    required this.title,
+    this.selected = false,
+  });
 }

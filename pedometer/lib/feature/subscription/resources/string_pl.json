@@ -9,7 +9,7 @@
   "route_tracking": "Śledzenie trasy",
   "health_data_sync": "Synchronizacja danych zdrowotnych",
   "workout_trends": "Trendy treningowe",
-  "unlock_premium": "Odblokuj Premium",
+  "unlock_premium": "Odblokuj wersję premium",
   "three_days_free_trial": "3 dni bezpłatnego okresu próbnego",
   "best_badge": "NAJLEPSZY",
   "privacy_policy": "Polityka prywatności",
@@ -17,8 +17,9 @@
   "subscription": "Subskrypcja",
   "restore": "Przywróć",
   "upgrade": "Ulepsz",
-  "premium": "Premium",
+  "premium": "Wersja premium",
   "intro_offer_description": "3 dni za darmo, potem {{price}} tygodniowo. Anuluj w dowolnej chwili.",
   "yearly_description": "{{price}} rocznie, anuluj w dowolnej chwili.",
-  "weekly_description": "{{price}} tygodniowo, anuluj w dowolnej chwili."
+  "weekly_description": "{{price}} tygodniowo, anuluj w dowolnej chwili.",
+  "free_trial_enabled": "jest włączony!"
 }

@@ -7,6 +7,7 @@ import 'package:get/get.dart';
 import 'package:pedometer/common/config/app_colors.dart';
 import 'package:pedometer/common/config/app_dimens.dart';
 import 'package:pedometer/common/config/localized_text.dart';
+import 'package:pedometer/common/storage/language_service.dart';
 import 'package:pedometer/feature/legal/legal_navigation.dart';
 import 'package:pedometer/feature/subscription/components/free_trial_switch_intro_overlay.dart';
 import 'package:pedometer/feature/subscription/model/subscription_assets.dart';
@@ -21,8 +22,11 @@ class OnboardingPage extends GetView<OnboardingViewModel> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Obx(
-        () => Stack(
+      body: Obx(() {
+        if (Get.isRegistered<LanguageService>()) {
+          Get.find<LanguageService>().localeRevision.value;
+        }
+        return Stack(
           children: [
             controller.isGuidePage
                 ? _GuideOnboardingBody(controller: controller)
@@ -34,8 +38,8 @@ class OnboardingPage extends GetView<OnboardingViewModel> {
               ),
             ),
           ],
-        ),
-      ),
+        );
+      }),
     );
   }
 }
@@ -205,9 +209,7 @@ class _SubscriptionOnboardingBody extends StatelessWidget {
                 )
         : controller.productDescription.value;
     final buttonText = isIntroOffer
-        ? (controller.buttonText.value.isEmpty
-              ? lt('Start Free Trial', '开始免费试用')
-              : controller.buttonText.value)
+        ? SubscriptionResource.startFreeTrial
         : lt('Subscribe', '订阅');
 
     return Stack(

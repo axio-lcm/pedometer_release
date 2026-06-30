@@ -17,8 +17,9 @@
   "subscription": "الاشتراك",
   "restore": "استعادة",
   "upgrade": "ترقية",
-  "premium": "Premium",
+  "premium": "النسخة المميزة",
   "intro_offer_description": "تجربة مجانية لمدة 3 أيام، ثم {{price}} أسبوعيًا. يمكنك الإلغاء في أي وقت.",
   "yearly_description": "{{price}} سنويًا، يمكنك الإلغاء في أي وقت.",
-  "weekly_description": "{{price}} أسبوعيًا، يمكنك الإلغاء في أي وقت."
+  "weekly_description": "{{price}} أسبوعيًا، يمكنك الإلغاء في أي وقت.",
+  "free_trial_enabled": "مُفعّلة!"
 }

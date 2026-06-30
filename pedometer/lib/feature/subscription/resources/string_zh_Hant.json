@@ -20,5 +20,6 @@
   "premium": "高級版",
   "intro_offer_description": "免費試用 3 天，之後每週 {{price}}，可隨時取消。",
   "yearly_description": "每年 {{price}}，可隨時取消。",
-  "weekly_description": "每週 {{price}}，可隨時取消。"
+  "weekly_description": "每週 {{price}}，可隨時取消。",
+  "free_trial_enabled": "已開啟！"
 }

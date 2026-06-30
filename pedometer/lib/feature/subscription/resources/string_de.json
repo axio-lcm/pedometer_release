@@ -9,16 +9,17 @@
   "route_tracking": "Routenverfolgung",
   "health_data_sync": "Gesundheitsdaten-Synchronisierung",
   "workout_trends": "Trainingstrends",
-  "unlock_premium": "Premium freischalten",
+  "unlock_premium": "Bezahlversion freischalten",
   "three_days_free_trial": "3 Tage kostenlos testen",
   "best_badge": "BESTE",
   "privacy_policy": "Datenschutz",
   "terms": "AGB",
   "subscription": "Abo",
   "restore": "Wiederherstellen",
-  "upgrade": "Upgrade",
-  "premium": "Premium",
+  "upgrade": "Aktualisieren",
+  "premium": "Bezahlversion",
   "intro_offer_description": "3 Tage kostenlos, danach {{price}} pro Woche. Jederzeit kündbar.",
   "yearly_description": "{{price}} pro Jahr, jederzeit kündbar.",
-  "weekly_description": "{{price}} pro Woche, jederzeit kündbar."
+  "weekly_description": "{{price}} pro Woche, jederzeit kündbar.",
+  "free_trial_enabled": "ist aktiviert!"
 }

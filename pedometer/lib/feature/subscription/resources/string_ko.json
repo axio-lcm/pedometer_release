@@ -9,16 +9,17 @@
   "route_tracking": "경로 추적",
   "health_data_sync": "건강 데이터 동기화",
   "workout_trends": "운동 추이",
-  "unlock_premium": "프리미엄 잠금 해제",
+  "unlock_premium": "프리미엄 버전 잠금 해제",
   "three_days_free_trial": "3일 무료 체험",
-  "best_badge": "BEST",
+  "best_badge": "추천",
   "privacy_policy": "개인정보 처리방침",
   "terms": "이용약관",
   "subscription": "구독",
   "restore": "복원",
   "upgrade": "업그레이드",
-  "premium": "프리미엄",
+  "premium": "프리미엄 버전",
   "intro_offer_description": "3일 무료 체험 후 주당 {{price}}. 언제든 취소 가능.",
   "yearly_description": "연 {{price}}, 언제든 취소 가능.",
-  "weekly_description": "주 {{price}}, 언제든 취소 가능."
+  "weekly_description": "주 {{price}}, 언제든 취소 가능.",
+  "free_trial_enabled": "활성화됨!"
 }

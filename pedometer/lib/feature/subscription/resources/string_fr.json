@@ -9,16 +9,17 @@
   "route_tracking": "Suivi d'itinéraire",
   "health_data_sync": "Synchronisation des données de santé",
   "workout_trends": "Tendances d'entraînement",
-  "unlock_premium": "Débloquer Premium",
+  "unlock_premium": "Débloquer la version premium",
   "three_days_free_trial": "3 jours d'essai gratuit",
   "best_badge": "MEILLEUR",
   "privacy_policy": "Confidentialité",
   "terms": "Conditions",
   "subscription": "Abonnement",
   "restore": "Restaurer",
-  "upgrade": "Upgrade",
-  "premium": "Premium",
+  "upgrade": "Mettre à niveau",
+  "premium": "Version premium",
   "intro_offer_description": "3 jours d'essai gratuit, puis {{price}} par semaine. Annulable à tout moment.",
   "yearly_description": "{{price}} par an, annulable à tout moment.",
-  "weekly_description": "{{price}} par semaine, annulable à tout moment."
+  "weekly_description": "{{price}} par semaine, annulable à tout moment.",
+  "free_trial_enabled": "est activé !"
 }

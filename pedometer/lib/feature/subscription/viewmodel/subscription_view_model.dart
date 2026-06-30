@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:get/get.dart';
 import 'package:pp_inapp_purchase/inapp_purchase.dart';
 
+import 'package:pedometer/common/storage/language_service.dart';
 import 'package:pedometer/feature/home/service/health_auto_sync_service.dart';
 import 'package:pedometer/feature/subscription/components/purchase_loading.dart';
 import 'package:pedometer/feature/subscription/config/subscription_config.dart';
@@ -34,6 +35,7 @@ class SubscriptionViewModel extends GetxController {
   SubscriptionSource source = SubscriptionSource.subscription;
   Worker? _vipWorker;
   Worker? _trialCanceledWorker;
+  Worker? _languageWorker;
   bool _closed = false;
   bool _closing = false;
 
@@ -50,6 +52,12 @@ class SubscriptionViewModel extends GetxController {
     _trialCanceledWorker = ever<bool>(service.isTrialCanceled, (isCanceled) {
       if (!isCanceled && service.isVip.value) unawaited(_closePage());
     });
+    if (Get.isRegistered<LanguageService>()) {
+      _languageWorker = ever<int>(
+        Get.find<LanguageService>().localeRevision,
+        (_) => unawaited(_refreshLocalizedText()),
+      );
+    }
   }
 
   @override
@@ -62,7 +70,26 @@ class SubscriptionViewModel extends GetxController {
   void onClose() {
     _vipWorker?.dispose();
     _trialCanceledWorker?.dispose();
+    _languageWorker?.dispose();
     super.onClose();
+  }
+
+  Future<void> _refreshLocalizedText() async {
+    plans.assignAll([
+      for (final plan in plans)
+        SubscriptionProductPlan(
+          kind: plan.kind,
+          productId: plan.productId,
+          fallbackTitle: plan.kind == SubscriptionPlanKind.yearly
+              ? SubscriptionResource.annualPlan
+              : SubscriptionResource.weeklyPlan,
+          fallbackSubtitle: plan.kind == SubscriptionPlanKind.yearly
+              ? SubscriptionResource.annualBestValue
+              : SubscriptionResource.weeklyTrialSubtitle,
+          fallbackPrice: plan.fallbackPrice,
+        ),
+    ]);
+    await _refreshSelectedProduct();
   }
 
   Future<void> loadProducts() async {

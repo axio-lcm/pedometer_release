@@ -9,16 +9,17 @@
   "route_tracking": "Theo dõi lộ trình",
   "health_data_sync": "Đồng bộ dữ liệu sức khỏe",
   "workout_trends": "Xu hướng luyện tập",
-  "unlock_premium": "Mở khóa Premium",
+  "unlock_premium": "Mở khóa phiên bản cao cấp",
   "three_days_free_trial": "Dùng thử miễn phí 3 ngày",
-  "best_badge": "TOT NHAT",
+  "best_badge": "TỐT NHẤT",
   "privacy_policy": "Chính sách bảo mật",
   "terms": "Điều khoản",
   "subscription": "Đăng ký",
   "restore": "Khôi phục",
-  "upgrade": "Nang cap",
-  "premium": "Premium",
+  "upgrade": "Nâng cấp",
+  "premium": "Phiên bản cao cấp",
   "intro_offer_description": "Dùng thử miễn phí 3 ngày, sau đó {{price}} mỗi tuần. Hủy bất cứ lúc nào.",
   "yearly_description": "{{price}} mỗi năm, hủy bất cứ lúc nào.",
-  "weekly_description": "{{price}} mỗi tuần, hủy bất cứ lúc nào."
+  "weekly_description": "{{price}} mỗi tuần, hủy bất cứ lúc nào.",
+  "free_trial_enabled": "đã được bật!"
 }

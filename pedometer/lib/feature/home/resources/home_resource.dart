@@ -18,11 +18,8 @@ class HomeResource {
     'entry_overview',
     fallback: 'Activity Overview',
   );
-  static String get entryHealthSync => ResourceLoader.string(
-    'home',
-    'entry_health_sync',
-    fallback: 'Health Sync',
-  );
+  static String get entryHealthSync =>
+      ResourceLoader.string('home', 'entry_health_sync', fallback: 'Health');
   static String get todaySteps =>
       ResourceLoader.string('home', 'today_steps', fallback: 'Today');
   static String get goalSuffix =>

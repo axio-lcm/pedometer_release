@@ -9,16 +9,17 @@
   "route_tracking": "Pelacakan Rute",
   "health_data_sync": "Sinkronisasi Data Kesehatan",
   "workout_trends": "Tren Latihan",
-  "unlock_premium": "Buka Premium",
+  "unlock_premium": "Buka versi premium",
   "three_days_free_trial": "Uji Coba Gratis 3 Hari",
   "best_badge": "TERBAIK",
   "privacy_policy": "Kebijakan Privasi",
   "terms": "Ketentuan",
   "subscription": "Langganan",
   "restore": "Pulihkan",
-  "upgrade": "Upgrade",
-  "premium": "Premium",
+  "upgrade": "Tingkatkan",
+  "premium": "Versi premium",
   "intro_offer_description": "Uji coba gratis 3 hari, lalu {{price}} per minggu. Batal kapan saja.",
   "yearly_description": "{{price}} per tahun, batal kapan saja.",
-  "weekly_description": "{{price}} per minggu, batal kapan saja."
+  "weekly_description": "{{price}} per minggu, batal kapan saja.",
+  "free_trial_enabled": "telah aktif!"
 }

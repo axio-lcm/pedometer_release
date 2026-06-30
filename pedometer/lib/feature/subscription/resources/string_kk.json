@@ -9,7 +9,7 @@
   "route_tracking": "Бағытты бақылау",
   "health_data_sync": "Денсаулық деректерін синхрондау",
   "workout_trends": "Жаттығу үрдістері",
-  "unlock_premium": "Premium ашу",
+  "unlock_premium": "Премиум нұсқаны ашу",
   "three_days_free_trial": "3 күндік тегін сынақ",
   "best_badge": "ҮЗДІК",
   "privacy_policy": "Құпиялылық саясаты",
@@ -17,8 +17,9 @@
   "subscription": "Жазылым",
   "restore": "Қалпына келтіру",
   "upgrade": "Жаңарту",
-  "premium": "Premium",
+  "premium": "Премиум нұсқа",
   "intro_offer_description": "3 күн тегін, содан кейін аптасына {{price}}. Кез келген уақытта бас тартуға болады.",
   "yearly_description": "Жылына {{price}}, кез келген уақытта бас тартуға болады.",
-  "weekly_description": "Аптасына {{price}}, кез келген уақытта бас тартуға болады."
+  "weekly_description": "Аптасына {{price}}, кез келген уақытта бас тартуға болады.",
+  "free_trial_enabled": "қосылды!"
 }

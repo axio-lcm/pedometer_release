@@ -9,7 +9,7 @@
   "route_tracking": "การติดตามเส้นทาง",
   "health_data_sync": "ซิงค์ข้อมูลสุขภาพ",
   "workout_trends": "แนวโน้มการออกกำลังกาย",
-  "unlock_premium": "ปลดล็อก Premium",
+  "unlock_premium": "ปลดล็อกเวอร์ชันพรีเมียม",
   "three_days_free_trial": "ทดลองใช้ฟรี 3 วัน",
   "best_badge": "ดีที่สุด",
   "privacy_policy": "นโยบายความเป็นส่วนตัว",
@@ -17,8 +17,9 @@
   "subscription": "การสมัครสมาชิก",
   "restore": "กู้คืน",
   "upgrade": "อัปเกรด",
-  "premium": "Premium",
+  "premium": "เวอร์ชันพรีเมียม",
   "intro_offer_description": "ทดลองใช้ฟรี 3 วัน จากนั้น {{price}} ต่อสัปดาห์ ยกเลิกได้ทุกเมื่อ",
   "yearly_description": "{{price}} ต่อปี ยกเลิกได้ทุกเมื่อ",
-  "weekly_description": "{{price}} ต่อสัปดาห์ ยกเลิกได้ทุกเมื่อ"
+  "weekly_description": "{{price}} ต่อสัปดาห์ ยกเลิกได้ทุกเมื่อ",
+  "free_trial_enabled": "เปิดใช้งานแล้ว!"
 }

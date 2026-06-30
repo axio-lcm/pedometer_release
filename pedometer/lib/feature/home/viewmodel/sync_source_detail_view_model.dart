@@ -71,6 +71,7 @@ class SyncSourceDetailViewModel extends GetxController
     return [
       for (var i = 0; i < items.length; i++)
         ManualSyncSelectionItem(
+          type: items[i].type,
           title: items[i].title,
           selected: i < manualSelections.length
               ? manualSelections[i]
@@ -286,7 +287,9 @@ class SyncSourceDetailViewModel extends GetxController
       _applyAuthStatus(source, HealthAuthStatus.authorized, title);
       HealthSyncRuntime.replaceRealDataSource(result.source);
       // 持久化权威历史（store 按日去重 + 合并写入），mock 永不入库。
-      unawaited(HealthDataStore.instance.upsertSummaries(result.source.summaries));
+      unawaited(
+        HealthDataStore.instance.upsertSummaries(result.source.summaries),
+      );
       unawaited(HealthDataStore.instance.setLastSyncTime(now));
       stopwatch.stop();
       // 记录一条同步历史，供同步详情/历史列表/历史详情展示本次保存的数据。
@@ -379,7 +382,9 @@ class SyncSourceDetailViewModel extends GetxController
         if (token != _syncToken) return;
         if (refined.hasData) {
           HealthSyncRuntime.replaceRealDataSource(refined);
-          unawaited(HealthDataStore.instance.upsertSummaries(refined.summaries));
+          unawaited(
+            HealthDataStore.instance.upsertSummaries(refined.summaries),
+          );
         }
       } catch (_) {
         // 后台精修失败不影响已展示的快速数据。
@@ -420,22 +425,7 @@ class SyncSourceDetailViewModel extends GetxController
     final selected = <HealthSyncDataType>[];
     for (final item in manualItems) {
       if (!item.selected) continue;
-      switch (item.title) {
-        case 'Steps':
-        case '步数':
-          selected.add(HealthSyncDataType.steps);
-        case 'Distance':
-        case '距离':
-          selected.add(HealthSyncDataType.distance);
-        case 'Calories':
-        case '卡路里':
-          selected.add(HealthSyncDataType.calories);
-        case 'Active Time':
-        case '活动时间':
-        case 'Time':
-        case '时间':
-          selected.add(HealthSyncDataType.activeMinutes);
-      }
+      selected.add(item.type);
     }
     return selected.isEmpty ? const [HealthSyncDataType.steps] : selected;
   }

@@ -20,5 +20,6 @@
   "premium": "高级版",
   "intro_offer_description": "免费试用 3 天，之后每周 {{price}}，可随时取消。",
   "yearly_description": "每年 {{price}}，可随时取消。",
-  "weekly_description": "每周 {{price}}，可随时取消。"
+  "weekly_description": "每周 {{price}}，可随时取消。",
+  "free_trial_enabled": "已开启！"
 }

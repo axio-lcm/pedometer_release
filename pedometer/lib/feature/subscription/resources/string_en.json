@@ -20,5 +20,6 @@
   "premium": "Premium",
   "intro_offer_description": "3-day free trial, then weekly {{price}}. Cancel anytime.",
   "yearly_description": "{{price}} per year, cancel anytime.",
-  "weekly_description": "{{price}} per weekly, cancel anytime."
+  "weekly_description": "{{price}} per weekly, cancel anytime.",
+  "free_trial_enabled": "is Enabled!"
 }

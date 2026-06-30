@@ -9,16 +9,17 @@
   "route_tracking": "ルート記録",
   "health_data_sync": "ヘルスデータ同期",
   "workout_trends": "ワークアウトの傾向",
-  "unlock_premium": "プレミアムを解除",
+  "unlock_premium": "プレミアム版を解除",
   "three_days_free_trial": "3日間無料トライアル",
-  "best_badge": "BEST",
+  "best_badge": "おすすめ",
   "privacy_policy": "プライバシーポリシー",
   "terms": "利用規約",
   "subscription": "サブスクリプション",
   "restore": "復元",
   "upgrade": "アップグレード",
-  "premium": "プレミアム",
+  "premium": "プレミアム版",
   "intro_offer_description": "3日間無料、その後は週 {{price}}。いつでも解約可能。",
   "yearly_description": "年 {{price}}、いつでも解約可能。",
-  "weekly_description": "週 {{price}}、いつでも解約可能。"
+  "weekly_description": "週 {{price}}、いつでも解約可能。",
+  "free_trial_enabled": "が有効です！"
 }

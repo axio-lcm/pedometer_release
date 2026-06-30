@@ -9,16 +9,17 @@
   "route_tracking": "Rota Takibi",
   "health_data_sync": "Sağlık Verisi Senkronizasyonu",
   "workout_trends": "Antrenman Eğilimleri",
-  "unlock_premium": "Premium'u Aç",
+  "unlock_premium": "Ücretli sürümü aç",
   "three_days_free_trial": "3 Gün Ücretsiz Deneme",
-  "best_badge": "EN IYI",
+  "best_badge": "EN İYİ",
   "privacy_policy": "Gizlilik Politikası",
   "terms": "Koşullar",
   "subscription": "Abonelik",
   "restore": "Geri Yükle",
-  "upgrade": "Yukselt",
-  "premium": "Premium",
+  "upgrade": "Yükselt",
+  "premium": "Ücretli sürüm",
   "intro_offer_description": "3 gün ücretsiz, sonra haftalık {{price}}. İstediğin zaman iptal et.",
   "yearly_description": "Yıllık {{price}}, istediğin zaman iptal et.",
-  "weekly_description": "Haftalık {{price}}, istediğin zaman iptal et."
+  "weekly_description": "Haftalık {{price}}, istediğin zaman iptal et.",
+  "free_trial_enabled": "etkinleştirildi!"
 }

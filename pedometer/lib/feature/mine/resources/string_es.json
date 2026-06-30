@@ -4,7 +4,7 @@
   "weight": "Peso",
   "weight_unit": "kg",
   "bmi": "BMI",
-  "bmi_normal": "Normal",
+  "bmi_normal": "Saludable",
   "age": "Edad",
   "age_unit": "años",
   "body_data": "Datos corporales",
