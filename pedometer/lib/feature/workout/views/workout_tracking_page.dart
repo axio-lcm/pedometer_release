@@ -190,7 +190,10 @@ class _WorkoutTrackingPageState extends State<WorkoutTrackingPage> {
   Future<void> _refreshCurrentLanguageResources() async {
     if (!Get.isRegistered<LanguageService>()) return;
     final languageService = Get.find<LanguageService>();
-    await ResourceLoader.setLanguageCode(languageService.resourceLanguageCode);
+    await ResourceLoader.reloadModuleStrings(
+      'workout',
+      languageCode: languageService.resourceLanguageCode,
+    );
   }
 
   Future<void> _checkPermissionAndStart() async {

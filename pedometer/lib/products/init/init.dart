@@ -38,27 +38,29 @@ class AppStartup {
     final languageService = LanguageService();
     await languageService.init();
     Get.put(languageService);
-    await ResourceLoader.init(
-      languageCode: languageService.resourceLanguageCode,
-    );
-    await LanguageUtil.applyStoredPreference();
-    await HeaderManager.instance.initialize();
+
     final subscriptionService = SubscriptionService();
-    await subscriptionService.init();
-    Get.put(subscriptionService, permanent: true);
     final healthAutoSyncService = HealthAutoSyncService();
     Get.put(healthAutoSyncService, permanent: true);
     final stepGoalService = StepGoalService();
-    await stepGoalService.init();
-    Get.put(stepGoalService, permanent: true);
-    await AchievementStatsStore.load();
-    await WorkoutRouteHistoryStore.load();
-    await _hydrateHealthData();
-    if (Platform.isIOS) {
-      await Firebase.initializeApp(
-        options: DefaultFirebaseOptions.currentPlatform,
-      );
-    }
+
+    await Future.wait([
+      ResourceLoader.init(
+        languageCode: languageService.resourceLanguageCode,
+      ).then((_) => LanguageUtil.applyStoredPreference()),
+      HeaderManager.instance.initialize(),
+      subscriptionService.init().then(
+        (service) => Get.put(service, permanent: true),
+      ),
+      stepGoalService.init().then(
+        (service) => Get.put(service, permanent: true),
+      ),
+      AchievementStatsStore.load(),
+      WorkoutRouteHistoryStore.load(),
+      _hydrateHealthData(),
+      if (Platform.isIOS)
+        Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform),
+    ]);
     _bootstrapped = true;
   }
 

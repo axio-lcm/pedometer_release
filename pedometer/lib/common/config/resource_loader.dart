@@ -9,6 +9,7 @@ class ResourceLoader {
 
   static final Map<String, Map<String, String>> _colors = {};
   static final Map<String, Map<String, String>> _strings = {};
+  static final Map<String, Future<Map<String, String>>> _jsonCache = {};
   static bool _initialized = false;
   static String _languageCode = 'en';
   static String _systemFallbackLanguageCode = 'en';
@@ -29,23 +30,45 @@ class ResourceLoader {
     if (_initialized) return;
     _systemFallbackLanguageCode = _resolveSystemLanguageCode();
     _languageCode = _normalizeLanguageCode(languageCode);
-    for (final (module, assetDir) in _modules) {
-      _colors[module] = await _loadJsonMap('$assetDir/color.json');
-    }
+    await Future.wait([
+      for (final (module, assetDir) in _modules)
+        _loadJsonMap('$assetDir/color.json').then((value) {
+          _colors[module] = value;
+        }),
+    ]);
     await _loadStringsForLanguage(_languageCode);
     _initialized = true;
   }
 
-  static Future<void> setLanguageCode(String languageCode) async {
+  static Future<void> setLanguageCode(
+    String languageCode, {
+    bool forceReload = false,
+  }) async {
     _ensureInit();
     _systemFallbackLanguageCode = _resolveSystemLanguageCode();
     final nextLanguage = _normalizeLanguageCode(languageCode);
-    if (_languageCode == nextLanguage) {
-      await _loadStringsForLanguage(_languageCode);
+    if (_languageCode == nextLanguage && !forceReload) {
       return;
     }
     _languageCode = nextLanguage;
-    await _loadStringsForLanguage(_languageCode);
+    await _loadStringsForLanguage(_languageCode, forceReload: forceReload);
+  }
+
+  static Future<void> reloadModuleStrings(
+    String module, {
+    String? languageCode,
+  }) async {
+    _ensureInit();
+    final assetDir = _assetDirForModule(module);
+    if (assetDir == null) return;
+    _systemFallbackLanguageCode = _resolveSystemLanguageCode();
+    final code = _normalizeLanguageCode(languageCode ?? _languageCode);
+    _strings[module] = await _resolveModuleStrings(
+      module,
+      assetDir,
+      code,
+      forceReload: true,
+    );
   }
 
   /// 仅供测试：用内存数据直接装载，跳过 rootBundle。
@@ -63,9 +86,33 @@ class ResourceLoader {
     _initialized = true;
   }
 
-  static Future<Map<String, String>> _loadJsonMap(String assetPath) async {
+  static String? _assetDirForModule(String module) {
+    for (final (registeredModule, assetDir) in _modules) {
+      if (registeredModule == module) return assetDir;
+    }
+    return null;
+  }
+
+  static Future<Map<String, String>> _loadJsonMap(
+    String assetPath, {
+    bool forceReload = false,
+  }) async {
+    if (!forceReload) {
+      final cached = _jsonCache[assetPath];
+      if (cached != null) return cached;
+    }
+    if (forceReload) _jsonCache.remove(assetPath);
+    final loader = _readJsonMap(assetPath, cache: !forceReload);
+    if (!forceReload) _jsonCache[assetPath] = loader;
+    return loader;
+  }
+
+  static Future<Map<String, String>> _readJsonMap(
+    String assetPath, {
+    required bool cache,
+  }) async {
     try {
-      final raw = await rootBundle.loadString(assetPath);
+      final raw = await rootBundle.loadString(assetPath, cache: cache);
       final decoded = jsonDecode(raw);
       if (decoded is! Map) return {};
       return decoded.map((key, value) => MapEntry('$key', '$value'));
@@ -74,14 +121,21 @@ class ResourceLoader {
     }
   }
 
-  static Future<void> _loadStringsForLanguage(String languageCode) async {
-    for (final (module, assetDir) in _modules) {
-      _strings[module] = await _resolveModuleStrings(
-        module,
-        assetDir,
-        languageCode,
-      );
-    }
+  static Future<void> _loadStringsForLanguage(
+    String languageCode, {
+    bool forceReload = false,
+  }) async {
+    await Future.wait([
+      for (final (module, assetDir) in _modules)
+        _resolveModuleStrings(
+          module,
+          assetDir,
+          languageCode,
+          forceReload: forceReload,
+        ).then((value) {
+          _strings[module] = value;
+        }),
+    ]);
   }
 
   /// 取某模块某语言的译文：目标语言 → 系统语言 → 英文安全兜底 → 简体默认。
@@ -89,17 +143,37 @@ class ResourceLoader {
   static Future<Map<String, String>> _resolveModuleStrings(
     String module,
     String assetDir,
-    String code,
-  ) async {
-    final english = await _loadLanguageMap(assetDir, 'en');
+    String code, {
+    bool forceReload = false,
+  }) async {
+    final languageCodes = <String>[
+      'zh_Hans',
+      'en',
+      _systemFallbackLanguageCode,
+      code,
+    ];
+    final uniqueCodes = <String>{
+      for (final languageCode in languageCodes) languageCode,
+    };
+    final loaded = <String, Map<String, String>>{};
+    await Future.wait([
+      for (final languageCode in uniqueCodes)
+        _loadLanguageMap(assetDir, languageCode, forceReload: forceReload).then(
+          (strings) {
+            loaded[languageCode] = strings;
+          },
+        ),
+    ]);
+
+    final english = loaded['en'] ?? const {};
     final chain = <(String code, Map<String, String> strings)>[
-      ('zh_Hans', await _loadLanguageMap(assetDir, 'zh_Hans')),
+      ('zh_Hans', loaded['zh_Hans'] ?? const {}),
       ('en', english),
       (
         _systemFallbackLanguageCode,
-        await _loadLanguageMap(assetDir, _systemFallbackLanguageCode),
+        loaded[_systemFallbackLanguageCode] ?? const {},
       ),
-      (code, await _loadLanguageMap(assetDir, code)),
+      (code, loaded[code] ?? const {}),
     ];
     final merged = <String, String>{};
     for (final (fallbackCode, strings) in chain) {
@@ -112,10 +186,11 @@ class ResourceLoader {
 
   static Future<Map<String, String>> _loadLanguageMap(
     String assetDir,
-    String code,
-  ) {
+    String code, {
+    bool forceReload = false,
+  }) {
     final fileName = code == 'zh_Hans' ? 'string.json' : 'string_$code.json';
-    return _loadJsonMap('$assetDir/$fileName');
+    return _loadJsonMap('$assetDir/$fileName', forceReload: forceReload);
   }
 
   static Map<String, String> _removeEnglishPlaceholders(

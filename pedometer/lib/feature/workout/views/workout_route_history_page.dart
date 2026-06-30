@@ -62,6 +62,7 @@ class _RouteHistoryContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final record = this.record;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -70,17 +71,37 @@ class _RouteHistoryContent extends StatelessWidget {
           onBack: onBack,
         ),
         SizedBox(height: AppSpacing.lg),
-        _CurrentRouteCard(
-          title: record == null
-              ? WorkoutResource.routeHistoryEmpty
-              : WorkoutResource.localizedWorkoutTypeTitle(record!.sportType),
-          points: record?.routePoints ?? const [],
-          distance: record?.distanceKm ?? '0.00',
-          duration: record?.duration ?? '00:00:00',
-          pace: record?.averagePace ?? "--'--''",
-          startPoint: record?.startPoint,
-          endPoint: record?.endPoint,
-        ),
+        if (record == null)
+          _CurrentRouteCard(
+            title: WorkoutResource.routeHistoryEmpty,
+            points: const [],
+            distance: '0.00',
+            duration: '00:00:00',
+            pace: "--'--''",
+            startPoint: null,
+            endPoint: null,
+          )
+        else
+          FutureBuilder<WorkoutRouteHistoryRecord?>(
+            future: record.routeLoaded
+                ? Future.value(record)
+                : WorkoutRouteHistoryStore.loadDetail(record.id),
+            initialData: record,
+            builder: (context, snapshot) {
+              final detail = snapshot.data ?? record;
+              return _CurrentRouteCard(
+                title: WorkoutResource.localizedWorkoutTypeTitle(
+                  detail.sportType,
+                ),
+                points: detail.routePoints,
+                distance: detail.distanceKm,
+                duration: detail.duration,
+                pace: detail.averagePace,
+                startPoint: detail.startPoint,
+                endPoint: detail.endPoint,
+              );
+            },
+          ),
       ],
     );
   }
@@ -272,6 +293,10 @@ class _SavedRouteMapViewState extends State<_SavedRouteMapView> {
   );
 
   GoogleMapController? _mapController;
+  bool _createMap = false;
+  List<LatLng> _cachedPoints = const [];
+  Set<Marker> _cachedMarkers = const {};
+  Set<Polyline> _cachedPolylines = const {};
 
   bool get _isWidgetTest {
     return WidgetsBinding.instance.runtimeType.toString().contains(
@@ -280,9 +305,20 @@ class _SavedRouteMapViewState extends State<_SavedRouteMapView> {
   }
 
   @override
+  void initState() {
+    super.initState();
+    _refreshMapArtifacts();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      setState(() => _createMap = true);
+    });
+  }
+
+  @override
   void didUpdateWidget(covariant _SavedRouteMapView oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (!_sameRoute(oldWidget.points, widget.points)) {
+      _refreshMapArtifacts();
       WidgetsBinding.instance.addPostFrameCallback((_) => _fitRoute());
     }
   }
@@ -301,14 +337,18 @@ class _SavedRouteMapViewState extends State<_SavedRouteMapView> {
       return const _RouteMapFallback();
     }
 
+    if (!_createMap) {
+      return const _RouteMapFallback();
+    }
+
     return GoogleMap(
       style: WorkoutMapStyle.night,
       initialCameraPosition: _initialCameraPosition(),
       minMaxZoomPreference: const MinMaxZoomPreference(3, 20),
       myLocationEnabled: false,
       myLocationButtonEnabled: false,
-      markers: _markers,
-      polylines: WorkoutRoutePolylinePolicy.build(widget.points),
+      markers: _cachedMarkers,
+      polylines: _cachedPolylines,
       mapToolbarEnabled: false,
       zoomControlsEnabled: false,
       compassEnabled: false,
@@ -331,10 +371,16 @@ class _SavedRouteMapViewState extends State<_SavedRouteMapView> {
     return CameraPosition(target: widget.points.first, zoom: 15);
   }
 
-  Set<Marker> get _markers {
-    if (widget.points.isEmpty) return const {};
-    final start = widget.points.first;
-    final end = widget.points.last;
+  void _refreshMapArtifacts() {
+    _cachedPoints = List<LatLng>.unmodifiable(widget.points);
+    _cachedMarkers = _buildMarkers(_cachedPoints);
+    _cachedPolylines = WorkoutRoutePolylinePolicy.build(_cachedPoints);
+  }
+
+  Set<Marker> _buildMarkers(List<LatLng> points) {
+    if (points.isEmpty) return const {};
+    final start = points.first;
+    final end = points.last;
     return {
       Marker(
         markerId: const MarkerId('saved-route-start'),

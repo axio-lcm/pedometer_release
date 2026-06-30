@@ -76,8 +76,7 @@ class AchievementBadgeItem {
   });
 
   /// 已获得用彩色徽章，未获得用 0 开头的灰色徽章。
-  String get imageAsset =>
-      earned ? 'assets/$index.png' : 'assets/0$index.png';
+  String get imageAsset => earned ? 'assets/$index.png' : 'assets/0$index.png';
 }
 
 /// 成就徽章目录：12 枚徽章，按真实累积数据计算进度，达标（≥100%）才点亮彩色徽章。
@@ -118,18 +117,48 @@ class WorkoutAchievementCatalog {
     }
 
     return [
-      badge(1, WorkoutResource.beginnerRunner,
-          WorkoutResource.badgeDescBeginnerRunner, distanceKm, 10),
-      badge(2, WorkoutResource.persistent,
-          WorkoutResource.badgeDescPersistent, runDays.toDouble(), 30),
-      badge(3, WorkoutResource.hundredKm,
-          WorkoutResource.badgeDescHundredKm, distanceKm, 100),
-      badge(4, WorkoutResource.badgeTimeMaster,
-          WorkoutResource.badgeDescTimeMaster, maxMinutes.toDouble(), 60),
-      badge(5, WorkoutResource.badge200Km,
-          WorkoutResource.badgeDesc200Km, distanceKm, 200),
-      badge(6, WorkoutResource.badgeCalorieMaster,
-          WorkoutResource.badgeDescCalorieMaster, totalCalories, 2000),
+      badge(
+        1,
+        WorkoutResource.beginnerRunner,
+        WorkoutResource.badgeDescBeginnerRunner,
+        distanceKm,
+        10,
+      ),
+      badge(
+        2,
+        WorkoutResource.persistent,
+        WorkoutResource.badgeDescPersistent,
+        runDays.toDouble(),
+        30,
+      ),
+      badge(
+        3,
+        WorkoutResource.hundredKm,
+        WorkoutResource.badgeDescHundredKm,
+        distanceKm,
+        100,
+      ),
+      badge(
+        4,
+        WorkoutResource.badgeTimeMaster,
+        WorkoutResource.badgeDescTimeMaster,
+        maxMinutes.toDouble(),
+        60,
+      ),
+      badge(
+        5,
+        WorkoutResource.badge200Km,
+        WorkoutResource.badgeDesc200Km,
+        distanceKm,
+        200,
+      ),
+      badge(
+        6,
+        WorkoutResource.badgeCalorieMaster,
+        WorkoutResource.badgeDescCalorieMaster,
+        totalCalories,
+        2000,
+      ),
       // 登峰造极：暂未实现累积数据，保持锁定 0 进度。
       AchievementBadgeItem(
         title: WorkoutResource.badgePeakClimber,
@@ -138,16 +167,41 @@ class WorkoutAchievementCatalog {
         earned: false,
         progress: 0,
       ),
-      badge(8, WorkoutResource.badgeAdvancedRunner,
-          WorkoutResource.badgeDescAdvancedRunner, distanceKm, 50),
-      badge(9, WorkoutResource.badgeWeeklyCheckin,
-          WorkoutResource.badgeDescWeeklyCheckin, weekStreak.toDouble(), 7),
-      badge(10, WorkoutResource.badgeMonthlyStar,
-          WorkoutResource.badgeDescMonthlyStar, bestMonthKm, 100),
-      badge(11, WorkoutResource.badgeStepsMaster,
-          WorkoutResource.badgeDescStepsMaster, maxDailySteps.toDouble(), 20000),
-      badge(12, WorkoutResource.badge500Km,
-          WorkoutResource.badgeDesc500Km, distanceKm, 500),
+      badge(
+        8,
+        WorkoutResource.badgeAdvancedRunner,
+        WorkoutResource.badgeDescAdvancedRunner,
+        distanceKm,
+        50,
+      ),
+      badge(
+        9,
+        WorkoutResource.badgeWeeklyCheckin,
+        WorkoutResource.badgeDescWeeklyCheckin,
+        weekStreak.toDouble(),
+        7,
+      ),
+      badge(
+        10,
+        WorkoutResource.badgeMonthlyStar,
+        WorkoutResource.badgeDescMonthlyStar,
+        bestMonthKm,
+        100,
+      ),
+      badge(
+        11,
+        WorkoutResource.badgeStepsMaster,
+        WorkoutResource.badgeDescStepsMaster,
+        maxDailySteps.toDouble(),
+        20000,
+      ),
+      badge(
+        12,
+        WorkoutResource.badge500Km,
+        WorkoutResource.badgeDesc500Km,
+        distanceKm,
+        500,
+      ),
     ];
   }
 }
@@ -173,6 +227,7 @@ class WorkoutRouteHistoryRecord {
   final LatLng? endPoint;
   final List<LatLng> routePoints;
   final Uint8List? mapSnapshot;
+  final bool routeLoaded;
 
   const WorkoutRouteHistoryRecord({
     required this.id,
@@ -185,6 +240,7 @@ class WorkoutRouteHistoryRecord {
     required this.endPoint,
     required this.routePoints,
     this.mapSnapshot,
+    this.routeLoaded = true,
   });
 }
 
@@ -206,13 +262,36 @@ class WorkoutRouteHistoryStore {
   /// 启动时从持久化恢复（按结束时间倒序）。
   static Future<void> load() async {
     try {
-      final stored = await _db.loadAll();
+      final stored = await _db.loadSummaries();
       _records
         ..clear()
         ..addAll(stored);
       revision.value++;
     } catch (_) {
       // 读取失败不影响功能，按空历史处理。
+    }
+  }
+
+  static Future<WorkoutRouteHistoryRecord?> loadDetail(String id) async {
+    final cachedIndex = _records.indexWhere((item) => item.id == id);
+    if (cachedIndex >= 0 && _records[cachedIndex].routeLoaded) {
+      return _records[cachedIndex];
+    }
+
+    try {
+      final record = await _db.loadById(id);
+      if (record == null) {
+        return cachedIndex >= 0 ? _records[cachedIndex] : null;
+      }
+      if (cachedIndex >= 0) {
+        _records[cachedIndex] = record;
+      } else {
+        _records.insert(0, record);
+      }
+      revision.value++;
+      return record;
+    } catch (_) {
+      return cachedIndex >= 0 ? _records[cachedIndex] : null;
     }
   }
 
@@ -280,6 +359,37 @@ class _WorkoutRouteHistoryDb {
     return [for (final row in rows) _fromRow(row)];
   }
 
+  Future<List<WorkoutRouteHistoryRecord>> loadSummaries() async {
+    final db = await _database;
+    final rows = await db.query(
+      _table,
+      columns: [
+        'id',
+        'ended_at',
+        'sport_type',
+        'distance_km',
+        'duration',
+        'average_pace',
+        'start_point',
+        'end_point',
+      ],
+      orderBy: 'ended_at DESC',
+    );
+    return [for (final row in rows) _fromRow(row, routeLoaded: false)];
+  }
+
+  Future<WorkoutRouteHistoryRecord?> loadById(String id) async {
+    final db = await _database;
+    final rows = await db.query(
+      _table,
+      where: 'id = ?',
+      whereArgs: [id],
+      limit: 1,
+    );
+    if (rows.isEmpty) return null;
+    return _fromRow(rows.first);
+  }
+
   Map<String, Object?> _toRow(WorkoutRouteHistoryRecord r) => {
     'id': r.id,
     'ended_at': r.endedAt.millisecondsSinceEpoch,
@@ -295,8 +405,14 @@ class _WorkoutRouteHistoryDb {
     'map_snapshot': r.mapSnapshot,
   };
 
-  WorkoutRouteHistoryRecord _fromRow(Map<String, Object?> row) {
-    final decoded = jsonDecode(row['route_points'] as String) as List;
+  WorkoutRouteHistoryRecord _fromRow(
+    Map<String, Object?> row, {
+    bool routeLoaded = true,
+  }) {
+    final encodedRoute = row['route_points'] as String?;
+    final decoded = encodedRoute == null
+        ? const []
+        : jsonDecode(encodedRoute) as List;
     final points = [
       for (final e in decoded)
         LatLng((e[0] as num).toDouble(), (e[1] as num).toDouble()),
@@ -315,6 +431,7 @@ class _WorkoutRouteHistoryDb {
       mapSnapshot: snapshot is Uint8List
           ? snapshot
           : (snapshot is List<int> ? Uint8List.fromList(snapshot) : null),
+      routeLoaded: routeLoaded,
     );
   }
 

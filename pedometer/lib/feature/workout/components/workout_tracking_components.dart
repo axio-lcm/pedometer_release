@@ -270,6 +270,8 @@ class _WorkoutMapViewState extends State<WorkoutMapView>
   bool _cameraMoving = false;
   DateTime? _lastCameraMoveAt;
   DateTime? _lastHeadingPaintAt;
+  List<LatLng> _cachedRoutePoints = const [];
+  Set<Polyline> _cachedRoutePolylines = const {};
   // 设备罗盘朝向（度，0=正北，顺时针）。驱动当前位置箭头随手机方向旋转。
   double _headingDegrees = 0;
 
@@ -369,7 +371,7 @@ class _WorkoutMapViewState extends State<WorkoutMapView>
               myLocationEnabled: false,
               myLocationButtonEnabled: false,
               markers: _trackingMarkers,
-              polylines: WorkoutRoutePolylinePolicy.build(routePoints),
+              polylines: _polylinesForRoute(routePoints),
               mapToolbarEnabled: false,
               zoomControlsEnabled: false,
               compassEnabled: false,
@@ -632,6 +634,28 @@ class _WorkoutMapViewState extends State<WorkoutMapView>
     if (start != null && route.first != start) route.insert(0, start);
     if (end != null && route.last != end) route.add(end);
     return route;
+  }
+
+  Set<Polyline> _polylinesForRoute(List<LatLng> routePoints) {
+    if (_sameRoute(_cachedRoutePoints, routePoints)) {
+      return _cachedRoutePolylines;
+    }
+    _cachedRoutePoints = List<LatLng>.unmodifiable(routePoints);
+    _cachedRoutePolylines = WorkoutRoutePolylinePolicy.build(
+      _cachedRoutePoints,
+    );
+    return _cachedRoutePolylines;
+  }
+
+  bool _sameRoute(List<LatLng> a, List<LatLng> b) {
+    if (identical(a, b)) return true;
+    if (a.length != b.length) return false;
+    for (var i = 0; i < a.length; i++) {
+      if (a[i].latitude != b[i].latitude || a[i].longitude != b[i].longitude) {
+        return false;
+      }
+    }
+    return true;
   }
 
   LatLngBounds _boundsFor(List<LatLng> points) {
