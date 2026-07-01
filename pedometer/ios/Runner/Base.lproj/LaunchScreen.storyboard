@@ -32,17 +32,17 @@
                                 <color key="textColor" red="0.86274509803921573" green="0.86274509803921573" blue="0.86274509803921573" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                                 <nil key="highlightedColor"/>
                             </label>
-                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="dQQ-j2-IDf" userLabel="Launch Continue Button">
+                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="dQQ-j2-IDf" userLabel="Launch Bottom Button">
                                 <rect key="frame" x="33" y="740" width="327" height="56"/>
                                 <constraints>
                                     <constraint firstAttribute="height" constant="56" id="0L1-xI-NNs"/>
                                 </constraints>
                                 <fontDescription key="fontDescription" type="boldSystem" pointSize="18"/>
-                                <buttonConfiguration key="configuration" style="filled" title="Setting" cornerStyle="capsule">
+                                <buttonConfiguration key="configuration" style="filled" cornerStyle="capsule">
                                     <color key="baseForegroundColor" red="0" green="0.074509803921568626" blue="0.039215686274509803" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                                     <color key="baseBackgroundColor" red="0.14901960784313725" green="0.98431372549019602" blue="0.26666666666666666" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                                 </buttonConfiguration>
-                                <state key="normal" title="Continue">
+                                <state key="normal">
                                     <color key="titleColor" red="0" green="0.074509803921568626" blue="0.039215686274509803" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                                 </state>
                             </button>
