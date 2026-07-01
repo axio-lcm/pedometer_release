@@ -189,5 +189,8 @@
   "lt_template_price_per_year": "연 {{price}}, 언제든 취소 가능.",
   "lt_template_price_per_weekly": "주 {{price}}, 언제든 취소 가능.",
   "lt_cancel_anytime": "언제든 취소 가능",
-  "lt_no_payment_now": "지금 결제 없음"
+  "lt_no_payment_now": "지금 결제 없음",
+  "lt_network_unavailable": "네트워크를 사용할 수 없습니다",
+  "lt_please_check_your_connection_and_try_again": "연결을 확인한 후 다시 시도해 주세요.",
+  "lt_try_again": "다시 시도"
 }

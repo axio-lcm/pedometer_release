@@ -189,5 +189,8 @@
   "lt_template_price_per_year": "{{price}} al año, cancela cuando quieras.",
   "lt_template_price_per_weekly": "{{price}} por semana, cancela cuando quieras.",
   "lt_cancel_anytime": "Cancela cuando quieras",
-  "lt_no_payment_now": "Sin pago ahora"
+  "lt_no_payment_now": "Sin pago ahora",
+  "lt_network_unavailable": "Red no disponible",
+  "lt_please_check_your_connection_and_try_again": "Comprueba tu conexión e inténtalo de nuevo.",
+  "lt_try_again": "Intentar de nuevo"
 }

@@ -189,5 +189,8 @@
   "lt_template_price_per_year": "Yıllık {{price}}, istediğin zaman iptal et.",
   "lt_template_price_per_weekly": "Haftalık {{price}}, istediğin zaman iptal et.",
   "lt_cancel_anytime": "İstediğin zaman iptal et",
-  "lt_no_payment_now": "Şimdi ödeme yok"
+  "lt_no_payment_now": "Şimdi ödeme yok",
+  "lt_network_unavailable": "Ağ kullanılamıyor",
+  "lt_please_check_your_connection_and_try_again": "Bağlantını kontrol edip tekrar dene.",
+  "lt_try_again": "Tekrar Dene"
 }

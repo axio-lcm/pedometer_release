@@ -15,6 +15,9 @@ abstract final class SubscriptionConfig {
     inAppYearlyId,
   ];
 
+  static bool hasIntroOfferLoading(String productId) =>
+      productId == onboardingWeeklyId || productId == inAppWeeklyId;
+
   static const List<String> oneTimeProductIds = [];
 }
 

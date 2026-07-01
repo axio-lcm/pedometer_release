@@ -32,32 +32,14 @@
                                 <color key="textColor" red="0.86274509803921573" green="0.86274509803921573" blue="0.86274509803921573" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                                 <nil key="highlightedColor"/>
                             </label>
-                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="dQQ-j2-IDf" userLabel="Launch Bottom Button">
-                                <rect key="frame" x="33" y="740" width="327" height="56"/>
-                                <constraints>
-                                    <constraint firstAttribute="height" constant="56" id="0L1-xI-NNs"/>
-                                </constraints>
-                                <fontDescription key="fontDescription" type="boldSystem" pointSize="18"/>
-                                <buttonConfiguration key="configuration" style="filled" cornerStyle="capsule">
-                                    <color key="baseForegroundColor" red="0" green="0.074509803921568626" blue="0.039215686274509803" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
-                                    <color key="baseBackgroundColor" red="0.14901960784313725" green="0.98431372549019602" blue="0.26666666666666666" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
-                                </buttonConfiguration>
-                                <state key="normal">
-                                    <color key="titleColor" red="0" green="0.074509803921568626" blue="0.039215686274509803" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
-                                </state>
-                            </button>
                         </subviews>
                         <viewLayoutGuide key="safeArea" id="JgB-LQ-bY2"/>
                         <color key="backgroundColor" red="0" green="0.019607843137254902" blue="0.039215686274509803" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                         <constraints>
                             <constraint firstItem="uJK-Yh-xFR" firstAttribute="centerX" secondItem="Ze5-6b-2t3" secondAttribute="centerX" id="4fk-I0-D6A"/>
-                            <constraint firstItem="dQQ-j2-IDf" firstAttribute="centerX" secondItem="Ze5-6b-2t3" secondAttribute="centerX" id="Ehl-bH-HKn"/>
                             <constraint firstItem="8fj-hx-UmU" firstAttribute="top" secondItem="uJK-Yh-xFR" secondAttribute="bottom" constant="24" id="IMe-7L-kgC"/>
-                            <constraint firstItem="dQQ-j2-IDf" firstAttribute="bottom" secondItem="JgB-LQ-bY2" secondAttribute="bottom" constant="-22" id="Kzp-kf-KR7"/>
                             <constraint firstItem="8fj-hx-UmU" firstAttribute="centerX" secondItem="Ze5-6b-2t3" secondAttribute="centerX" id="brI-o7-0rr"/>
-                            <constraint firstItem="dQQ-j2-IDf" firstAttribute="width" relation="lessThanOrEqual" constant="327" id="mll-aa-T49"/>
                             <constraint firstItem="uJK-Yh-xFR" firstAttribute="centerY" secondItem="Ze5-6b-2t3" secondAttribute="centerY" constant="-80" id="r9B-K0-9S2"/>
-                            <constraint firstItem="dQQ-j2-IDf" firstAttribute="width" secondItem="Ze5-6b-2t3" secondAttribute="width" priority="750" constant="-66" id="zA8-F5-XXd"/>
                         </constraints>
                     </view>
                 </viewController>

@@ -189,5 +189,8 @@
   "lt_template_price_per_year": "{{price}} pro Jahr, jederzeit kündbar.",
   "lt_template_price_per_weekly": "{{price}} pro Woche, jederzeit kündbar.",
   "lt_cancel_anytime": "Jederzeit kündbar",
-  "lt_no_payment_now": "Jetzt keine Zahlung"
+  "lt_no_payment_now": "Jetzt keine Zahlung",
+  "lt_network_unavailable": "Netzwerk nicht verfügbar",
+  "lt_please_check_your_connection_and_try_again": "Bitte überprüfe deine Verbindung und versuche es erneut.",
+  "lt_try_again": "Erneut versuchen"
 }

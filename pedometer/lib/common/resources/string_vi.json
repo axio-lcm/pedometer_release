@@ -189,5 +189,8 @@
   "lt_template_price_per_year": "{{price}} mỗi năm, hủy bất cứ lúc nào.",
   "lt_template_price_per_weekly": "{{price}} mỗi tuần, hủy bất cứ lúc nào.",
   "lt_cancel_anytime": "Hủy bất cứ lúc nào",
-  "lt_no_payment_now": "Chưa cần thanh toán ngay"
+  "lt_no_payment_now": "Chưa cần thanh toán ngay",
+  "lt_network_unavailable": "Mạng không khả dụng",
+  "lt_please_check_your_connection_and_try_again": "Vui lòng kiểm tra kết nối rồi thử lại.",
+  "lt_try_again": "Thử lại"
 }

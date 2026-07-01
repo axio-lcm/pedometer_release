@@ -34,6 +34,7 @@ class OnboardingPage extends GetView<OnboardingViewModel> {
             Positioned.fill(
               child: FreeTrialSwitchIntroOverlay(
                 visible: controller.showFreeTrialSwitchIntro.value,
+                trialDays: controller.introOfferDays.value,
                 onFinished: controller.hideFreeTrialSwitchIntro,
               ),
             ),
@@ -199,9 +200,12 @@ class _SubscriptionOnboardingBody extends StatelessWidget {
     final isIntroOffer = controller.isEligibleForIntroOffer.value;
     final description = controller.productDescription.value.isEmpty
         ? isIntroOffer
-              ? lt(
-                  r'3-day free trial, then weekly $9.99. Cancel anytime.',
-                  r'免费试用 3 天，之后每周 $9.99，可随时取消。',
+              ? SubscriptionResource.replaceTrialDays(
+                  lt(
+                    r'3-day free trial, then weekly $9.99. Cancel anytime.',
+                    r'免费试用 3 天，之后每周 $9.99，可随时取消。',
+                  ),
+                  controller.introOfferDays.value,
                 )
               : lt(
                   r'Subscribe to unlock goals, rewards, route tracking, health sync, and training insights. Weekly $9.99. Cancel anytime.',

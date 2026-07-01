@@ -189,5 +189,8 @@
   "lt_template_price_per_year": "{{price}} per tahun, batal kapan saja.",
   "lt_template_price_per_weekly": "{{price}} per minggu, batal kapan saja.",
   "lt_cancel_anytime": "Batalkan kapan saja",
-  "lt_no_payment_now": "Tidak ada pembayaran sekarang"
+  "lt_no_payment_now": "Tidak ada pembayaran sekarang",
+  "lt_network_unavailable": "Jaringan tidak tersedia",
+  "lt_please_check_your_connection_and_try_again": "Periksa koneksi Anda dan coba lagi.",
+  "lt_try_again": "Coba Lagi"
 }

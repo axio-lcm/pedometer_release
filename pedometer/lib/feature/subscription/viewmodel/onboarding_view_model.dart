@@ -18,6 +18,7 @@ class OnboardingViewModel extends GetxController {
   final productDescription = ''.obs;
   final productPrice = r'$9.99'.obs;
   final isEligibleForIntroOffer = false.obs;
+  final introOfferDays = SubscriptionResource.defaultIntroOfferDays.obs;
   final showFreeTrialSwitchIntro = false.obs;
   Worker? _vipWorker;
   Worker? _languageWorker;
@@ -148,7 +149,9 @@ class OnboardingViewModel extends GetxController {
 
   Future<void> _loadProductInfo() async {
     final service = Get.find<SubscriptionService>();
-    await service.getAllProducts();
+    // 初始化内购并确保商品真正加载（空时会重试），与订阅页保持一致，
+    // 避免未配置 / TestFlight 首拉为空时读到空商品退回 fallback 价。
+    await service.ensureProductsLoaded();
     final product = service.productOf(SubscriptionConfig.onboardingWeeklyId);
     final eligible = await service.isEligibleForIntroOffer(
       SubscriptionConfig.onboardingWeeklyId,
@@ -157,6 +160,9 @@ class OnboardingViewModel extends GetxController {
       SubscriptionConfig.onboardingWeeklyId,
     );
     isEligibleForIntroOffer.value = eligible;
+    introOfferDays.value = service.introOfferDaysFor(
+      SubscriptionConfig.onboardingWeeklyId,
+    );
     buttonText.value = action.isEmpty ? lt('Continue', '继续') : action;
     final price = product?.displayPrice?.isNotEmpty == true
         ? product!.displayPrice!
@@ -172,7 +178,10 @@ class OnboardingViewModel extends GetxController {
   void _refreshLocalizedProductText() {
     final price = productPrice.value;
     productDescription.value = isEligibleForIntroOffer.value
-        ? SubscriptionResource.introOfferDescription(price)
+        ? SubscriptionResource.introOfferDescription(
+            price,
+            trialDays: introOfferDays.value,
+          )
         : lt(
             'Subscribe to unlock goals, rewards, route tracking, health sync, and training insights. Weekly $price. Cancel anytime.',
             '订阅即可解锁目标、奖励、路线记录、健康同步和训练洞察。每周 $price，可随时取消。',

@@ -7,6 +7,7 @@ import 'package:get/get.dart';
 
 import 'package:pedometer/common/config/app_colors.dart';
 import 'package:pedometer/common/config/localized_text.dart';
+import 'package:pedometer/feature/subscription/resources/subscription_resource.dart';
 
 /// 购买加载弹窗
 ///
@@ -14,8 +15,13 @@ import 'package:pedometer/common/config/localized_text.dart';
 /// - type 1：普通订阅
 class PurchaseLoading extends StatefulWidget {
   final int type;
+  final int trialDays;
 
-  const PurchaseLoading({super.key, required this.type});
+  const PurchaseLoading({
+    super.key,
+    required this.type,
+    this.trialDays = SubscriptionResource.defaultIntroOfferDays,
+  });
 
   static bool _isShowing = false;
   static BuildContext? _dialogContext;
@@ -26,7 +32,7 @@ class PurchaseLoading extends StatefulWidget {
 
   static bool get isShowing => _isShowing;
 
-  static Future<void> show({int type = 1}) {
+  static Future<void> show({int type = 1, int? trialDays}) {
     if (_isShowing) return _dialogFuture ?? Future.value();
     final context = Get.context;
     if (context == null) return Future.value();
@@ -38,7 +44,11 @@ class PurchaseLoading extends StatefulWidget {
           barrierDismissible: false,
           builder: (dialogContext) {
             _dialogContext = dialogContext;
-            return PurchaseLoading(type: type);
+            return PurchaseLoading(
+              type: type,
+              trialDays:
+                  trialDays ?? SubscriptionResource.defaultIntroOfferDays,
+            );
           },
         ).whenComplete(() {
           _isShowing = false;
@@ -77,7 +87,10 @@ class _PurchaseLoadingState extends State<PurchaseLoading>
 
   List<String> get _texts => widget.type == 0
       ? [
-          lt('3-Day Free Trial', '3天免费试用'),
+          SubscriptionResource.replaceTrialDays(
+            lt('3-Day Free Trial', '3天免费试用'),
+            widget.trialDays,
+          ),
           lt('Cancel anytime', '随时取消'),
           lt('No payment now', '现在无需付款'),
         ]

@@ -5,6 +5,8 @@ import 'package:pedometer/common/config/localized_text.dart';
 class SubscriptionResource {
   SubscriptionResource._();
 
+  static const int defaultIntroOfferDays = 3;
+
   static String get startFreeTrial =>
       _string('start_free_trial', SubscriptionText.startFreeTrial);
   static String get subscribe =>
@@ -29,6 +31,8 @@ class SubscriptionResource {
       _string('unlock_premium', SubscriptionText.unlockPremium);
   static String get threeDaysFreeTrial =>
       _string('three_days_free_trial', SubscriptionText.threeDaysFreeTrial);
+  static String threeDaysFreeTrialForDays(int days) =>
+      replaceTrialDays(threeDaysFreeTrial, days);
   static String get freeTrialEnabled =>
       _string('free_trial_enabled', lt('is Enabled!', '已开启！'));
   static String get bestBadge =>
@@ -42,12 +46,13 @@ class SubscriptionResource {
   static String get upgrade => _string('upgrade', SubscriptionText.upgrade);
   static String get premium => _string('premium', SubscriptionText.premium);
 
-  static String introOfferDescription(String price) {
-    return _template(
+  static String introOfferDescription(String price, {int? trialDays}) {
+    final text = _template(
       'intro_offer_description',
       SubscriptionText.introOfferDescription,
       {'price': price},
     );
+    return trialDays == null ? text : replaceTrialDays(text, trialDays);
   }
 
   static String yearlyDescription(String price) {
@@ -76,6 +81,11 @@ class SubscriptionResource {
       template,
       (value, entry) => value.replaceAll('{{${entry.key}}}', entry.value),
     );
+  }
+
+  static String replaceTrialDays(String text, int days) {
+    final safeDays = days > 0 ? days : defaultIntroOfferDays;
+    return text.replaceFirst(RegExp(r'(?<!\d)3(?!\d)'), '$safeDays');
   }
 }
 

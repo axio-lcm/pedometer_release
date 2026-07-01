@@ -189,5 +189,8 @@
   "lt_template_price_per_year": "每年 {{price}}，可隨時取消。",
   "lt_template_price_per_weekly": "每週 {{price}}，可隨時取消。",
   "lt_cancel_anytime": "可隨時取消",
-  "lt_no_payment_now": "現在無需付款"
+  "lt_no_payment_now": "現在無需付款",
+  "lt_network_unavailable": "網路不可用",
+  "lt_please_check_your_connection_and_try_again": "請檢查網路連線後重試。",
+  "lt_try_again": "重試"
 }

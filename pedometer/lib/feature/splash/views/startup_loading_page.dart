@@ -3,8 +3,9 @@ import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:pedometer/common/config/app_colors.dart';
-import 'package:pedometer/common/config/app_dimens.dart';
 import 'package:pedometer/common/config/app_config.dart';
+import 'package:pedometer/common/config/app_dimens.dart';
+import 'package:pedometer/common/config/localized_text.dart';
 import 'package:pedometer/feature/splash/viewmodel/startup_loading_view_model.dart';
 
 class StartupLoadingPage extends GetView<StartupLoadingViewModel> {
@@ -14,51 +15,18 @@ class StartupLoadingPage extends GetView<StartupLoadingViewModel> {
 
   @override
   Widget build(BuildContext context) {
-    return StartupLoadingContent(onFinished: controller.onLoadingFinished);
+    return StartupLoadingContent(controller: controller);
   }
 }
 
-class StartupLoadingContent extends StatefulWidget {
-  final Future<void> Function()? onFinished;
-  final Duration duration;
+class StartupLoadingContent extends StatelessWidget {
+  final StartupLoadingViewModel controller;
 
-  const StartupLoadingContent({
-    super.key,
-    this.onFinished,
-    this.duration = const Duration(seconds: 2),
-  });
+  const StartupLoadingContent({super.key, required this.controller});
 
-  @override
-  State<StartupLoadingContent> createState() => _StartupLoadingContentState();
-}
-
-class _StartupLoadingContentState extends State<StartupLoadingContent>
-    with SingleTickerProviderStateMixin {
   static const _backgroundColor = Color(0xFF00050A);
   static Color get _progressFill => AppColors.brandGreen;
   static const _progressTrack = Color(0xFF15311F);
-
-  late final AnimationController _progressController;
-
-  @override
-  void initState() {
-    super.initState();
-    SystemChrome.setSystemUIOverlayStyle(_overlayStyle);
-    _progressController = AnimationController(
-      vsync: this,
-      duration: widget.duration,
-    );
-    _progressController.forward().whenComplete(() async {
-      if (!mounted) return;
-      await widget.onFinished?.call();
-    });
-  }
-
-  @override
-  void dispose() {
-    _progressController.dispose();
-    super.dispose();
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -67,53 +35,28 @@ class _StartupLoadingContentState extends State<StartupLoadingContent>
       child: Scaffold(
         backgroundColor: _backgroundColor,
         body: SafeArea(
-          child: AnimatedBuilder(
-            animation: _progressController,
-            builder: (context, child) {
-              final progress = Curves.easeOutCubic.transform(
-                _progressController.value,
-              );
-              final percent = (progress * 100).round();
-              return Column(
-                children: [
-                  Expanded(
-                    child: Center(
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          _AppIconMark(size: 112.w),
-                          SizedBox(height: AppSpacing.xl),
-                          Text(
-                            Constants.appName,
-                            style: TextStyle(
-                              color: Colors.white.withValues(alpha: 0.86),
-                              fontSize: 20.sp,
-                              fontWeight: FontWeight.w900,
-                              height: 1,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
+          child: Obx(() {
+            final status = controller.networkStatus.value;
+            final progress = controller.progress.value.clamp(0.0, 100.0);
+            return Column(
+              children: [
+                const Expanded(child: _StartupBrandMark()),
+                Padding(
+                  padding: EdgeInsets.fromLTRB(
+                    AppSpacing.xxl,
+                    0,
+                    AppSpacing.xxl,
+                    AppSpacing.xl + 36.h,
                   ),
-                  Padding(
-                    padding: EdgeInsets.fromLTRB(
-                      AppSpacing.xxl,
-                      0,
-                      AppSpacing.xxl,
-                      AppSpacing.xl + 36.h,
-                    ),
-                    child: _StartupProgressBar(
-                      progress: progress,
-                      percent: percent,
-                      fillColor: _progressFill,
-                      trackColor: _progressTrack,
-                    ),
+                  child: _StartupBottomStatus(
+                    status: status,
+                    progress: progress,
+                    onRetry: controller.retryNetwork,
                   ),
-                ],
-              );
-            },
-          ),
+                ),
+              ],
+            );
+          }),
         ),
       ),
     );
@@ -126,6 +69,163 @@ class _StartupLoadingContentState extends State<StartupLoadingContent>
     systemNavigationBarColor: _backgroundColor,
     systemNavigationBarIconBrightness: Brightness.light,
   );
+}
+
+class _StartupBrandMark extends StatelessWidget {
+  const _StartupBrandMark();
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          _AppIconMark(size: 112.w),
+          SizedBox(height: AppSpacing.xl),
+          Text(
+            Constants.appName,
+            style: TextStyle(
+              color: Colors.white.withValues(alpha: 0.86),
+              fontSize: 20.sp,
+              fontWeight: FontWeight.w900,
+              height: 1,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _StartupBottomStatus extends StatelessWidget {
+  final StartupNetworkStatus status;
+  final double progress;
+  final VoidCallback onRetry;
+
+  const _StartupBottomStatus({
+    required this.status,
+    required this.progress,
+    required this.onRetry,
+  });
+
+  // 底部状态区统一宽度：进度条、重试、spinner 三态共用，保证宽度一致。
+  static const _contentMaxWidth = 327.0;
+
+  @override
+  Widget build(BuildContext context) {
+    final available = MediaQuery.sizeOf(context).width - AppSpacing.xxl * 2;
+    final contentWidth = available.clamp(240.0, _contentMaxWidth.w);
+
+    final child = switch (status) {
+      StartupNetworkStatus.disconnected => _StartupNetworkRetry(
+        onRetry: onRetry,
+      ),
+      StartupNetworkStatus.checking => const _StartupSpinner(),
+      StartupNetworkStatus.connected => _StartupProgressBar(
+        progress: progress / 100,
+        percent: progress.round(),
+        fillColor: StartupLoadingContent._progressFill,
+        trackColor: StartupLoadingContent._progressTrack,
+      ),
+    };
+
+    return Center(child: SizedBox(width: contentWidth, child: child));
+  }
+}
+
+class _StartupSpinner extends StatelessWidget {
+  const _StartupSpinner();
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 54.h,
+      child: Center(
+        child: SizedBox(
+          width: 28.w,
+          height: 28.w,
+          child: CircularProgressIndicator(
+            strokeWidth: 3.w,
+            valueColor: AlwaysStoppedAnimation<Color>(AppColors.brandGreen),
+            backgroundColor: const Color(0xFF15311F),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _StartupNetworkRetry extends StatelessWidget {
+  final VoidCallback onRetry;
+
+  const _StartupNetworkRetry({required this.onRetry});
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Text(
+          lt('Network unavailable', '网络不可用'),
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 17.sp,
+            fontWeight: FontWeight.w800,
+            height: 1.15,
+          ),
+        ),
+        SizedBox(height: AppSpacing.xs),
+        Text(
+          lt('Please check your connection and try again.', '请检查网络连接后重试。'),
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            color: Colors.white.withValues(alpha: 0.72),
+            fontSize: 13.sp,
+            fontWeight: FontWeight.w600,
+            height: 1.25,
+          ),
+        ),
+        SizedBox(height: AppSpacing.lg),
+        _StartupRetryButton(onTap: onRetry),
+      ],
+    );
+  }
+}
+
+class _StartupRetryButton extends StatelessWidget {
+  final VoidCallback onTap;
+
+  const _StartupRetryButton({required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 54.h,
+      child: Material(
+        color: AppColors.brandGreen,
+        borderRadius: BorderRadius.circular(AppRadius.full),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(AppRadius.full),
+          onTap: onTap,
+          child: Center(
+            child: Text(
+              lt('Try Again', '重试'),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                color: const Color(0xFF00130A),
+                fontSize: 16.sp,
+                fontWeight: FontWeight.w900,
+                height: 1,
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 }
 
 class _AppIconMark extends StatelessWidget {
@@ -163,20 +263,16 @@ class _StartupProgressBar extends StatelessWidget {
     required this.trackColor,
   });
 
-  static const _designWidth = 327.0;
   static const _height = 54.0;
 
   @override
   Widget build(BuildContext context) {
-    final width = MediaQuery.sizeOf(context).width - AppSpacing.xxl * 2;
-    final barWidth = width.clamp(240.0, _designWidth.w);
     final clampedProgress = progress.clamp(0.0, 1.0);
 
-    return Center(
-      child: SizedBox(
-        width: barWidth,
-        height: _height.h,
-        child: DecoratedBox(
+    return SizedBox(
+      width: double.infinity,
+      height: _height.h,
+      child: DecoratedBox(
           decoration: BoxDecoration(
             color: trackColor,
             borderRadius: BorderRadius.circular(AppRadius.full),
@@ -196,10 +292,7 @@ class _StartupProgressBar extends StatelessWidget {
                       child: DecoratedBox(
                         decoration: BoxDecoration(
                           gradient: LinearGradient(
-                            colors: [
-                              AppColors.brandGreenLight,
-                              AppColors.brandGreen,
-                            ],
+                            colors: [AppColors.brandGreenLight, fillColor],
                           ),
                         ),
                       ),
@@ -213,9 +306,6 @@ class _StartupProgressBar extends StatelessWidget {
                           fontSize: 18.sp,
                           fontWeight: FontWeight.w900,
                           height: 1,
-                          shadows: const [
-                            Shadow(color: Color(0x66000000), blurRadius: 6),
-                          ],
                         ),
                       ),
                     ),
@@ -225,7 +315,6 @@ class _StartupProgressBar extends StatelessWidget {
             ),
           ),
         ),
-      ),
     );
   }
 }

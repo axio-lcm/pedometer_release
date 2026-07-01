@@ -11,11 +11,13 @@ import 'package:pedometer/feature/subscription/resources/subscription_resource.d
 
 class FreeTrialSwitchIntroOverlay extends StatefulWidget {
   final bool visible;
+  final int trialDays;
   final VoidCallback onFinished;
 
   const FreeTrialSwitchIntroOverlay({
     super.key,
     required this.visible,
+    this.trialDays = SubscriptionResource.defaultIntroOfferDays,
     required this.onFinished,
   });
 
@@ -103,7 +105,7 @@ class _FreeTrialSwitchIntroOverlayState
         ),
         SizedBox(height: 14.h),
         Text(
-          SubscriptionResource.threeDaysFreeTrial,
+          SubscriptionResource.threeDaysFreeTrialForDays(widget.trialDays),
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
           style: TextStyle(

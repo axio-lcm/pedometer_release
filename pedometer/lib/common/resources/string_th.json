@@ -189,5 +189,8 @@
   "lt_template_price_per_year": "{{price}} ต่อปี ยกเลิกได้ทุกเมื่อ",
   "lt_template_price_per_weekly": "{{price}} ต่อสัปดาห์ ยกเลิกได้ทุกเมื่อ",
   "lt_cancel_anytime": "ยกเลิกได้ทุกเมื่อ",
-  "lt_no_payment_now": "ยังไม่ต้องชำระเงินตอนนี้"
+  "lt_no_payment_now": "ยังไม่ต้องชำระเงินตอนนี้",
+  "lt_network_unavailable": "เครือข่ายไม่พร้อมใช้งาน",
+  "lt_please_check_your_connection_and_try_again": "โปรดตรวจสอบการเชื่อมต่อแล้วลองอีกครั้ง",
+  "lt_try_again": "ลองอีกครั้ง"
 }

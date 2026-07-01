@@ -5,7 +5,6 @@ import 'package:pedometer/common/config/app_dimens.dart';
 import 'package:pedometer/common/storage/language_service.dart';
 import 'package:pedometer/feature/subscription/config/subscription_config.dart';
 import 'package:pedometer/feature/subscription/service/subscription_service.dart';
-import 'package:pedometer/feature/subscription/views/subscription_page.dart';
 import 'package:pedometer/feature/mine/components/mine_components.dart';
 import 'package:pedometer/feature/mine/model/mine_model.dart';
 import 'package:pedometer/feature/mine/resources/mine_resource.dart';
@@ -66,11 +65,8 @@ class MinePage extends GetView<MineViewModel> {
 
   Future<void> _openSubscriptionPage() async {
     if (!Get.isRegistered<SubscriptionService>()) return;
-    final service = Get.find<SubscriptionService>();
-    if (!await service.shouldShowSubscriptionPage()) return;
-    await Get.toNamed(
-      SubscriptionPage.routeName,
-      arguments: SubscriptionSource.mine,
+    await Get.find<SubscriptionService>().presentSubscriptionIfNeeded(
+      source: SubscriptionSource.mine,
     );
   }
 

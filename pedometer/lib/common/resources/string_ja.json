@@ -189,5 +189,8 @@
   "lt_template_price_per_year": "年 {{price}}、いつでも解約可能。",
   "lt_template_price_per_weekly": "週 {{price}}、いつでも解約可能。",
   "lt_cancel_anytime": "いつでも解約可能",
-  "lt_no_payment_now": "今すぐの支払いは不要"
+  "lt_no_payment_now": "今すぐの支払いは不要",
+  "lt_network_unavailable": "ネットワークに接続できません",
+  "lt_please_check_your_connection_and_try_again": "接続を確認してもう一度お試しください。",
+  "lt_try_again": "再試行"
 }

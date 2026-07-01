@@ -189,5 +189,8 @@
   "lt_template_price_per_year": "{{price}} в год, отмена в любое время.",
   "lt_template_price_per_weekly": "{{price}} в неделю, отмена в любое время.",
   "lt_cancel_anytime": "Отмена в любое время",
-  "lt_no_payment_now": "Оплата сейчас не требуется"
+  "lt_no_payment_now": "Оплата сейчас не требуется",
+  "lt_network_unavailable": "Сеть недоступна",
+  "lt_please_check_your_connection_and_try_again": "Проверьте подключение и попробуйте снова.",
+  "lt_try_again": "Повторить"
 }

@@ -189,5 +189,8 @@
   "lt_template_price_per_year": "{{price}} سنويًا، يمكنك الإلغاء في أي وقت.",
   "lt_template_price_per_weekly": "{{price}} أسبوعيًا، يمكنك الإلغاء في أي وقت.",
   "lt_cancel_anytime": "يمكنك الإلغاء في أي وقت",
-  "lt_no_payment_now": "لا يوجد دفع الآن"
+  "lt_no_payment_now": "لا يوجد دفع الآن",
+  "lt_network_unavailable": "الشبكة غير متاحة",
+  "lt_please_check_your_connection_and_try_again": "يرجى التحقق من اتصالك بالإنترنت والمحاولة مرة أخرى.",
+  "lt_try_again": "إعادة المحاولة"
 }

@@ -54,7 +54,10 @@ class SubscriptionPage extends GetView<SubscriptionViewModel> {
                   selectedPlan.kind == SubscriptionPlanKind.weekly;
               final selectedPrice = selectedPlan.fallbackPrice;
               final description = isIntroOffer
-                  ? SubscriptionResource.introOfferDescription(selectedPrice)
+                  ? SubscriptionResource.introOfferDescription(
+                      selectedPrice,
+                      trialDays: controller.selectedIntroOfferDays.value,
+                    )
                   : _descriptionFor(selectedPlan);
               final buttonText = isIntroOffer
                   ? SubscriptionResource.startFreeTrial
@@ -93,6 +96,8 @@ class SubscriptionPage extends GetView<SubscriptionViewModel> {
                               showFreeTrialBadge:
                                   weeklyHasIntroOffer &&
                                   plans[i].kind == SubscriptionPlanKind.weekly,
+                              freeTrialDays:
+                                  controller.weeklyIntroOfferDays.value,
                               showBestBadge:
                                   plans[i].kind == SubscriptionPlanKind.yearly,
                               onTap: () => controller.select(i),
@@ -326,6 +331,7 @@ class _SubscriptionPlanTile extends StatelessWidget {
   final bool selected;
   final bool compact;
   final bool showFreeTrialBadge;
+  final int freeTrialDays;
   final bool showBestBadge;
   final VoidCallback onTap;
 
@@ -334,6 +340,7 @@ class _SubscriptionPlanTile extends StatelessWidget {
     required this.selected,
     required this.compact,
     required this.showFreeTrialBadge,
+    required this.freeTrialDays,
     required this.showBestBadge,
     required this.onTap,
   });
@@ -341,7 +348,7 @@ class _SubscriptionPlanTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final badgeText = showFreeTrialBadge
-        ? SubscriptionResource.threeDaysFreeTrial
+        ? SubscriptionResource.threeDaysFreeTrialForDays(freeTrialDays)
         : showBestBadge
         ? SubscriptionResource.bestBadge
         : null;

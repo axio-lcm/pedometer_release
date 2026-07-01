@@ -189,5 +189,8 @@
   "lt_template_price_per_year": "Жылына {{price}}, кез келген уақытта бас тартуға болады.",
   "lt_template_price_per_weekly": "Аптасына {{price}}, кез келген уақытта бас тартуға болады.",
   "lt_cancel_anytime": "Кез келген уақытта бас тартуға болады",
-  "lt_no_payment_now": "Қазір төлем қажет емес"
+  "lt_no_payment_now": "Қазір төлем қажет емес",
+  "lt_network_unavailable": "Желі қолжетімді емес",
+  "lt_please_check_your_connection_and_try_again": "Қосылымды тексеріп, әрекетті қайталаңыз.",
+  "lt_try_again": "Қайталау"
 }

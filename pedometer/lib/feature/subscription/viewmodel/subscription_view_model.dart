@@ -31,6 +31,8 @@ class SubscriptionViewModel extends GetxController {
   final buttonText = SubscriptionResource.subscribe.obs;
   final isEligibleForIntroOffer = false.obs;
   final weeklyIntroOfferEligible = false.obs;
+  final selectedIntroOfferDays = SubscriptionResource.defaultIntroOfferDays.obs;
+  final weeklyIntroOfferDays = SubscriptionResource.defaultIntroOfferDays.obs;
 
   SubscriptionSource source = SubscriptionSource.subscription;
   Worker? _vipWorker;
@@ -94,7 +96,9 @@ class SubscriptionViewModel extends GetxController {
 
   Future<void> loadProducts() async {
     final service = Get.find<SubscriptionService>();
-    await service.initInAppPurchase();
+    // 确保商品真正加载（TestFlight 首拉可能为空，空时会重试），
+    // 否则价格退回 fallback、且无法发起购买。
+    await service.ensureProductsLoaded();
     final updated = <SubscriptionProductPlan>[];
     for (final plan in plans) {
       final product = service.productOf(plan.productId);
@@ -164,8 +168,10 @@ class SubscriptionViewModel extends GetxController {
         ? false
         : await service.isEligibleForIntroOffer(plan.productId);
     isEligibleForIntroOffer.value = eligible;
+    selectedIntroOfferDays.value = service.introOfferDaysFor(plan.productId);
     if (plan.kind == SubscriptionPlanKind.weekly) {
       weeklyIntroOfferEligible.value = eligible;
+      weeklyIntroOfferDays.value = selectedIntroOfferDays.value;
     }
     if (forceNonIntroOffer) {
       buttonText.value = SubscriptionResource.subscribe;
@@ -183,6 +189,7 @@ class SubscriptionViewModel extends GetxController {
     }
     for (final plan in plans) {
       if (plan.kind != SubscriptionPlanKind.weekly) continue;
+      weeklyIntroOfferDays.value = service.introOfferDaysFor(plan.productId);
       weeklyIntroOfferEligible.value = await service.isEligibleForIntroOffer(
         plan.productId,
       );

@@ -14,7 +14,6 @@ import 'package:pedometer/feature/home/model/health_sync_source_policy.dart';
 import 'package:pedometer/feature/home/model/sync_data_detail_model.dart';
 import 'package:pedometer/feature/subscription/config/subscription_config.dart';
 import 'package:pedometer/feature/subscription/service/subscription_service.dart';
-import 'package:pedometer/feature/subscription/views/subscription_page.dart';
 
 /// 单个健康数据来源详情页 view model：同步设置、授权状态与手动同步流程。
 class SyncSourceDetailViewModel extends GetxController
@@ -432,24 +431,10 @@ class SyncSourceDetailViewModel extends GetxController
 
   Future<bool> _ensureVipBeforeSync() async {
     if (!Get.isRegistered<SubscriptionService>()) return true;
-    final service = Get.find<SubscriptionService>();
-    await service.loadLocalVipStatus();
-
-    if (service.isVip.value) {
-      if (await service.shouldShowSubscriptionPage()) {
-        await Get.toNamed(
-          SubscriptionPage.routeName,
-          arguments: SubscriptionSource.subscription,
-        );
-      }
-      return true;
-    }
-
-    if (!await service.shouldShowSubscriptionPage()) return false;
-    await Get.toNamed(
-      SubscriptionPage.routeName,
-      arguments: SubscriptionSource.subscription,
+    // 统一走订阅收口：正常会员放行；试用取消会员本会话仅弹一次后放行；
+    // 非会员弹订阅页，订阅成功才放行。
+    return Get.find<SubscriptionService>().presentSubscriptionIfNeeded(
+      source: SubscriptionSource.subscription,
     );
-    return service.isVip.value;
   }
 }
