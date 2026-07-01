@@ -176,8 +176,12 @@ class OnboardingViewModel extends GetxController {
     final service = Get.find<SubscriptionService>();
     // 初始化内购并确保商品真正加载（空时会重试），与订阅页保持一致，
     // 避免未配置 / TestFlight 首拉为空时读到空商品退回 fallback 价。
+    await service.loadCachedProductsForDisplay();
     await service.ensureProductsLoaded();
     final product = service.productOf(SubscriptionConfig.onboardingWeeklyId);
+    final cached = service.cachedProductOf(
+      SubscriptionConfig.onboardingWeeklyId,
+    );
     final eligible = await service.isEligibleForIntroOffer(
       SubscriptionConfig.onboardingWeeklyId,
     );
@@ -191,8 +195,22 @@ class OnboardingViewModel extends GetxController {
     buttonText.value = action.isEmpty ? lt('Continue', '继续') : action;
     final price = product?.displayPrice?.isNotEmpty == true
         ? product!.displayPrice!
+        : cached?.displayPrice.isNotEmpty == true
+        ? cached!.displayPrice
         : r'$9.99';
     productPrice.value = price;
+    if (product != null) {
+      unawaited(
+        service.cacheProductDisplayInfo(
+          productId: SubscriptionConfig.onboardingWeeklyId,
+          displayPrice: price,
+          introOfferDays: service.introOfferDaysFor(
+            SubscriptionConfig.onboardingWeeklyId,
+          ),
+          hasIntroOffer: product.subscription?.introductoryOffer != null,
+        ),
+      );
+    }
     _refreshLocalizedProductText();
   }
 

@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/widgets.dart';
@@ -22,6 +23,10 @@ class SubscriptionService extends GetxService with WidgetsBindingObserver {
   final RxBool isInitialized = false.obs;
   final RxList<Product> products = <Product>[].obs;
   final RxMap<String, int> introOfferDaysByProductId = <String, int>{}.obs;
+  final RxMap<String, CachedSubscriptionProduct> cachedProducts =
+      <String, CachedSubscriptionProduct>{}.obs;
+
+  static const Duration _productCacheDisplayTtl = Duration(days: 7);
 
   /// 商品是否已从 StoreKit 真正加载（非空）。为 false 时页面价格 / 试用不可信，
   /// 不应展示可购买的 CTA（TestFlight 生产目录未就绪时会出现）。
@@ -43,6 +48,7 @@ class SubscriptionService extends GetxService with WidgetsBindingObserver {
   SubscriptionSource _source = SubscriptionSource.startLoading;
 
   Future<SubscriptionService> init() async {
+    await loadCachedProductsForDisplay();
     await loadLocalVipStatus();
     return this;
   }
@@ -72,6 +78,7 @@ class SubscriptionService extends GetxService with WidgetsBindingObserver {
 
   /// 启动页阶段 1：恢复本地会员缓存，并重置本会话订阅页展示标记。
   Future<void> prepareStartupSession() async {
+    await loadCachedProductsForDisplay();
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool(PrefsKeys.isShowedSubOnThisSession, false);
     if (_isAndroidVipMode) {
@@ -175,7 +182,9 @@ class SubscriptionService extends GetxService with WidgetsBindingObserver {
       final items = await _purchaser.getAllProducts();
       products.assignAll(items);
       _cacheIntroOfferDays(items);
+      _cacheProductsForDisplay(items);
       productsLoaded.value = products.isNotEmpty;
+      if (items.isNotEmpty) await _saveProductDisplayCache();
     } catch (e, st) {
       debugPrint('[SubscriptionService] getAllProducts failed: $e\n$st');
     }
@@ -201,9 +210,81 @@ class SubscriptionService extends GetxService with WidgetsBindingObserver {
     return null;
   }
 
+  CachedSubscriptionProduct? cachedProductOf(
+    String productId, {
+    bool allowExpired = true,
+  }) {
+    final cached = cachedProducts[productId];
+    if (cached == null) return null;
+    if (!allowExpired && !cached.isFresh(_productCacheDisplayTtl)) {
+      return null;
+    }
+    if (cached.langCode == _languageCode) return cached;
+    return cached.copyWith(title: '', subtitle: '');
+  }
+
+  Future<void> loadCachedProductsForDisplay() async {
+    final prefs = await SharedPreferences.getInstance();
+    final raw = prefs.getString(PrefsKeys.subscriptionProductDisplayCache);
+    if (raw == null || raw.isEmpty) return;
+    try {
+      final decoded = jsonDecode(raw);
+      if (decoded is! Map) return;
+      final updated = <String, CachedSubscriptionProduct>{};
+      for (final entry in decoded.entries) {
+        final productId = entry.key.toString();
+        final value = entry.value;
+        if (productId.isEmpty || value is! Map) continue;
+        updated[productId] = CachedSubscriptionProduct.fromJson(
+          Map<String, dynamic>.from(value),
+        );
+      }
+      if (updated.isNotEmpty) cachedProducts.assignAll(updated);
+    } catch (e, st) {
+      debugPrint('[SubscriptionService] load product cache failed: $e\n$st');
+    }
+  }
+
+  Future<void> cacheProductDisplayInfo({
+    required String productId,
+    String? displayPrice,
+    String? title,
+    String? subtitle,
+    int? introOfferDays,
+    bool? hasIntroOffer,
+  }) async {
+    if (productId.isEmpty) return;
+    final existing = cachedProducts[productId];
+    final updated =
+        (existing ??
+                CachedSubscriptionProduct(
+                  productId: productId,
+                  displayPrice: '',
+                  title: '',
+                  subtitle: '',
+                  introOfferDays: SubscriptionResource.defaultIntroOfferDays,
+                  hasIntroOffer: false,
+                  langCode: _languageCode,
+                  cachedAt: 0,
+                ))
+            .copyWith(
+              displayPrice: displayPrice ?? existing?.displayPrice,
+              title: title ?? existing?.title,
+              subtitle: subtitle ?? existing?.subtitle,
+              introOfferDays: introOfferDays ?? existing?.introOfferDays,
+              hasIntroOffer: hasIntroOffer ?? existing?.hasIntroOffer,
+              langCode: _languageCode,
+              cachedAt: DateTime.now().millisecondsSinceEpoch,
+            );
+    cachedProducts[productId] = updated;
+    await _saveProductDisplayCache();
+  }
+
   int introOfferDaysFor(String productId) {
     final fromProduct = _introOfferDaysFromProduct(productOf(productId));
     if (fromProduct != null) return fromProduct;
+    final fromCache = cachedProducts[productId]?.introOfferDays;
+    if (fromCache != null && fromCache > 0) return fromCache;
     return introOfferDaysByProductId[productId] ??
         SubscriptionResource.defaultIntroOfferDays;
   }
@@ -481,6 +562,8 @@ class SubscriptionService extends GetxService with WidgetsBindingObserver {
       final loadedProducts = items.map(Product.fromMap).toList();
       products.assignAll(loadedProducts);
       _cacheIntroOfferDays(loadedProducts);
+      _cacheProductsForDisplay(loadedProducts);
+      unawaited(_saveProductDisplayCache());
     });
 
     _transactionsSubscription?.cancel();
@@ -613,6 +696,72 @@ class SubscriptionService extends GetxService with WidgetsBindingObserver {
     introOfferDaysByProductId.assignAll(updated);
   }
 
+  void _cacheProductsForDisplay(Iterable<Product> items) {
+    var changed = false;
+    final now = DateTime.now().millisecondsSinceEpoch;
+    for (final product in items) {
+      final id = product.id;
+      if (id == null || id.isEmpty) continue;
+      final displayPrice = product.displayPrice ?? '';
+      final title = product.displayName ?? '';
+      final subtitle = product.description ?? '';
+      if (displayPrice.isEmpty && title.isEmpty && subtitle.isEmpty) continue;
+      final existing = cachedProducts[id];
+      cachedProducts[id] =
+          (existing ??
+                  CachedSubscriptionProduct(
+                    productId: id,
+                    displayPrice: '',
+                    title: '',
+                    subtitle: '',
+                    introOfferDays: SubscriptionResource.defaultIntroOfferDays,
+                    hasIntroOffer: false,
+                    langCode: _languageCode,
+                    cachedAt: 0,
+                  ))
+              .copyWith(
+                displayPrice: displayPrice.isEmpty
+                    ? existing?.displayPrice
+                    : displayPrice,
+                title: title.isEmpty ? existing?.title : title,
+                subtitle: subtitle.isEmpty ? existing?.subtitle : subtitle,
+                introOfferDays:
+                    _introOfferDaysFromProduct(product) ??
+                    existing?.introOfferDays,
+                hasIntroOffer: product.subscription?.introductoryOffer != null,
+                langCode: _languageCode,
+                cachedAt: now,
+              );
+      changed = true;
+    }
+    if (changed) cachedProducts.refresh();
+  }
+
+  Future<void> _saveProductDisplayCache() async {
+    if (cachedProducts.isEmpty) return;
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final freshEntries = Map<String, CachedSubscriptionProduct>.from(
+        cachedProducts,
+      )..removeWhere((_, product) => !product.isFresh(_productCacheDisplayTtl));
+      if (freshEntries.isEmpty) {
+        await prefs.remove(PrefsKeys.subscriptionProductDisplayCache);
+        cachedProducts.clear();
+        return;
+      }
+      cachedProducts.assignAll(freshEntries);
+      await prefs.setString(
+        PrefsKeys.subscriptionProductDisplayCache,
+        jsonEncode({
+          for (final entry in freshEntries.entries)
+            entry.key: entry.value.toJson(),
+        }),
+      );
+    } catch (e, st) {
+      debugPrint('[SubscriptionService] save product cache failed: $e\n$st');
+    }
+  }
+
   int? _introOfferDaysFromProduct(Product? product) {
     final offer = product?.subscription?.introductoryOffer;
     final count = offer?.periodCount;
@@ -694,4 +843,81 @@ class SubscriptionService extends GetxService with WidgetsBindingObserver {
   }
 
   SubscriptionSource get lastSource => _source;
+}
+
+class CachedSubscriptionProduct {
+  final String productId;
+  final String displayPrice;
+  final String title;
+  final String subtitle;
+  final int introOfferDays;
+  final bool hasIntroOffer;
+  final String langCode;
+  final int cachedAt;
+
+  const CachedSubscriptionProduct({
+    required this.productId,
+    required this.displayPrice,
+    required this.title,
+    required this.subtitle,
+    required this.introOfferDays,
+    required this.hasIntroOffer,
+    required this.langCode,
+    required this.cachedAt,
+  });
+
+  factory CachedSubscriptionProduct.fromJson(Map<String, dynamic> json) {
+    return CachedSubscriptionProduct(
+      productId: json['productId']?.toString() ?? '',
+      displayPrice: json['displayPrice']?.toString() ?? '',
+      title: json['title']?.toString() ?? '',
+      subtitle: json['subtitle']?.toString() ?? '',
+      introOfferDays:
+          int.tryParse(json['introOfferDays']?.toString() ?? '') ??
+          SubscriptionResource.defaultIntroOfferDays,
+      hasIntroOffer: json['hasIntroOffer'] == true,
+      langCode: json['langCode']?.toString() ?? 'en',
+      cachedAt: int.tryParse(json['cachedAt']?.toString() ?? '') ?? 0,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'productId': productId,
+      'displayPrice': displayPrice,
+      'title': title,
+      'subtitle': subtitle,
+      'introOfferDays': introOfferDays,
+      'hasIntroOffer': hasIntroOffer,
+      'langCode': langCode,
+      'cachedAt': cachedAt,
+    };
+  }
+
+  bool isFresh(Duration ttl) {
+    if (cachedAt <= 0) return false;
+    return DateTime.now().millisecondsSinceEpoch - cachedAt <=
+        ttl.inMilliseconds;
+  }
+
+  CachedSubscriptionProduct copyWith({
+    String? displayPrice,
+    String? title,
+    String? subtitle,
+    int? introOfferDays,
+    bool? hasIntroOffer,
+    String? langCode,
+    int? cachedAt,
+  }) {
+    return CachedSubscriptionProduct(
+      productId: productId,
+      displayPrice: displayPrice ?? this.displayPrice,
+      title: title ?? this.title,
+      subtitle: subtitle ?? this.subtitle,
+      introOfferDays: introOfferDays ?? this.introOfferDays,
+      hasIntroOffer: hasIntroOffer ?? this.hasIntroOffer,
+      langCode: langCode ?? this.langCode,
+      cachedAt: cachedAt ?? this.cachedAt,
+    );
+  }
 }

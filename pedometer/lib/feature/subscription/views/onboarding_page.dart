@@ -120,9 +120,12 @@ class _GuideOnboardingBody extends StatelessWidget {
                         ),
                       ),
                       SizedBox(height: 28.h),
-                      _GuideContinueButton(
-                        text: lt('Continue', '继续'),
-                        onTap: controller.next,
+                      Obx(
+                        () => _GuideContinueButton(
+                          text: lt('Continue', '继续'),
+                          loading: controller.isPreparingSubscriptionEntry.value,
+                          onTap: controller.next,
+                        ),
                       ),
                     ],
                   ),
@@ -330,14 +333,19 @@ class _PageDots extends StatelessWidget {
 
 class _GuideContinueButton extends StatelessWidget {
   final String text;
+  final bool loading;
   final VoidCallback onTap;
 
-  const _GuideContinueButton({required this.text, required this.onTap});
+  const _GuideContinueButton({
+    required this.text,
+    required this.onTap,
+    this.loading = false,
+  });
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: onTap,
+      onTap: loading ? null : onTap,
       child: Container(
         width: double.infinity,
         height: 56.h,
@@ -355,17 +363,28 @@ class _GuideContinueButton extends StatelessWidget {
           ],
         ),
         alignment: Alignment.center,
-        child: Text(
-          text,
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-          style: TextStyle(
-            color: const Color(0xFF00130A),
-            fontSize: 18.sp,
-            fontWeight: FontWeight.w900,
-            height: 1,
-          ),
-        ),
+        child: loading
+            ? SizedBox(
+                width: 24.w,
+                height: 24.w,
+                child: CircularProgressIndicator(
+                  strokeWidth: 3.w,
+                  valueColor: const AlwaysStoppedAnimation<Color>(
+                    Color(0xFF00130A),
+                  ),
+                ),
+              )
+            : Text(
+                text,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  color: const Color(0xFF00130A),
+                  fontSize: 18.sp,
+                  fontWeight: FontWeight.w900,
+                  height: 1,
+                ),
+              ),
       ),
     );
   }

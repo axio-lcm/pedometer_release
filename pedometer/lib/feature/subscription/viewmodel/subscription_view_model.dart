@@ -96,26 +96,55 @@ class SubscriptionViewModel extends GetxController {
 
   Future<void> loadProducts() async {
     final service = Get.find<SubscriptionService>();
+    await service.loadCachedProductsForDisplay();
     // 确保商品真正加载（TestFlight 首拉可能为空，空时会重试），
-    // 否则价格退回 fallback、且无法发起购买。
+    // 否则价格退回缓存 / fallback、且无法发起购买。
     await service.ensureProductsLoaded();
     final updated = <SubscriptionProductPlan>[];
     for (final plan in plans) {
       final product = service.productOf(plan.productId);
+      final cached = service.cachedProductOf(plan.productId);
       final period = plan.kind == SubscriptionPlanKind.yearly
           ? SubscriptionPeriodType.year
           : SubscriptionPeriodType.week;
       final title = await service.titleFor(plan.productId, period);
       final subtitle = await service.subtitleFor(plan.productId, period);
+      final displayPrice = product?.displayPrice?.isNotEmpty == true
+          ? product!.displayPrice!
+          : cached?.displayPrice.isNotEmpty == true
+          ? cached!.displayPrice
+          : plan.fallbackPrice;
+      final resolvedTitle = title.isEmpty
+          ? cached?.title.isNotEmpty == true
+                ? cached!.title
+                : plan.fallbackTitle
+          : title;
+      final resolvedSubtitle = subtitle.isEmpty
+          ? cached?.subtitle.isNotEmpty == true
+                ? cached!.subtitle
+                : plan.fallbackSubtitle
+          : subtitle;
       updated.add(
         SubscriptionProductPlan(
           kind: plan.kind,
           productId: plan.productId,
-          fallbackTitle: title.isEmpty ? plan.fallbackTitle : title,
-          fallbackSubtitle: subtitle.isEmpty ? plan.fallbackSubtitle : subtitle,
-          fallbackPrice: product?.displayPrice ?? plan.fallbackPrice,
+          fallbackTitle: resolvedTitle,
+          fallbackSubtitle: resolvedSubtitle,
+          fallbackPrice: displayPrice,
         ),
       );
+      if (product != null || title.isNotEmpty || subtitle.isNotEmpty) {
+        unawaited(
+          service.cacheProductDisplayInfo(
+            productId: plan.productId,
+            displayPrice: displayPrice,
+            title: title.isEmpty ? null : title,
+            subtitle: subtitle.isEmpty ? null : subtitle,
+            introOfferDays: service.introOfferDaysFor(plan.productId),
+            hasIntroOffer: product?.subscription?.introductoryOffer != null,
+          ),
+        );
+      }
     }
     plans.assignAll(updated);
     await _refreshWeeklyIntroOfferEligibility();

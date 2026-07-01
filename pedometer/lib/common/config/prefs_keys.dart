@@ -16,6 +16,9 @@ abstract final class PrefsKeys {
   static const String currentBuyProductId = 'currentBuyProductId';
   static const String sdOriginTransactionId = 'sdOriginTransactionId';
   static const String sdOriginalPurchaseDateMs = 'sdOriginalPurchaseDateMs';
+  static const String subscriptionProductDisplayCache =
+      'subscriptionProductDisplayCache';
+
   /// 身体数据
   static const String bodyHeight = 'bodyHeight';
   static const String bodyWeight = 'bodyWeight';
