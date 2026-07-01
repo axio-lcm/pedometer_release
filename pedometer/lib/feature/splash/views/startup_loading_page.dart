@@ -138,16 +138,7 @@ class _AppIconMark extends StatelessWidget {
     return Container(
       width: size,
       height: size,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(24.r),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.brandGreen.withValues(alpha: 0.24),
-            blurRadius: 32.r,
-            spreadRadius: 2.r,
-          ),
-        ],
-      ),
+      decoration: BoxDecoration(borderRadius: BorderRadius.circular(24.r)),
       clipBehavior: Clip.antiAlias,
       child: Image.asset(
         'assets/app_icon.png',
@@ -189,13 +180,6 @@ class _StartupProgressBar extends StatelessWidget {
           decoration: BoxDecoration(
             color: trackColor,
             borderRadius: BorderRadius.circular(AppRadius.full),
-            boxShadow: [
-              BoxShadow(
-                color: AppColors.brandGreen.withValues(alpha: 0.32),
-                blurRadius: 24.r,
-                offset: Offset(0, 8.h),
-              ),
-            ],
           ),
           child: ClipRRect(
             borderRadius: BorderRadius.circular(AppRadius.full),
@@ -212,7 +196,10 @@ class _StartupProgressBar extends StatelessWidget {
                       child: DecoratedBox(
                         decoration: BoxDecoration(
                           gradient: LinearGradient(
-                            colors: [AppColors.brandGreenLight, AppColors.brandGreen],
+                            colors: [
+                              AppColors.brandGreenLight,
+                              AppColors.brandGreen,
+                            ],
                           ),
                         ),
                       ),
