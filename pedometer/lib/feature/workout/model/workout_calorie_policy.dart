@@ -8,7 +8,8 @@ class WorkoutCaloriePolicy {
     this.minActiveSpeedKmh = 0.5,
   });
 
-  /// 估算用体重（千克）。项目暂无真实用户资料存储，默认值与「我的」页展示保持一致。
+  /// 估算用体重（千克）。运动会话会以「我的」页保存的体重构造本 policy；
+  /// 用户没填过体重时用此默认值，与「我的」页的默认展示保持一致。
   final double weightKg;
 
   /// 低于该速度认为没有有效运动，避免站立时 GPS 漂移产生卡路里。

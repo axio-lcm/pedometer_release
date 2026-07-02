@@ -6,6 +6,7 @@ import 'package:intl/date_symbol_data_local.dart';
 import 'package:pedometer/common/config/resource_loader.dart';
 import 'package:pedometer/common/network/utils/headers_manager.dart';
 import 'package:get/get.dart';
+import 'package:pedometer/common/storage/body_data_runtime.dart';
 import 'package:pedometer/common/storage/language_service.dart';
 import 'package:pedometer/common/tools/language_util.dart';
 import 'package:pedometer/feature/home/model/health_data_store.dart';
@@ -57,6 +58,7 @@ class AppStartup {
       ),
       AchievementStatsStore.load(),
       WorkoutRouteHistoryStore.load(),
+      BodyDataRuntime.restore(),
       _hydrateHealthData(),
       if (Platform.isIOS)
         Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform),

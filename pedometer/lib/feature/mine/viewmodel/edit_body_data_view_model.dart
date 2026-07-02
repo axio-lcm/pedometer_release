@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:pedometer/common/config/prefs_keys.dart';
+import 'package:pedometer/common/storage/body_data_runtime.dart';
 import 'package:pedometer/common/mvvm/ibase_view_model.dart';
 import 'package:pedometer/feature/mine/viewmodel/mine_view_model.dart';
 
@@ -77,6 +78,7 @@ class EditBodyDataViewModel extends GetxController implements IBaseViewModel {
     await prefs.setDouble(PrefsKeys.bodyHeight, h);
     await prefs.setDouble(PrefsKeys.bodyWeight, w);
     await prefs.setInt(PrefsKeys.bodyAge, a);
+    BodyDataRuntime.weightKg = w;
     isSaving.value = false;
 
     // 通知我的页刷新

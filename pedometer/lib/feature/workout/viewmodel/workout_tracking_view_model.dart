@@ -10,6 +10,7 @@ import 'package:just_audio/just_audio.dart';
 import 'package:pedometer/common/config/app_colors.dart';
 import 'package:pedometer/common/config/localized_text.dart';
 import 'package:pedometer/common/mvvm/ibase_view_model.dart';
+import 'package:pedometer/common/storage/body_data_runtime.dart';
 import 'package:pedometer/common/service/motion_fitness_permission_service.dart';
 import 'package:pedometer/common/service/photo_library_permission_service.dart';
 import 'package:pedometer/feature/workout/model/achievement_stats_store.dart';
@@ -33,9 +34,13 @@ class WorkoutTrackingViewModel extends GetxController
     this.maxRouteAccuracyMeters = 35,
     this.maxMetricSpeedKmh = 30,
   }) : _caloriePolicy = caloriePolicy ?? const WorkoutCaloriePolicy(),
+       _caloriePolicyInjected = caloriePolicy != null,
        _pacePolicy = pacePolicy ?? WorkoutPacePolicy();
 
-  final WorkoutCaloriePolicy _caloriePolicy;
+  WorkoutCaloriePolicy _caloriePolicy;
+
+  /// 构造时显式注入过 policy（测试场景）则不再用用户体重覆盖。
+  final bool _caloriePolicyInjected;
   final WorkoutPacePolicy _pacePolicy;
   AudioPlayer? _musicPlayer;
 
@@ -148,6 +153,9 @@ class WorkoutTrackingViewModel extends GetxController
     _lastSpeedUpdatedAt = null;
     _lastMotionPaceAt = null;
     _routeHistorySaved = false;
+    if (!_caloriePolicyInjected) {
+      _caloriePolicy = WorkoutCaloriePolicy(weightKg: BodyDataRuntime.weightKg);
+    }
 
     final pos = _lastRouteRaw == null ? null : currentPosition.value;
     startPoint.value = pos;
