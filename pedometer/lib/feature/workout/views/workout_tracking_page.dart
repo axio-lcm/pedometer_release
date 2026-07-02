@@ -203,6 +203,11 @@ class _WorkoutTrackingPageState extends State<WorkoutTrackingPage> {
   }
 
   Future<void> _checkPermissionAndStart() async {
+    // 室内运动不使用 GPS：不请求定位权限、不激活地图定位，直接开始。
+    if (controller.isIndoor.value) {
+      _startCountdown();
+      return;
+    }
     final auth = await WorkoutLocationService().ensureAuthorized();
     if (!mounted) return;
     if (auth == WorkoutLocationAuth.authorized) {
