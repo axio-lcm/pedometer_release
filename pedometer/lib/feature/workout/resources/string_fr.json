@@ -77,6 +77,8 @@
   "location_service_disabled_msg": "Les services de localisation sont désactivés. Activez-les pour enregistrer votre parcours.",
   "location_denied_msg": "L’autorisation de localisation est requise pour enregistrer votre parcours.",
   "location_denied_forever_msg": "L’accès à la localisation est refusé. Autorisez-le dans les Réglages.",
+  "motion_permission_title": "Autorisation d'activité physique requise",
+  "motion_denied_forever_msg": "L'accès à l'activité physique est refusé. Autorisez-le dans les réglages du système.",
   "location_open_service_action": "Activer la localisation",
   "location_open_settings_action": "Ouvrir les réglages",
   "location_retry_action": "Réessayer",

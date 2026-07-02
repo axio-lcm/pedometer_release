@@ -77,6 +77,8 @@
   "location_service_disabled_msg": "定位服務未開啟，開啟後才能記錄運動軌跡",
   "location_denied_msg": "需要定位權限才能記錄運動軌跡",
   "location_denied_forever_msg": "定位權限已被拒絕，請在系統設定中允許",
+  "motion_permission_title": "需要身體活動權限",
+  "motion_denied_forever_msg": "身體活動權限已被拒絕，請在系統設定中允許",
   "location_open_service_action": "開啟定位服務",
   "location_open_settings_action": "前往設定",
   "location_retry_action": "重試",

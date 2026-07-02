@@ -77,6 +77,8 @@
   "location_service_disabled_msg": "Службы геолокации выключены. Включите их, чтобы записывать маршрут.",
   "location_denied_msg": "Для записи маршрута требуется доступ к геолокации.",
   "location_denied_forever_msg": "Доступ к геолокации запрещён. Разрешите его в настройках.",
+  "motion_permission_title": "Требуется разрешение на физическую активность",
+  "motion_denied_forever_msg": "Доступ к физической активности запрещён. Разрешите его в настройках системы.",
   "location_open_service_action": "Включить геолокацию",
   "location_open_settings_action": "Открыть настройки",
   "location_retry_action": "Повторить",

@@ -36,6 +36,8 @@ class _WorkoutTrackingPageState extends State<WorkoutTrackingPage> {
   bool _controlsLocked = false;
   bool _finishingWorkout = false;
   bool _preparingWorkoutStart = false;
+  // 室内活动识别权限已被拒过一次：再次点开始仍被拒时弹设置引导。
+  bool _motionPermissionDeniedOnce = false;
   String? _countdownLabel;
   int _countdownStep = 0;
   Timer? _countdownTimer;
@@ -206,11 +208,11 @@ class _WorkoutTrackingPageState extends State<WorkoutTrackingPage> {
 
   Future<void> _checkPermissionAndStart() async {
     // 室内运动不使用 GPS：不请求定位权限、不激活地图定位。
-    // 安卓改为请求活动识别权限用于计步；拒绝则退化为仅计时，不阻塞开始。
+    // 安卓改为请求活动识别权限用于计步，被拒不开始倒计时。
     if (controller.isIndoor.value) {
       if (defaultTargetPlatform == TargetPlatform.android) {
-        await MotionFitnessPermissionService.requestAuthorization();
-        if (!mounted) return;
+        final granted = await _ensureMotionPermissionForIndoor();
+        if (!mounted || !granted) return;
         controller.retryMotionStepSubscription();
       }
       _startCountdown();
@@ -228,6 +230,53 @@ class _WorkoutTrackingPageState extends State<WorkoutTrackingPage> {
       _StartPermissionDialog(
         auth: auth,
         onAction: () => _handleStartPermissionAction(auth),
+      ),
+    );
+  }
+
+  /// 安卓室内开始前确保活动识别权限；被拒返回 false、不开始。
+  /// 首次拒绝仅拦截；之后再点开始不再弹系统框，直接弹设置引导
+  /// （复用定位权限引导弹窗样式）。
+  Future<bool> _ensureMotionPermissionForIndoor() async {
+    // 已拒过一次：用户可能已去设置里手动开启，先查当前状态；
+    // 仍被拒则直接弹引导，不再请求系统弹窗。
+    if (_motionPermissionDeniedOnce) {
+      final status = await MotionFitnessPermissionService.authorizationStatus();
+      if (!mounted) return false;
+      if (status == MotionFitnessAuthorizationStatus.denied ||
+          status == MotionFitnessAuthorizationStatus.restricted) {
+        _showMotionPermissionGuide();
+        return false;
+      }
+      return true;
+    }
+
+    final status = await MotionFitnessPermissionService.requestAuthorization();
+    if (!mounted) return false;
+    switch (status) {
+      case MotionFitnessAuthorizationStatus.authorized:
+        return true;
+      case MotionFitnessAuthorizationStatus.unsupported:
+      case MotionFitnessAuthorizationStatus.unknown:
+        // 设备无计步传感器 / 无法发起请求：不阻塞，退化为仅计时。
+        return true;
+      case MotionFitnessAuthorizationStatus.denied:
+      case MotionFitnessAuthorizationStatus.restricted:
+        _motionPermissionDeniedOnce = true;
+        return false;
+    }
+  }
+
+  void _showMotionPermissionGuide() {
+    Get.dialog<void>(
+      _PermissionGuideDialog(
+        icon: Icons.directions_walk_rounded,
+        title: WorkoutResource.motionPermissionTitle,
+        message: WorkoutResource.motionDeniedForeverMessage,
+        onAction: () {
+          Get.back<void>();
+          WorkoutLocationService().openAppSettings();
+        },
       ),
     );
   }
@@ -769,6 +818,31 @@ class _StartPermissionDialog extends StatelessWidget {
       _ => WorkoutResource.locationDeniedMessage,
     };
 
+    return _PermissionGuideDialog(
+      icon: Icons.location_off_rounded,
+      title: WorkoutResource.locationPermissionTitle,
+      message: message,
+      onAction: onAction,
+    );
+  }
+}
+
+/// 权限引导弹窗的共享样式：图标 + 标题 + 说明 + 取消 / 去设置。
+class _PermissionGuideDialog extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final String message;
+  final VoidCallback onAction;
+
+  const _PermissionGuideDialog({
+    required this.icon,
+    required this.title,
+    required this.message,
+    required this.onAction,
+  });
+
+  @override
+  Widget build(BuildContext context) {
     return Dialog(
       backgroundColor: Colors.transparent,
       elevation: 0,
@@ -800,14 +874,10 @@ class _StartPermissionDialog extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(
-              Icons.location_off_rounded,
-              color: AppColors.brandGreen,
-              size: 44,
-            ),
+            Icon(icon, color: AppColors.brandGreen, size: 44),
             SizedBox(height: AppSpacing.lg),
             Text(
-              WorkoutResource.locationPermissionTitle,
+              title,
               textAlign: TextAlign.center,
               style: TextStyle(
                 color: AppColors.textPrimary,

@@ -77,6 +77,8 @@
   "location_service_disabled_msg": "Standortdienste sind aus. Aktiviere sie, um deine Route aufzuzeichnen.",
   "location_denied_msg": "Zum Aufzeichnen der Route ist die Standortberechtigung erforderlich.",
   "location_denied_forever_msg": "Standortzugriff verweigert. Erlaube ihn in den Einstellungen.",
+  "motion_permission_title": "Berechtigung für körperliche Aktivität erforderlich",
+  "motion_denied_forever_msg": "Der Zugriff auf körperliche Aktivität wurde verweigert. Bitte in den Systemeinstellungen erlauben.",
   "location_open_service_action": "Standort aktivieren",
   "location_open_settings_action": "Einstellungen öffnen",
   "location_retry_action": "Erneut versuchen",

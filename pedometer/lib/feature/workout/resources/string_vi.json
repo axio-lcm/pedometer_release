@@ -77,6 +77,8 @@
   "location_service_disabled_msg": "Dịch vụ vị trí đang tắt. Hãy bật để ghi lại lộ trình của bạn.",
   "location_denied_msg": "Cần quyền vị trí để ghi lại lộ trình của bạn.",
   "location_denied_forever_msg": "Quyền truy cập vị trí bị từ chối. Hãy cho phép trong Cài đặt.",
+  "motion_permission_title": "Cần quyền hoạt động thể chất",
+  "motion_denied_forever_msg": "Quyền hoạt động thể chất đã bị từ chối. Hãy cho phép trong cài đặt hệ thống.",
   "location_open_service_action": "Bật dịch vụ vị trí",
   "location_open_settings_action": "Mở Cài đặt",
   "location_retry_action": "Thử lại",

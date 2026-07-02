@@ -236,6 +236,12 @@ class WorkoutResource {
     'location_denied_forever_msg',
     WorkoutText.locationDeniedForeverMessage,
   );
+  static String get motionPermissionTitle =>
+      _string('motion_permission_title', WorkoutText.motionPermissionTitle);
+  static String get motionDeniedForeverMessage => _string(
+    'motion_denied_forever_msg',
+    WorkoutText.motionDeniedForeverMessage,
+  );
   static String get locationOpenServiceAction => _string(
     'location_open_service_action',
     WorkoutText.locationOpenServiceAction,
@@ -421,6 +427,9 @@ class WorkoutText {
       'Location permission is required to record your route.';
   static const locationDeniedForeverMessage =
       'Location access is denied. Allow it in system Settings.';
+  static const motionPermissionTitle = 'Physical activity permission needed';
+  static const motionDeniedForeverMessage =
+      'Physical activity access is denied. Allow it in system Settings.';
   static const locationOpenServiceAction = 'Turn on Location';
   static const locationOpenSettingsAction = 'Open Settings';
   static const locationRetryAction = 'Retry';

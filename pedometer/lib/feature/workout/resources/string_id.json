@@ -77,6 +77,8 @@
   "location_service_disabled_msg": "Layanan lokasi nonaktif. Aktifkan untuk merekam rute Anda.",
   "location_denied_msg": "Izin lokasi diperlukan untuk merekam rute Anda.",
   "location_denied_forever_msg": "Akses lokasi ditolak. Izinkan di Pengaturan.",
+  "motion_permission_title": "Izin aktivitas fisik diperlukan",
+  "motion_denied_forever_msg": "Izin aktivitas fisik ditolak. Izinkan di pengaturan sistem.",
   "location_open_service_action": "Aktifkan lokasi",
   "location_open_settings_action": "Buka Pengaturan",
   "location_retry_action": "Coba lagi",

@@ -77,6 +77,8 @@
   "location_service_disabled_msg": "خدمات الموقع متوقفة. شغّلها لتسجيل مسارك.",
   "location_denied_msg": "يلزم إذن الموقع لتسجيل مسارك.",
   "location_denied_forever_msg": "تم رفض الوصول إلى الموقع. اسمح به من الإعدادات.",
+  "motion_permission_title": "مطلوب إذن النشاط البدني",
+  "motion_denied_forever_msg": "تم رفض إذن النشاط البدني. يرجى السماح به في إعدادات النظام.",
   "location_open_service_action": "تشغيل خدمات الموقع",
   "location_open_settings_action": "فتح الإعدادات",
   "location_retry_action": "إعادة المحاولة",

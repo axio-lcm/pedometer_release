@@ -77,6 +77,8 @@
   "location_service_disabled_msg": "Орналасу қызметтері өшірулі. Маршрутты жазу үшін қосыңыз.",
   "location_denied_msg": "Маршрутты жазу үшін орналасу рұқсаты қажет.",
   "location_denied_forever_msg": "Орналасуға қол жеткізу тыйым салынған. Параметрлерден рұқсат етіңіз.",
+  "motion_permission_title": "Дене белсенділігі рұқсаты қажет",
+  "motion_denied_forever_msg": "Дене белсенділігіне рұқсат берілмеген. Жүйе параметрлерінен рұқсат етіңіз.",
   "location_open_service_action": "Орналасуды қосу",
   "location_open_settings_action": "Параметрлерді ашу",
   "location_retry_action": "Қайталау",

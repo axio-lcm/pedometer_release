@@ -77,6 +77,8 @@
   "location_service_disabled_msg": "Los servicios de ubicación están desactivados. Actívalos para registrar tu ruta.",
   "location_denied_msg": "Se necesita permiso de ubicación para registrar tu ruta.",
   "location_denied_forever_msg": "Acceso a la ubicación denegado. Permítelo en Ajustes.",
+  "motion_permission_title": "Se necesita permiso de actividad física",
+  "motion_denied_forever_msg": "El permiso de actividad física está denegado. Actívalo en los ajustes del sistema.",
   "location_open_service_action": "Activar ubicación",
   "location_open_settings_action": "Abrir ajustes",
   "location_retry_action": "Reintentar",
