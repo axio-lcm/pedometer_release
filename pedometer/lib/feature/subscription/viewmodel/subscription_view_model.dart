@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
 import 'package:pp_inapp_purchase/inapp_purchase.dart';
 
@@ -243,6 +244,7 @@ class SubscriptionViewModel extends GetxController {
   }
 
   Future<void> _syncHealthDataAfterClose() async {
+    if (defaultTargetPlatform == TargetPlatform.android) return;
     await Future<void>.delayed(const Duration(milliseconds: 260));
     if (!Get.isRegistered<SubscriptionService>() ||
         !Get.find<SubscriptionService>().isVip.value ||
