@@ -19,7 +19,7 @@ val googleMapsApiKey =
         ?: ""
 
 android {
-    namespace = "com.example.pedometer"
+    namespace = "com.pedometer.step.counter.walking.tracker"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
@@ -33,8 +33,7 @@ android {
     }
 
     defaultConfig {
-        // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
-        applicationId = "com.example.pedometer"
+        applicationId = "com.pedometer.step.counter.walking.tracker"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = maxOf(26, flutter.minSdkVersion)
