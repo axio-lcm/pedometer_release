@@ -79,6 +79,7 @@ class EditBodyDataViewModel extends GetxController implements IBaseViewModel {
     await prefs.setDouble(PrefsKeys.bodyWeight, w);
     await prefs.setInt(PrefsKeys.bodyAge, a);
     BodyDataRuntime.weightKg = w;
+    BodyDataRuntime.heightCm = h;
     isSaving.value = false;
 
     // 通知我的页刷新

@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:pedometer/common/component/app_top_navigation_bar.dart';
@@ -7,6 +8,7 @@ import 'package:pedometer/common/component/asset_metric_icon.dart';
 import 'package:pedometer/common/config/app_colors.dart';
 import 'package:pedometer/common/config/app_dimens.dart';
 import 'package:pedometer/common/config/resource_loader.dart';
+import 'package:pedometer/common/service/motion_fitness_permission_service.dart';
 import 'package:pedometer/common/service/photo_library_permission_service.dart';
 import 'package:pedometer/common/storage/language_service.dart';
 import 'package:pedometer/feature/workout/components/workout_tracking_components.dart';
@@ -203,8 +205,14 @@ class _WorkoutTrackingPageState extends State<WorkoutTrackingPage> {
   }
 
   Future<void> _checkPermissionAndStart() async {
-    // 室内运动不使用 GPS：不请求定位权限、不激活地图定位，直接开始。
+    // 室内运动不使用 GPS：不请求定位权限、不激活地图定位。
+    // 安卓改为请求活动识别权限用于计步；拒绝则退化为仅计时，不阻塞开始。
     if (controller.isIndoor.value) {
+      if (defaultTargetPlatform == TargetPlatform.android) {
+        await MotionFitnessPermissionService.requestAuthorization();
+        if (!mounted) return;
+        controller.retryMotionStepSubscription();
+      }
       _startCountdown();
       return;
     }

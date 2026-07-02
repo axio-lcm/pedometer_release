@@ -14,6 +14,8 @@ import 'package:pedometer/common/storage/body_data_runtime.dart';
 import 'package:pedometer/common/service/motion_fitness_permission_service.dart';
 import 'package:pedometer/common/service/photo_library_permission_service.dart';
 import 'package:pedometer/feature/workout/model/achievement_stats_store.dart';
+import 'package:pedometer/feature/workout/model/indoor_step_distance_estimator.dart';
+import 'package:pedometer/feature/workout/model/step_length_calibration.dart';
 import 'package:pedometer/feature/workout/model/workout_calorie_policy.dart';
 import 'package:pedometer/feature/workout/model/workout_model.dart';
 import 'package:pedometer/feature/workout/model/workout_pace_policy.dart';
@@ -105,6 +107,9 @@ class WorkoutTrackingViewModel extends GetxController
   StreamSubscription<MotionFitnessSample>? _motionStepSubscription;
   double? _lastIndoorDistanceMeters; // 上一计步样本的当天累计距离（米）
   int? _lastIndoorSteps; // 上一计步样本的当天累计步数
+  // 安卓室内：步数 × 步长估算距离；户外会话步数用于结束时自校准步长。
+  IndoorStepDistanceEstimator? _indoorEstimator;
+  int _calibrationSessionSteps = 0;
   StreamSubscription<bool>? _musicPlayingSubscription;
   StreamSubscription<int?>? _musicIndexSubscription;
   DateTime? _lastMotionPaceAt;
@@ -128,6 +133,10 @@ class WorkoutTrackingViewModel extends GetxController
   void activateLocation() {
     if (!locationActivated.value) locationActivated.value = true;
   }
+
+  /// 安卓室内开始前活动识别权限刚授权时由页面调用：初次订阅因权限被拒
+  /// 而结束的计步流在此重试。
+  void retryMotionStepSubscription() => _startMotionStepIfNeeded();
 
   void start() {
     if (status.value == WorkoutStatus.running) return;
@@ -156,6 +165,15 @@ class WorkoutTrackingViewModel extends GetxController
     if (!_caloriePolicyInjected) {
       _caloriePolicy = WorkoutCaloriePolicy(weightKg: BodyDataRuntime.weightKg);
     }
+    _calibrationSessionSteps = 0;
+    if (_isAndroid) {
+      _indoorEstimator = isIndoor.value
+          ? IndoorStepDistanceEstimator(
+              heightCm: BodyDataRuntime.heightCm,
+              calibratedStepLengthMeters: StepLengthCalibration.stepLengthMeters,
+            )
+          : null;
+    }
 
     final pos = _lastRouteRaw == null ? null : currentPosition.value;
     startPoint.value = pos;
@@ -183,6 +201,21 @@ class WorkoutTrackingViewModel extends GetxController
         (pathPoints.isEmpty ? startPoint.value : pathPoints.last);
     status.value = WorkoutStatus.ended;
     _stopTicker();
+    _maybeCalibrateStepLength();
+  }
+
+  /// 安卓户外会话结束：用「GPS 距离 ÷ 会话步数」滚动校准步长，
+  /// 供室内运动估算距离。样本太小（短途）不校准，避免噪声污染。
+  void _maybeCalibrateStepLength() {
+    if (!_isAndroid || isIndoor.value) return;
+    final meters = distanceMeters.value;
+    final sessionSteps = _calibrationSessionSteps;
+    if (meters < 300 || sessionSteps < 300) return;
+    unawaited(
+      StepLengthCalibration.updateFromSession(
+        sessionStepMeters: meters / sessionSteps,
+      ),
+    );
   }
 
   WorkoutRouteHistoryRecord saveRouteHistory({Uint8List? mapSnapshot}) {
@@ -623,16 +656,28 @@ class WorkoutTrackingViewModel extends GetxController
         );
   }
 
-  /// 室内运动无 GPS，距离 / 步数改用计步器（CMPedometer）按会话基线增量累积。
+  /// 室内运动无 GPS，距离 / 步数改用计步器按会话基线增量累积。
+  /// iOS 为 CMPedometer（带真实距离）；安卓为 TYPE_STEP_COUNTER（仅步数，
+  /// 距离由 [IndoorStepDistanceEstimator] 按步长估算）。
   void _startMotionStepIfNeeded() {
-    if (defaultTargetPlatform != TargetPlatform.iOS) return;
-    _motionStepSubscription ??= MotionFitnessPermissionService.todayStepStream()
-        .listen(_onMotionStep, onError: (_) {});
+    if (kIsWeb) return;
+    try {
+      _motionStepSubscription ??=
+          MotionFitnessPermissionService.todayStepStream().listen(
+            _onMotionStep,
+            onError: (_) {
+              // 安卓活动识别权限未授予时流会立刻报错结束；
+              // 置空以便授权后（开始运动时会再调本方法）重试订阅。
+              _motionStepSubscription?.cancel();
+              _motionStepSubscription = null;
+            },
+          );
+    } catch (_) {
+      // 单测环境无平台 binding 时静默降级，不影响其余运动逻辑。
+    }
   }
 
   void _onMotionStep(MotionFitnessSample sample) {
-    if (!isIndoor.value) return; // 户外用 GPS 累积，室内才用计步器。
-
     final currentDistance = sample.distanceMeters;
     final currentSteps = sample.steps;
 
@@ -654,11 +699,53 @@ class WorkoutTrackingViewModel extends GetxController
 
     final deltaDistance = currentDistance - lastDistance;
     final deltaSteps = currentSteps - lastSteps;
-    if (deltaDistance > 0) distanceMeters.value += deltaDistance;
-    if (deltaSteps > 0) steps.value += deltaSteps;
     _lastIndoorDistanceMeters = currentDistance;
     _lastIndoorSteps = currentSteps;
+
+    if (!isIndoor.value) {
+      // 户外距离 / 配速走 GPS；安卓仅累计会话步数，结束时自校准步长。
+      if (_isAndroid && deltaSteps > 0) _calibrationSessionSteps += deltaSteps;
+      return;
+    }
+
+    if (deltaSteps > 0) steps.value += deltaSteps;
+
+    if (_isAndroid) {
+      // 安卓室内：传感器只给步数，距离按步长估算，并由估算距离推导配速
+      // 与卡路里速度；iOS 室内链路（下方）保持不变。
+      _accumulateEstimatedIndoorDistance(deltaSteps);
+      return;
+    }
+
+    // iOS 室内：CMPedometer 提供真实距离；配速另由运动配速流提供。
+    if (deltaDistance > 0) distanceMeters.value += deltaDistance;
   }
+
+  /// 安卓室内：把步数增量换算成距离累积，并沿用 GPS 的滚动窗口配速机制。
+  void _accumulateEstimatedIndoorDistance(int deltaSteps) {
+    if (deltaSteps <= 0) return;
+    final estimator = _indoorEstimator;
+    if (estimator == null) return;
+    final now = DateTime.now();
+    final deltaMeters = estimator.distanceForSteps(
+      deltaSteps: deltaSteps,
+      at: now,
+    );
+    if (deltaMeters <= 0) return;
+    distanceMeters.value += deltaMeters;
+    _pacePolicy.addSample(cumulativeMeters: distanceMeters.value, at: now);
+    final estimatedPace = _pacePolicy.pacePerKm;
+    pace.value = estimatedPace;
+    if (estimatedPace == null) return;
+    final speedKmh = 3600000 / estimatedPace.inMilliseconds;
+    if (!speedKmh.isFinite || speedKmh <= 0 || speedKmh > maxMetricSpeedKmh) {
+      return;
+    }
+    _lastSpeedKmh = speedKmh;
+    _lastSpeedUpdatedAt = now;
+  }
+
+  bool get _isAndroid => defaultTargetPlatform == TargetPlatform.android;
 
   void _onMotionPace(Duration pacePerKm) {
     if (status.value != WorkoutStatus.running) return;

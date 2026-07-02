@@ -15,6 +15,7 @@ import 'package:pedometer/feature/home/model/health_sync_models.dart';
 import 'package:pedometer/feature/home/service/health_auto_sync_service.dart';
 import 'package:pedometer/feature/subscription/service/subscription_service.dart';
 import 'package:pedometer/feature/workout/model/achievement_stats_store.dart';
+import 'package:pedometer/feature/workout/model/step_length_calibration.dart';
 import 'package:pedometer/feature/workout/model/workout_model.dart';
 import 'package:pedometer/feature/workout/service/step_goal_service.dart';
 import 'package:pedometer/products/init/app.dart';
@@ -59,6 +60,7 @@ class AppStartup {
       AchievementStatsStore.load(),
       WorkoutRouteHistoryStore.load(),
       BodyDataRuntime.restore(),
+      StepLengthCalibration.restore(),
       _hydrateHealthData(),
       if (Platform.isIOS)
         Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform),

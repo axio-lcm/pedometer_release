@@ -27,6 +27,9 @@ abstract final class PrefsKeys {
   /// 每日步数目标（编辑目标页设置，首页圆环 / 日周月目标统一读取）。
   static const String dailyStepGoal = 'dailyStepGoal';
 
+  /// 户外 GPS 自校准步长（米），安卓室内运动按步数估算距离时使用。
+  static const String calibratedStepLength = 'calibratedStepLength';
+
   static const String attributionJson = 'attributionJson';
   static const String campaignId = 'campaignId';
   static const String isUploadedASAData = 'isUploadedASAData';
