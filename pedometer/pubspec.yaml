@@ -50,6 +50,8 @@ dependencies:
   share_plus: ^11.0.0
   # 本地偏好存储（语言选择）
   shared_preferences: ^2.5.5
+  # 应用文档目录（导入音乐的持久化副本存放）
+  path_provider: ^2.1.6
   # 本地结构化持久化：健康/运动数据日汇总与同步历史
   sqflite: ^2.4.1
   path: ^1.9.0

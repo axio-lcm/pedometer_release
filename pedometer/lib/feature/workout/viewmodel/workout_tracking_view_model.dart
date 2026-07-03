@@ -18,6 +18,7 @@ import 'package:pedometer/feature/workout/model/indoor_step_distance_estimator.d
 import 'package:pedometer/feature/workout/model/step_length_calibration.dart';
 import 'package:pedometer/feature/workout/model/workout_calorie_policy.dart';
 import 'package:pedometer/feature/workout/model/workout_model.dart';
+import 'package:pedometer/feature/workout/model/workout_music_store.dart';
 import 'package:pedometer/feature/workout/model/workout_pace_policy.dart';
 import 'package:pedometer/feature/workout/resources/workout_resource.dart';
 import 'package:pedometer/feature/workout/viewmodel/workout_view_model.dart';
@@ -114,6 +115,9 @@ class WorkoutTrackingViewModel extends GetxController
   StreamSubscription<int?>? _musicIndexSubscription;
   DateTime? _lastMotionPaceAt;
   List<_WorkoutMusicTrack> _musicTracks = const [];
+  // 播放器是否已装载当前曲目列表：冷启动恢复只回填列表 UI，
+  // 音源延迟到首次播放时装载，避免打开页面就初始化播放器。
+  bool _musicSourcesLoaded = false;
   bool _routeHistorySaved = false;
 
   static const _motionPaceFreshness = Duration(seconds: 10);
@@ -318,10 +322,11 @@ class WorkoutTrackingViewModel extends GetxController
     );
     if (result == null) return WorkoutMusicImportResult.completed;
 
-    final pickedTracks = result.files
-        .map(_trackFromPickedFile)
-        .whereType<_WorkoutMusicTrack>()
-        .toList(growable: false);
+    final pickedTracks = <_WorkoutMusicTrack>[];
+    for (final file in result.files) {
+      final track = await _persistPickedFile(file);
+      if (track != null) pickedTracks.add(track);
+    }
     final existingPaths = _musicTracks.map((track) => track.path).toSet();
     final selectedPaths = <String>{};
     final newTracks = [
@@ -347,14 +352,18 @@ class WorkoutTrackingViewModel extends GetxController
         initialPosition: Duration.zero,
       );
       await player.setLoopMode(LoopMode.all);
+      _musicSourcesLoaded = true;
       _musicTracks = tracks;
       musicTrackNames.assignAll([for (final track in tracks) track.name]);
       currentMusicIndex.value = firstNewIndex;
       hasMusic.value = true;
       musicTitle.value = tracks[firstNewIndex].name;
       musicStatus.value = WorkoutResource.trackingMusicStatus;
+      _persistMusicTracks();
+      _persistMusicIndex();
       await player.play();
     } catch (_) {
+      _musicSourcesLoaded = false;
       _musicTracks = previousTracks;
       musicTrackNames.assignAll([
         for (final track in previousTracks) track.name,
@@ -374,7 +383,7 @@ class WorkoutTrackingViewModel extends GetxController
     if (!hasMusic.value) {
       return importMusic();
     }
-    final player = _ensureMusicPlayer();
+    final player = await _ensureMusicSources();
     if (player.playing) {
       await player.pause();
     } else {
@@ -385,7 +394,7 @@ class WorkoutTrackingViewModel extends GetxController
 
   Future<void> nextMusic() async {
     if (!hasMusic.value || _musicTracks.isEmpty) return;
-    final player = _ensureMusicPlayer();
+    final player = await _ensureMusicSources();
     if (_musicTracks.length == 1) {
       await player.seek(Duration.zero);
       if (!player.playing) await player.play();
@@ -397,7 +406,7 @@ class WorkoutTrackingViewModel extends GetxController
 
   Future<void> playMusicAt(int index) async {
     if (!hasMusic.value || index < 0 || index >= _musicTracks.length) return;
-    final player = _ensureMusicPlayer();
+    final player = await _ensureMusicSources();
     await player.seek(Duration.zero, index: index);
     await player.play();
   }
@@ -414,8 +423,9 @@ class WorkoutTrackingViewModel extends GetxController
     if (index < 0 || index >= _musicTracks.length) return;
 
     final wasCurrent = index == currentMusicIndex.value;
+    final removed = _musicTracks[index];
     final player = _musicPlayer;
-    if (player != null) {
+    if (player != null && _musicSourcesLoaded) {
       await player.removeAudioSourceAt(index);
     }
 
@@ -424,6 +434,8 @@ class WorkoutTrackingViewModel extends GetxController
         if (i != index) _musicTracks[i],
     ];
     musicTrackNames.assignAll([for (final track in _musicTracks) track.name]);
+    unawaited(WorkoutMusicStore.deleteFile(removed.path));
+    _persistMusicTracks();
 
     if (_musicTracks.isEmpty) {
       await player?.stop();
@@ -441,6 +453,7 @@ class WorkoutTrackingViewModel extends GetxController
       _musicTracks.length - 1,
     );
     musicTitle.value = _musicTracks[currentMusicIndex.value].name;
+    _persistMusicIndex();
     if (wasCurrent && player != null && !player.playing) {
       musicStatus.value = WorkoutResource.trackingMusicPaused;
     }
@@ -454,14 +467,76 @@ class WorkoutTrackingViewModel extends GetxController
     ];
   }
 
-  _WorkoutMusicTrack? _trackFromPickedFile(PlatformFile file) {
+  /// 选中的文件拷贝到文档目录持久保存（file_picker 给的是缓存副本，
+  /// 系统清缓存后路径失效），返回指向持久副本的曲目。
+  Future<_WorkoutMusicTrack?> _persistPickedFile(PlatformFile file) async {
     final path = file.path;
     if (path == null || path.trim().isEmpty) return null;
 
     final extension = _fileExtension(file.name).toLowerCase();
     if (!_musicExtensions.contains(extension)) return null;
 
-    return _WorkoutMusicTrack(path: path, name: _displayMusicName(file.name));
+    final persisted = await WorkoutMusicStore.persistPickedFile(
+      sourcePath: path,
+      fileName: file.name,
+    );
+    if (persisted == null) return null;
+    return _WorkoutMusicTrack(
+      path: persisted,
+      name: _displayMusicName(file.name),
+    );
+  }
+
+  /// 冷启动恢复上次导入的曲目列表与播放到的曲目：只回填 UI，
+  /// 不装载音源、不自动播放；用户点播放时从该曲目继续。
+  Future<void> _restorePersistedMusic() async {
+    final records = await WorkoutMusicStore.restore();
+    if (isClosed || records.isEmpty || _musicTracks.isNotEmpty) return;
+    final savedIndex = await WorkoutMusicStore.restoreCurrentIndex();
+    if (isClosed || _musicTracks.isNotEmpty) return;
+
+    _musicTracks = [
+      for (final record in records)
+        _WorkoutMusicTrack(path: record.path, name: record.name),
+    ];
+    musicTrackNames.assignAll([for (final track in _musicTracks) track.name]);
+    hasMusic.value = true;
+    currentMusicIndex.value = savedIndex.clamp(0, _musicTracks.length - 1);
+    musicTitle.value = _musicTracks[currentMusicIndex.value].name;
+    musicStatus.value = WorkoutResource.trackingMusicPaused;
+  }
+
+  void _persistMusicTracks() {
+    unawaited(
+      WorkoutMusicStore.saveTracks([
+        for (final track in _musicTracks)
+          WorkoutMusicTrackRecord(path: track.path, name: track.name),
+      ]),
+    );
+  }
+
+  void _persistMusicIndex() {
+    final index = currentMusicIndex.value;
+    if (index < 0) return;
+    unawaited(WorkoutMusicStore.saveCurrentIndex(index));
+  }
+
+  /// 播放器装载当前曲目列表（恢复的列表首次播放时才装载音源）。
+  Future<AudioPlayer> _ensureMusicSources() async {
+    final player = _ensureMusicPlayer();
+    if (_musicSourcesLoaded || _musicTracks.isEmpty) return player;
+
+    await player.setAudioSources(
+      [
+        for (final track in _musicTracks)
+          AudioSource.uri(Uri.file(track.path), tag: track.name),
+      ],
+      initialIndex: currentMusicIndex.value.clamp(0, _musicTracks.length - 1),
+      initialPosition: Duration.zero,
+    );
+    await player.setLoopMode(LoopMode.all);
+    _musicSourcesLoaded = true;
+    return player;
   }
 
   String _fileExtension(String fileName) {
@@ -502,6 +577,7 @@ class WorkoutTrackingViewModel extends GetxController
       if (index == null || index < 0 || index >= _musicTracks.length) return;
       currentMusicIndex.value = index;
       musicTitle.value = _musicTracks[index].name;
+      _persistMusicIndex();
     });
   }
 
@@ -791,6 +867,7 @@ class WorkoutTrackingViewModel extends GetxController
   void init() {
     musicTitle.value = WorkoutResource.trackingMusicTitle;
     musicStatus.value = WorkoutResource.trackingMusicIdle;
+    unawaited(_restorePersistedMusic());
     _startMotionPaceIfNeeded();
     _startMotionStepIfNeeded();
     final args = Get.arguments;
@@ -826,6 +903,7 @@ class WorkoutTrackingViewModel extends GetxController
     _musicIndexSubscription = null;
     final player = _musicPlayer;
     _musicPlayer = null;
+    _musicSourcesLoaded = false;
     if (player != null) unawaited(player.dispose());
   }
 

@@ -30,6 +30,12 @@ abstract final class PrefsKeys {
   /// 户外 GPS 自校准步长（米），安卓室内运动按步数估算距离时使用。
   static const String calibratedStepLength = 'calibratedStepLength';
 
+  /// 运动音乐已导入曲目列表（JSON：文件名 + 展示名，文件在文档目录副本）。
+  static const String workoutMusicTracks = 'workoutMusicTracks';
+
+  /// 运动音乐上次播放到的曲目下标（冷启动恢复后从该曲目继续）。
+  static const String workoutMusicCurrentIndex = 'workoutMusicCurrentIndex';
+
   static const String attributionJson = 'attributionJson';
   static const String campaignId = 'campaignId';
   static const String isUploadedASAData = 'isUploadedASAData';
