@@ -68,7 +68,7 @@ class MineViewModel extends GetxController implements IBaseViewModel {
       return;
     }
     if (entry.title == MineResource.rateUs || entry.title == MineText.rateUs) {
-      AppMarketLauncher.openAppStoreReview();
+      AppMarketLauncher.openStoreReview();
       return;
     }
     if (entry.title == MineResource.suggestion ||
