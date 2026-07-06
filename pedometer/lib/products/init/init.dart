@@ -62,7 +62,7 @@ class AppStartup {
       BodyDataRuntime.restore(),
       StepLengthCalibration.restore(),
       _hydrateHealthData(),
-      if (Platform.isIOS)
+      if (Platform.isIOS || Platform.isAndroid)
         Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform),
     ]);
     _bootstrapped = true;
