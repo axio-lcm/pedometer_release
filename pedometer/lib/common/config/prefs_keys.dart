@@ -6,6 +6,9 @@ abstract final class PrefsKeys {
   /// 是否第一次启动，用于 ASA 首启归因与引导流程。
   static const String isFirstLaunch = 'isFirstLaunch';
 
+  /// 用户是否已同意隐私政策与用户协议。
+  static const String privacyConsentAccepted = 'privacyConsentAccepted';
+
   /// 本地会员状态与订阅交易缓存。
   static const String isVip = 'isVip';
   static const String vipProductId = 'vipProductId';

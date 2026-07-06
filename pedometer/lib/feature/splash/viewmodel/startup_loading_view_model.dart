@@ -1,8 +1,12 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:pedometer/common/config/prefs_keys.dart';
 import 'package:pedometer/feature/subscription/service/subscription_service.dart';
 import 'package:pedometer/feature/subscription/views/onboarding_page.dart';
 import 'package:pedometer/products/phone/views/main_page.dart';
@@ -21,6 +25,9 @@ class StartupLoadingViewModel extends GetxController {
   static const _membershipTimeout = Duration(seconds: 3);
 
   final Connectivity _connectivity = Connectivity();
+  final privacyConsentLoaded = false.obs;
+  final privacyConsentAccepted = false.obs;
+  final privacyConsentChecked = false.obs;
   final progress = 0.0.obs;
   final networkStatus = StartupNetworkStatus.checking.obs;
 
@@ -42,13 +49,59 @@ class StartupLoadingViewModel extends GetxController {
   double _targetProgress = 0;
   double _currentProgress = 0;
   bool _graceElapsed = false;
+  bool _networkCheckStarted = false;
   bool _startupStarted = false;
   bool _isCompleting = false;
   bool _completed = false;
 
+  bool get _requiresPrivacyConsent => Platform.isAndroid;
+
   @override
   void onInit() {
     super.onInit();
+    unawaited(_loadPrivacyConsent());
+  }
+
+  Future<void> _loadPrivacyConsent() async {
+    if (!_requiresPrivacyConsent) {
+      privacyConsentAccepted.value = true;
+      privacyConsentLoaded.value = true;
+      _startNetworkCheck();
+      return;
+    }
+
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      privacyConsentAccepted.value =
+          prefs.getBool(PrefsKeys.privacyConsentAccepted) ?? false;
+    } catch (e, st) {
+      debugPrint('[StartupLoading] privacy consent load failed: $e\n$st');
+      privacyConsentAccepted.value = false;
+    } finally {
+      privacyConsentLoaded.value = true;
+      if (privacyConsentAccepted.value) _startNetworkCheck();
+    }
+  }
+
+  void togglePrivacyConsentChecked() {
+    privacyConsentChecked.value = !privacyConsentChecked.value;
+  }
+
+  Future<void> acceptPrivacyConsent() async {
+    if (!privacyConsentChecked.value) return;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(PrefsKeys.privacyConsentAccepted, true);
+    privacyConsentAccepted.value = true;
+    _startNetworkCheck();
+  }
+
+  void rejectPrivacyConsent() {
+    SystemNavigator.pop();
+  }
+
+  void _startNetworkCheck() {
+    if (_networkCheckStarted) return;
+    _networkCheckStarted = true;
     _connectivitySubscription = _connectivity.onConnectivityChanged.listen(
       _handleConnectivityChanged,
     );
