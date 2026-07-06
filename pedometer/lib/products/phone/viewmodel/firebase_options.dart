@@ -40,14 +40,14 @@ class DefaultFirebaseOptions {
   //   iosBundleId: 'com.XXXXX.XXXXX',
   // );
 
-  // static const FirebaseOptions android = FirebaseOptions(
-  //   apiKey: 'AIzaSyCohl7jFNg0g3_btLExnBANNVFnjBMpdTk',
-  //   appId: '1:125946237732:android:c813c913a30bd53d0ad9b1',
-  //   messagingSenderId: '125946237732',
-  //   projectId: 'ht-chooser-android',
-  //   storageBucket: 'ht-chooser-android.firebasestorage.app',
-  //   androidClientId: 'com.mobiunity.XXX',
-  // );
+  static const FirebaseOptions android = FirebaseOptions(
+    apiKey: 'AIzaSyBN3rB8bv2rFxqYnYuXtUa92IiTaLvINCg',
+    appId: '1:723663894847:android:c81f29dd0833641050fb8a',
+    messagingSenderId: '723663894847',
+    projectId: 'pedometer-android-a3df1',
+    storageBucket: 'pedometer-android-a3df1.firebasestorage.app',
+    androidClientId: 'com.pedometer.step.counter.walking.tracker',
+  );
 
   static const FirebaseOptions ios = FirebaseOptions(
     apiKey: 'AIzaSyAkUdUaBV6qrHmnwwYSzpZmmDocKwMuewQ',
@@ -58,3 +58,33 @@ class DefaultFirebaseOptions {
     iosBundleId: 'com.pedometer.step.counter.walking.tracker',
   );
 }
+
+// {
+// "project_info": {
+// "project_number": "723663894847",
+// "project_id": "pedometer-android-a3df1",
+// "storage_bucket": "pedometer-android-a3df1.firebasestorage.app"
+// },
+// "client": [
+// {
+// "client_info": {
+// "mobilesdk_app_id": "1:723663894847:android:c81f29dd0833641050fb8a",
+// "android_client_info": {
+// "package_name": "com.pedometer.step.counter.walking.tracker"
+// }
+// },
+// "oauth_client": [],
+// "api_key": [
+// {
+// "current_key": "AIzaSyBN3rB8bv2rFxqYnYuXtUa92IiTaLvINCg"
+// }
+// ],
+// "services": {
+// "appinvite_service": {
+// "other_platform_oauth_client": []
+// }
+// }
+// }
+// ],
+// "configuration_version": "1"
+// }
