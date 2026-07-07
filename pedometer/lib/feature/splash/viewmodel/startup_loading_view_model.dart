@@ -9,6 +9,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:pedometer/common/config/prefs_keys.dart';
 import 'package:pedometer/feature/subscription/service/subscription_service.dart';
 import 'package:pedometer/feature/subscription/views/onboarding_page.dart';
+import 'package:pedometer/products/init/init.dart';
 import 'package:pedometer/products/phone/views/main_page.dart';
 
 enum StartupNetworkStatus { checking, connected, disconnected }
@@ -79,7 +80,9 @@ class StartupLoadingViewModel extends GetxController {
       privacyConsentAccepted.value = false;
     } finally {
       privacyConsentLoaded.value = true;
-      if (privacyConsentAccepted.value) _startNetworkCheck();
+      if (privacyConsentAccepted.value) {
+        unawaited(_continueAfterPrivacyConsent());
+      }
     }
   }
 
@@ -92,11 +95,18 @@ class StartupLoadingViewModel extends GetxController {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool(PrefsKeys.privacyConsentAccepted, true);
     privacyConsentAccepted.value = true;
-    _startNetworkCheck();
+    await _continueAfterPrivacyConsent();
   }
 
   void rejectPrivacyConsent() {
     SystemNavigator.pop();
+  }
+
+  Future<void> _continueAfterPrivacyConsent() async {
+    if (_requiresPrivacyConsent) {
+      await AppStartup.initializePostConsentServices();
+    }
+    _startNetworkCheck();
   }
 
   void _startNetworkCheck() {

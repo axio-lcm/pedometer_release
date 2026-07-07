@@ -1,6 +1,8 @@
 import 'dart:io';
 
+import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:pedometer/common/config/resource_loader.dart';
@@ -27,6 +29,7 @@ class AppStartup {
   AppStartup._();
 
   static bool _bootstrapped = false;
+  static bool _postConsentServicesInitialized = false;
 
   static Future<void> run() async {
     await bootstrap();
@@ -50,7 +53,7 @@ class AppStartup {
       ResourceLoader.init(
         languageCode: languageService.resourceLanguageCode,
       ).then((_) => LanguageUtil.applyStoredPreference()),
-      HeaderManager.instance.initialize(),
+      if (!Platform.isAndroid) HeaderManager.instance.initialize(),
       subscriptionService.init().then(
         (service) => Get.put(service, permanent: true),
       ),
@@ -62,10 +65,34 @@ class AppStartup {
       BodyDataRuntime.restore(),
       StepLengthCalibration.restore(),
       _hydrateHealthData(),
-      if (Platform.isIOS || Platform.isAndroid)
-        Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform),
+      if (!Platform.isAndroid) _initializeFirebase(),
     ]);
     _bootstrapped = true;
+  }
+
+  /// Android 首次启动需在用户明确同意隐私政策后，才初始化会读取/上报
+  /// 设备、网络、诊断信息的服务。iOS 保持原冷启动初始化链路。
+  static Future<void> initializePostConsentServices() async {
+    if (_postConsentServicesInitialized) return;
+    await Future.wait([
+      HeaderManager.instance.initialize(),
+      _initializeFirebase(),
+    ]);
+    _postConsentServicesInitialized = true;
+  }
+
+  static Future<void> _initializeFirebase() async {
+    if (!Platform.isIOS && !Platform.isAndroid) return;
+    final app = Firebase.apps.isNotEmpty
+        ? Firebase.app()
+        : await Firebase.initializeApp(
+            options: DefaultFirebaseOptions.currentPlatform,
+          );
+    await Future.wait([
+      app.setAutomaticDataCollectionEnabled(true),
+      FirebaseAnalytics.instance.setAnalyticsCollectionEnabled(true),
+      FirebaseCrashlytics.instance.setCrashlyticsCollectionEnabled(true),
+    ]);
   }
 
   /// 冷启动用本地持久化历史 hydrate 运行时，使首屏即展示历史而非 mock。
