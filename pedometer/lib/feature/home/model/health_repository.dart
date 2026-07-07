@@ -104,11 +104,10 @@ class HealthRepository {
   }
 }
 
-/// 全局运行时健康数据：以「Apple Health 底座 + 运动传感器今日叠加」建模。
+/// 全局运行时健康数据：只以系统健康源作为首页与统计底座。
 ///
-/// - [_baseSummaries]：Apple Health 同步或启动 hydrate 进来的权威历史（含今日快照）。
-/// - [_motionToday]：运动传感器今日实时汇总，**读取时叠加**到底座的「今天」之上，
-///   而非整体替换——这样冷启动 hydrate 出历史后，今天的步数仍能实时刷新。
+/// iOS 只接收 Apple Health；Android 只接收 Health Connect。运动传感器仍可用于
+/// 运动页实时追踪，但不会混入首页健康同步数据。
 class HealthSyncRuntime {
   static final ValueNotifier<int> revision = ValueNotifier<int>(0);
 
@@ -123,10 +122,6 @@ class HealthSyncRuntime {
   static List<HealthDailySummary> _baseSummaries = const [];
   static Map<DateTime, List<HourlyStepData>> _baseHourly = const {};
   static bool _hasRealSource = false;
-  static HealthDailySummary? _motionToday;
-  static Map<DateTime, List<HourlyStepData>> _motionHourly = const {};
-  static int? _motionTodaySteps;
-  static bool _motionAuthorized = false;
   static final Map<HealthSyncSource, HealthAuthStatus> _connectionStatus = {};
 
   // 按 revision 记忆化合并结果：一帧内多次读取（首页 + 详情页周/月）只算一次。
@@ -135,18 +130,9 @@ class HealthSyncRuntime {
 
   HealthSyncRuntime._();
 
-  /// 运动与健身（CMPedometer）是否本次会话已授权——用于判断是否展示 mock。
-  static bool get motionAuthorized => _motionAuthorized;
-
-  static set motionAuthorized(bool value) {
-    if (_motionAuthorized == value) return;
-    _motionAuthorized = value;
-    revision.value++;
-  }
-
-  /// 合并底座与今日叠加后的有效数据源；无任何数据时返回 null。
+  /// 系统健康源有效数据源；无任何健康源数据时返回 null。
   static SyncedHealthDataSource? get _effective {
-    if (!hasActiveDataSource) {
+    if (!_hasRealSource) {
       _cachedEffective = null;
       _cachedRevision = revision.value;
       return null;
@@ -157,51 +143,15 @@ class HealthSyncRuntime {
     final byDay = <DateTime, HealthDailySummary>{
       for (final summary in _baseSummaries) summary.dateOnly: summary,
     };
-    final motion = _motionToday;
-    if (motion != null) {
-      final day = motion.dateOnly;
-      final base = byDay[day];
-      byDay[day] = base == null ? motion : _mergeTodayForDisplay(base, motion);
-    }
     final summaries = byDay.values.toList()
       ..sort((a, b) => a.date.compareTo(b.date));
-    // Apple Health 的小时步数（精确）覆盖运动传感器的同日小时步数。
-    final hourly = <DateTime, List<HourlyStepData>>{
-      ..._motionHourly,
-      ..._baseHourly,
-    };
     final effective = SyncedHealthDataSource(
       summaries: summaries,
-      hourlyStepsByDay: hourly,
+      hourlyStepsByDay: _baseHourly,
     );
     _cachedEffective = effective;
     _cachedRevision = revision.value;
     return effective;
-  }
-
-  /// 今日「底座 ⊕ 运动」按字段合并：步数取 max、距离取 max（单调不回退），
-  /// 卡路里 / 活动时长在底座为 Apple Health 权威值时保留，否则用运动估算。
-  static HealthDailySummary _mergeTodayForDisplay(
-    HealthDailySummary base,
-    HealthDailySummary motion,
-  ) {
-    final baseIsAuthoritative = base.source == HealthSyncSource.appleHealth;
-    return HealthDailySummary(
-      date: base.date,
-      steps: base.steps > motion.steps ? base.steps : motion.steps,
-      distanceKm: base.distanceKm > motion.distanceKm
-          ? base.distanceKm
-          : motion.distanceKm,
-      caloriesKcal: baseIsAuthoritative
-          ? base.caloriesKcal
-          : motion.caloriesKcal,
-      activeMinutes: baseIsAuthoritative
-          ? base.activeMinutes
-          : motion.activeMinutes,
-      source: baseIsAuthoritative
-          ? HealthSyncSource.appleHealth
-          : HealthSyncSource.motionSensor,
-    );
   }
 
   static HealthDataSource dataSourceOr(HealthDataSource fallback) {
@@ -210,8 +160,7 @@ class HealthSyncRuntime {
 
   static HealthDataSource? get activeDataSource => _effective;
 
-  static bool get hasActiveDataSource =>
-      _hasRealSource || _motionToday != null;
+  static bool get hasActiveDataSource => _hasRealSource;
 
   static bool get hasRealDataSource => _hasRealSource;
 
@@ -220,12 +169,14 @@ class HealthSyncRuntime {
   static List<HealthDailySummary> get activeSummaries =>
       _effective?.sortedSummaries ?? const [];
 
-  /// Apple Health 同步成功后替换底座（保留运动今日叠加，不再清空）。
+  /// 系统健康源同步成功后替换底座。
   static void replaceRealDataSource(HealthDataSource dataSource) {
     if (dataSource is SyncedHealthDataSource) {
-      _baseSummaries = dataSource.sortedSummaries;
+      _baseSummaries = dataSource.sortedSummaries
+          .where((summary) => _isHealthSource(summary.source))
+          .toList();
       _baseHourly = dataSource.hourlyStepsByDay;
-      _hasRealSource = true;
+      _hasRealSource = _baseSummaries.isNotEmpty;
     }
     revision.value++;
   }
@@ -233,25 +184,11 @@ class HealthSyncRuntime {
   /// 冷启动用持久化历史 hydrate 底座，使重启即显示历史而非 mock。
   static void hydrateBase(List<HealthDailySummary> summaries) {
     if (summaries.isEmpty) return;
-    _baseSummaries = [...summaries]..sort((a, b) => a.date.compareTo(b.date));
-    _hasRealSource = true;
-    revision.value++;
-  }
-
-  /// 更新运动传感器今日叠加；步数无变化时跳过，避免无谓刷新。
-  static void updateMotionToday(
-    HealthDailySummary today, {
-    Map<DateTime, List<HourlyStepData>> hourly = const {},
-  }) {
-    _motionAuthorized = true;
-    if (_motionTodaySteps == today.steps &&
-        _motionToday?.distanceKm == today.distanceKm &&
-        hourly.isEmpty) {
-      return;
-    }
-    _motionToday = today;
-    _motionTodaySteps = today.steps;
-    if (hourly.isNotEmpty) _motionHourly = hourly;
+    _baseSummaries = [
+      for (final summary in summaries)
+        if (_isHealthSource(summary.source)) summary,
+    ]..sort((a, b) => a.date.compareTo(b.date));
+    _hasRealSource = _baseSummaries.isNotEmpty;
     revision.value++;
   }
 
@@ -274,16 +211,16 @@ class HealthSyncRuntime {
     _baseSummaries = const [];
     _baseHourly = const {};
     _hasRealSource = false;
-    _motionToday = null;
-    _motionHourly = const {};
-    _motionTodaySteps = null;
-    _motionAuthorized = false;
     _cachedEffective = null;
     _cachedRevision = -1;
     _connectionStatus.clear();
     revision.value++;
     connectionRevision.value++;
   }
+
+  static bool _isHealthSource(HealthSyncSource source) =>
+      source == HealthSyncSource.appleHealth ||
+      source == HealthSyncSource.healthConnect;
 }
 
 /// 单次同步事件的快照：列表与详情页都基于它渲染，确保每条历史展示自己的数据。
@@ -662,32 +599,37 @@ class HealthPluginSyncService {
   }) {
     final healthTypes = <HealthDataType>[];
     for (final type in types) {
-      final mapped = _healthTypeFor(source: source, type: type);
-      if (mapped != null && !healthTypes.contains(mapped)) {
-        healthTypes.add(mapped);
+      final mappedTypes = _healthTypesForDataType(source: source, type: type);
+      for (final mapped in mappedTypes) {
+        if (!healthTypes.contains(mapped)) {
+          healthTypes.add(mapped);
+        }
       }
     }
     return healthTypes;
   }
 
-  HealthDataType? _healthTypeFor({
+  List<HealthDataType> _healthTypesForDataType({
     required HealthSyncSource source,
     required HealthSyncDataType type,
   }) {
     return switch (type) {
-      HealthSyncDataType.steps => HealthDataType.STEPS,
+      HealthSyncDataType.steps => const [HealthDataType.STEPS],
       HealthSyncDataType.distance =>
         source == HealthSyncSource.appleHealth
-            ? HealthDataType.DISTANCE_WALKING_RUNNING
-            : HealthDataType.DISTANCE_DELTA,
+            ? const [HealthDataType.DISTANCE_WALKING_RUNNING]
+            : const [HealthDataType.DISTANCE_DELTA],
       HealthSyncDataType.calories =>
         source == HealthSyncSource.appleHealth
-            ? HealthDataType.ACTIVE_ENERGY_BURNED
-            : HealthDataType.TOTAL_CALORIES_BURNED,
+            ? const [HealthDataType.ACTIVE_ENERGY_BURNED]
+            : const [
+                HealthDataType.ACTIVE_ENERGY_BURNED,
+                HealthDataType.TOTAL_CALORIES_BURNED,
+              ],
       HealthSyncDataType.activeMinutes =>
         source == HealthSyncSource.appleHealth
-            ? HealthDataType.EXERCISE_TIME
-            : HealthDataType.ACTIVITY_INTENSITY,
+            ? const [HealthDataType.EXERCISE_TIME]
+            : const [HealthDataType.ACTIVITY_INTENSITY],
     };
   }
 
@@ -717,8 +659,9 @@ class HealthPluginSyncService {
         case HealthDataType.DISTANCE_DELTA:
           summary.distanceKm += value / 1000;
         case HealthDataType.ACTIVE_ENERGY_BURNED:
+          summary.activeCaloriesKcal += value;
         case HealthDataType.TOTAL_CALORIES_BURNED:
-          summary.caloriesKcal += value;
+          summary.totalCaloriesKcal += value;
         case HealthDataType.EXERCISE_TIME:
         case HealthDataType.ACTIVITY_INTENSITY:
           summary.activeMinutes += value.round();
@@ -733,7 +676,7 @@ class HealthPluginSyncService {
           date: entry.key,
           steps: stepsOverride?[entry.key] ?? entry.value.steps,
           distanceKm: entry.value.distanceKm,
-          caloriesKcal: entry.value.caloriesKcal,
+          caloriesKcal: entry.value.caloriesKcalFor(source),
           activeMinutes: entry.value.activeMinutes,
           source: source,
         ),
@@ -879,8 +822,16 @@ class HealthPluginSyncService {
 class _DailyHealthAccumulator {
   int steps = 0;
   double distanceKm = 0;
-  double caloriesKcal = 0;
+  double activeCaloriesKcal = 0;
+  double totalCaloriesKcal = 0;
   int activeMinutes = 0;
+
+  double caloriesKcalFor(HealthSyncSource source) {
+    if (source == HealthSyncSource.healthConnect) {
+      return activeCaloriesKcal > 0 ? activeCaloriesKcal : totalCaloriesKcal;
+    }
+    return activeCaloriesKcal;
+  }
 }
 
 class SyncedHealthDataSource implements HealthDataSource {
@@ -944,7 +895,10 @@ class SyncedHealthDataSource implements HealthDataSource {
     }
 
     return HealthHomeSnapshot(
-      step: StepData(steps: latest.steps, goal: HealthSyncRuntime.dailyStepGoal),
+      step: StepData(
+        steps: latest.steps,
+        goal: HealthSyncRuntime.dailyStepGoal,
+      ),
       kpis: [
         KpiItem(
           assetIcon: AppMetricAssets.distance,
@@ -1490,6 +1444,9 @@ double _numericHealthValue(HealthDataPoint point) {
   final value = point.value;
   if (value is NumericHealthValue) {
     return value.numericValue.toDouble();
+  }
+  if (value is ActivityIntensityHealthValue) {
+    return value.minutes;
   }
   return 0;
 }

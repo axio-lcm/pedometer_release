@@ -1,5 +1,7 @@
 import 'package:flutter/widgets.dart';
+import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:pedometer/common/config/app_config.dart';
@@ -94,10 +96,26 @@ class MineViewModel extends GetxController implements IBaseViewModel {
 
   Future<void> _loadBodyData() async {
     final prefs = await SharedPreferences.getInstance();
+    final appVersion = await _loadAppVersion();
     final h = prefs.getDouble(PrefsKeys.bodyHeight) ?? 175.0;
     final w = prefs.getDouble(PrefsKeys.bodyWeight) ?? 68.0;
     final a = prefs.getInt(PrefsKeys.bodyAge) ?? 28;
-    data.value = MinePageData.localized(height: h, weight: w, age: a);
+    data.value = MinePageData.localized(
+      height: h,
+      weight: w,
+      age: a,
+      appVersion: appVersion,
+      hideSuggestion: defaultTargetPlatform == TargetPlatform.android,
+    );
+  }
+
+  Future<String> _loadAppVersion() async {
+    try {
+      final packageInfo = await PackageInfo.fromPlatform();
+      return packageInfo.version;
+    } catch (_) {
+      return '1.0.0';
+    }
   }
 
   void refreshLocalizedData() {

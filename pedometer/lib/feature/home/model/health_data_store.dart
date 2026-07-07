@@ -6,14 +6,13 @@ import 'package:sqflite/sqflite.dart';
 import 'package:pedometer/feature/home/model/health_repository.dart';
 import 'package:pedometer/feature/home/model/health_sync_models.dart';
 
-/// 健康 / 运动数据的本地结构化持久化（sqflite）。
+/// 系统健康数据的本地结构化持久化（sqflite）。
 ///
 /// 设计要点：
 /// - `daily_summary` 以「自然日」为主键 → **天然按日去重**，每天只有一行权威记录。
-/// - 写入走 [_merge] 的「按字段合并」：Apple Health 为权威源，其卡路里/活动时长不会被
-///   运动传感器的估算值覆盖；步数取 max 保证单调不回退；距离 Apple Health 优先、
-///   运动传感器兜底。
-/// - 只持久化真实来源（Apple Health / 运动传感器）的数据，**mock 永不入库**。
+/// - 写入走 [_merge] 的「按字段合并」：同一健康源重复同步时保留既有非零指标，
+///   避免部分类型同步返回 0 抹掉历史值。
+/// - 只持久化 Apple Health / Health Connect 数据，传感器与 mock 永不入库。
 class HealthDataStore {
   HealthDataStore._();
 
@@ -80,13 +79,17 @@ class HealthDataStore {
   // 日汇总（去重 + 合并写入）
   // ---------------------------------------------------------------------------
 
-  /// 合并写入一批日汇总。mock 数据请勿传入。
+  /// 合并写入一批日汇总。只持久化 Apple Health / Health Connect 数据。
   Future<void> upsertSummaries(List<HealthDailySummary> summaries) async {
-    if (summaries.isEmpty) return;
+    final healthSummaries = [
+      for (final summary in summaries)
+        if (_isHealthSource(summary.source)) summary,
+    ];
+    if (healthSummaries.isEmpty) return;
     final db = await _database;
     final now = DateTime.now().millisecondsSinceEpoch;
     await db.transaction((txn) async {
-      for (final incoming in summaries) {
+      for (final incoming in healthSummaries) {
         final existingRows = await txn.query(
           _summaryTable,
           where: 'date = ?',
@@ -96,11 +99,10 @@ class HealthDataStore {
         final merged = existingRows.isEmpty
             ? incoming
             : _merge(HealthDailySummary.fromRow(existingRows.first), incoming);
-        await txn.insert(
-          _summaryTable,
-          {...merged.toRow(), 'updated_at': now},
-          conflictAlgorithm: ConflictAlgorithm.replace,
-        );
+        await txn.insert(_summaryTable, {
+          ...merged.toRow(),
+          'updated_at': now,
+        }, conflictAlgorithm: ConflictAlgorithm.replace);
       }
     });
   }
@@ -110,12 +112,10 @@ class HealthDataStore {
     HealthDailySummary existing,
     HealthDailySummary incoming,
   ) {
-    final steps = existing.steps > incoming.steps
-        ? existing.steps
-        : incoming.steps;
-
-    if (incoming.source == HealthSyncSource.appleHealth) {
-      // Apple Health 权威：用其真实值，但不以 0 覆盖既有值（防部分类型同步抹数据）。
+    if (_isHealthSource(existing.source)) {
+      final steps = existing.steps > incoming.steps
+          ? existing.steps
+          : incoming.steps;
       return HealthDailySummary(
         date: incoming.date,
         steps: steps,
@@ -128,30 +128,12 @@ class HealthDataStore {
         activeMinutes: incoming.activeMinutes > 0
             ? incoming.activeMinutes
             : existing.activeMinutes,
-        source: HealthSyncSource.appleHealth,
+        source: incoming.source,
       );
     }
 
-    // 运动传感器：只刷新 步数 / 距离；卡路里 / 活动时长若已是 Apple Health 权威值则保留。
-    final existingIsAuthoritative =
-        existing.source == HealthSyncSource.appleHealth;
-    final distanceKm = existing.distanceKm > incoming.distanceKm
-        ? existing.distanceKm
-        : incoming.distanceKm;
-    return HealthDailySummary(
-      date: incoming.date,
-      steps: steps,
-      distanceKm: distanceKm,
-      caloriesKcal: existingIsAuthoritative
-          ? existing.caloriesKcal
-          : incoming.caloriesKcal,
-      activeMinutes: existingIsAuthoritative
-          ? existing.activeMinutes
-          : incoming.activeMinutes,
-      source: existingIsAuthoritative
-          ? HealthSyncSource.appleHealth
-          : HealthSyncSource.motionSensor,
-    );
+    // 旧版本可能已写入 motionSensor，同日健康源同步到达时不继承任何传感器字段。
+    return incoming;
   }
 
   /// 读取全部日汇总，按日期升序。
@@ -165,7 +147,10 @@ class HealthDataStore {
   // 同步历史
   // ---------------------------------------------------------------------------
 
-  Future<void> recordSyncHistory(SyncHistoryEntry entry, {int keep = 50}) async {
+  Future<void> recordSyncHistory(
+    SyncHistoryEntry entry, {
+    int keep = 50,
+  }) async {
     final db = await _database;
     await db.insert(_historyTable, {
       'id': entry.id,
@@ -240,4 +225,8 @@ class HealthDataStore {
       orElse: () => HealthSyncSource.appleHealth,
     );
   }
+
+  bool _isHealthSource(HealthSyncSource source) =>
+      source == HealthSyncSource.appleHealth ||
+      source == HealthSyncSource.healthConnect;
 }

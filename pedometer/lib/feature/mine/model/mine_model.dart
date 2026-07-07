@@ -55,6 +55,8 @@ class MinePageData {
     double height = 175,
     double weight = 68.0,
     int age = 28,
+    String appVersion = '1.0.0',
+    bool hideSuggestion = false,
   }) {
     final bmiValue = weight / ((height / 100) * (height / 100));
     final bmiStr = bmiValue.toStringAsFixed(1);
@@ -66,10 +68,9 @@ class MinePageData {
         ? MineResource.bmiHigh
         : MineResource.bmiObese;
     final weightStr = weight.toStringAsFixed(1);
-    final heightStr =
-        height == height.truncateToDouble()
-            ? height.toInt().toString()
-            : height.toStringAsFixed(1);
+    final heightStr = height == height.truncateToDouble()
+        ? height.toInt().toString()
+        : height.toStringAsFixed(1);
     return MinePageData(
       bodyStats: [
         BodyStat(
@@ -123,11 +124,13 @@ class MinePageData {
           color: _orange,
           title: MineResource.rateUs,
         ),
-        MineEntry(
-          icon: Icons.chat_bubble_outline_rounded,
-          color: _cyan,
-          title: MineResource.suggestion,
-        ),
+        // TODO: Restore the suggestion entry on Android when feedback collection is needed again.
+        if (!hideSuggestion)
+          MineEntry(
+            icon: Icons.chat_bubble_outline_rounded,
+            color: _cyan,
+            title: MineResource.suggestion,
+          ),
         MineEntry(
           icon: Icons.description_outlined,
           color: _green,
@@ -142,7 +145,7 @@ class MinePageData {
           icon: Icons.info_outline_rounded,
           color: _cyan,
           title: MineResource.version,
-          trailingText: '1.0.0',
+          trailingText: appVersion,
         ),
       ],
     );
