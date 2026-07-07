@@ -6,6 +6,7 @@ import 'package:pedometer/common/config/app_colors.dart';
 import 'package:pedometer/common/config/app_config.dart';
 import 'package:pedometer/common/config/app_dimens.dart';
 import 'package:pedometer/common/config/localized_text.dart';
+import 'package:pedometer/common/config/resource_loader.dart';
 import 'package:pedometer/feature/legal/legal_navigation.dart';
 import 'package:pedometer/feature/splash/viewmodel/startup_loading_view_model.dart';
 
@@ -361,9 +362,9 @@ class _PrivacyTextPanel extends StatelessWidget {
       child: Padding(
         padding: EdgeInsets.all(AppSpacing.xl),
         child: Text(
-          lt(
+          _startupPrivacyText(
+            'startup_privacy_intro',
             'To keep the app running properly and improve your experience, we will process necessary device and app information, network and diagnostics information, and in-app usage data after you agree. Some data may be processed by service providers we use. We will not sell your personal information. Please read the Privacy Policy and User Agreement for details.',
-            '为保障应用正常运行并改进体验，我们会在你同意后处理必要的设备与应用信息、网络与诊断信息，以及应用内使用情况数据，用于提供基础功能、排查问题和改进体验。\n\n相关数据可能由我们使用的服务提供方处理。我们不会出售你的个人信息。详细说明请阅读隐私政策和用户协议。',
           ),
           style: TextStyle(
             color: Colors.white.withValues(alpha: 0.88),
@@ -397,26 +398,44 @@ class _PrivacyCheckRow extends StatelessWidget {
               crossAxisAlignment: WrapCrossAlignment.center,
               children: [
                 Text(
-                  lt('I have read and agree to the ', '我已阅读并同意 '),
+                  _startupPrivacyText(
+                    'startup_privacy_check_prefix',
+                    'I have read and agree to the ',
+                  ),
                   style: _checkTextStyle(),
                 ),
                 _PrivacyLink(
-                  text: lt('Privacy Policy', '隐私政策'),
-                  onTap: () => LegalNavigation.openPrivacyPolicy(
-                    title: lt('Privacy Policy', '隐私政策'),
+                  text: _startupPrivacyText(
+                    'startup_privacy_policy',
+                    'Privacy Policy',
                   ),
-                ),
-                Text(lt(' and ', ' 和 '), style: _checkTextStyle()),
-                _PrivacyLink(
-                  text: lt('User Agreement', '用户协议'),
-                  onTap: () => LegalNavigation.openUserAgreement(
-                    title: lt('User Agreement', '用户协议'),
+                  onTap: () => LegalNavigation.openPrivacyPolicy(
+                    title: _startupPrivacyText(
+                      'startup_privacy_policy',
+                      'Privacy Policy',
+                    ),
                   ),
                 ),
                 Text(
-                  lt(
+                  _startupPrivacyText('startup_privacy_check_and', ' and '),
+                  style: _checkTextStyle(),
+                ),
+                _PrivacyLink(
+                  text: _startupPrivacyText(
+                    'startup_user_agreement',
+                    'User Agreement',
+                  ),
+                  onTap: () => LegalNavigation.openUserAgreement(
+                    title: _startupPrivacyText(
+                      'startup_user_agreement',
+                      'User Agreement',
+                    ),
+                  ),
+                ),
+                Text(
+                  _startupPrivacyText(
+                    'startup_privacy_check_suffix',
                     ', and agree to process necessary data as described.',
-                    '，并同意按上述说明处理必要数据。',
                   ),
                   style: _checkTextStyle(),
                 ),
@@ -524,7 +543,10 @@ class _PrivacyAgreeButton extends StatelessWidget {
           onTap: onTap,
           child: Center(
             child: Text(
-              lt('Agree and Continue', '同意并继续'),
+              _startupPrivacyText(
+                'startup_agree_continue',
+                'Agree and Continue',
+              ),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: TextStyle(
@@ -575,7 +597,10 @@ class _PrivacyRequiredSheet extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 Text(
-                  lt('Consent required', '请先勾选同意'),
+                  _startupPrivacyText(
+                    'startup_consent_required_title',
+                    'Consent required',
+                  ),
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     color: AppColors.textPrimary,
@@ -586,9 +611,9 @@ class _PrivacyRequiredSheet extends StatelessWidget {
                 ),
                 SizedBox(height: AppSpacing.md),
                 Text(
-                  lt(
+                  _startupPrivacyText(
+                    'startup_consent_required_message',
                     'Please read and check the Privacy Policy and User Agreement before continuing.',
-                    '继续使用前，请先阅读并勾选同意隐私政策和用户协议。',
                   ),
                   textAlign: TextAlign.center,
                   style: TextStyle(
@@ -609,7 +634,7 @@ class _PrivacyRequiredSheet extends StatelessWidget {
                       onTap: Get.back<void>,
                       child: Center(
                         child: Text(
-                          lt('Got it', '知道了'),
+                          _startupPrivacyText('startup_got_it', 'Got it'),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: TextStyle(
@@ -642,7 +667,7 @@ class _PrivacyExitButton extends StatelessWidget {
     return TextButton(
       onPressed: onTap,
       child: Text(
-        lt('Disagree and Exit', '不同意并退出'),
+        _startupPrivacyText('startup_disagree_exit', 'Disagree and Exit'),
         style: TextStyle(
           color: Colors.white.withValues(alpha: 0.8),
           fontSize: 15.sp,
@@ -651,6 +676,10 @@ class _PrivacyExitButton extends StatelessWidget {
       ),
     );
   }
+}
+
+String _startupPrivacyText(String key, String fallback) {
+  return ResourceLoader.string('common', key, fallback: fallback);
 }
 
 class _AppIconMark extends StatelessWidget {
