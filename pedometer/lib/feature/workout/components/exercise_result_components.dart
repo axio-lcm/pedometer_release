@@ -2,6 +2,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:pedometer/common/component/asset_metric_icon.dart';
 import 'package:pedometer/common/component/glass_card.dart';
 import 'package:pedometer/common/config/app_colors.dart';
 import 'package:pedometer/common/config/app_dimens.dart';
@@ -203,6 +204,30 @@ class ExerciseResultSummaryCard extends StatelessWidget {
 
   const ExerciseResultSummaryCard({super.key, required this.data});
 
+  /// 按标题匹配本次运动类型（户外 / 室内 / 健走 / 徒步），
+  /// 匹配不到时回退第一项；与运动中页退出弹窗的取图标逻辑一致。
+  WorkoutType get _workoutType {
+    final localized = WorkoutPageData.localized().workoutTypes;
+    return localized.firstWhere(
+      (t) => t.title == data.sportType,
+      orElse: () => WorkoutPageData.mock.workoutTypes.firstWhere(
+        (t) => t.title == data.sportType,
+        orElse: () => localized.first,
+      ),
+    );
+  }
+
+  Widget _buildTypeIcon(WorkoutType type) {
+    if (type.iconAsset != null) {
+      return SizedBox(
+        width: 52,
+        height: 52,
+        child: AssetMetricIcon(assetName: type.iconAsset!, size: 52),
+      );
+    }
+    return CircleIconBadge(icon: type.icon, color: type.color, glow: false);
+  }
+
   @override
   Widget build(BuildContext context) {
     return GlassCard(
@@ -212,10 +237,7 @@ class ExerciseResultSummaryCard extends StatelessWidget {
         children: [
           Row(
             children: [
-              CircleIconBadge(
-                icon: Icons.directions_run_rounded,
-                color: AppColors.brandGreen,
-              ),
+              _buildTypeIcon(_workoutType),
               SizedBox(width: AppSpacing.md),
               Expanded(
                 child: Column(
