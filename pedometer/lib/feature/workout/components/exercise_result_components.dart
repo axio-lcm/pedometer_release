@@ -351,13 +351,14 @@ class ResultMetricItem extends StatelessWidget {
       height: 72,
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           Row(
+            mainAxisSize: MainAxisSize.min,
             children: [
               Icon(metric.icon, color: metric.color, size: 16),
               SizedBox(width: AppSpacing.xs),
-              Expanded(
+              Flexible(
                 child: Text(
                   metric.label,
                   maxLines: 1,
@@ -373,7 +374,6 @@ class ResultMetricItem extends StatelessWidget {
           SizedBox(height: AppSpacing.sm),
           FittedBox(
             fit: BoxFit.scaleDown,
-            alignment: Alignment.centerLeft,
             child: Text(
               metric.value,
               maxLines: 1,
