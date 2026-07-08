@@ -99,6 +99,8 @@ class WorkoutTrackingViewModel extends GetxController
   final steps = 0.obs;
 
   Timer? _ticker;
+  DateTime? _activeStartedAt;
+  Duration _elapsedBeforeActive = Duration.zero;
   Position? _lastRaw; // 上一个被接受的原始定位（算距离 / 方位）
   Position? _currentRaw; // 最近一次定位，开始运动时用作第一段距离基准
   Position? _lastRouteRaw; // 上一个被画到地图轨迹上的原始定位
@@ -155,6 +157,8 @@ class WorkoutTrackingViewModel extends GetxController
     _lastIndoorDistanceMeters = null;
     _lastIndoorSteps = null;
     elapsed.value = Duration.zero;
+    _elapsedBeforeActive = Duration.zero;
+    _activeStartedAt = null;
     calories.value = 0;
     pace.value = null;
     pathPoints.clear();
@@ -174,7 +178,8 @@ class WorkoutTrackingViewModel extends GetxController
       _indoorEstimator = isIndoor.value
           ? IndoorStepDistanceEstimator(
               heightCm: BodyDataRuntime.heightCm,
-              calibratedStepLengthMeters: StepLengthCalibration.stepLengthMeters,
+              calibratedStepLengthMeters:
+                  StepLengthCalibration.stepLengthMeters,
             )
           : null;
     }
@@ -843,18 +848,33 @@ class WorkoutTrackingViewModel extends GetxController
 
   void _startTicker() {
     _ticker?.cancel();
+    _elapsedBeforeActive = elapsed.value;
+    _activeStartedAt = DateTime.now();
     _ticker = Timer.periodic(const Duration(seconds: 1), (_) {
-      elapsed.value += const Duration(seconds: 1);
-      calories.value += _caloriePolicy.kcalForTick(
-        speedKmh: _freshCalorieSpeedKmh,
-        seconds: 1,
-      );
+      _syncElapsedAndCalories();
     });
   }
 
   void _stopTicker() {
+    _syncElapsedAndCalories();
     _ticker?.cancel();
     _ticker = null;
+    _elapsedBeforeActive = elapsed.value;
+    _activeStartedAt = null;
+  }
+
+  void _syncElapsedAndCalories() {
+    final activeStartedAt = _activeStartedAt;
+    if (activeStartedAt == null) return;
+    final totalElapsed =
+        _elapsedBeforeActive + DateTime.now().difference(activeStartedAt);
+    final delta = totalElapsed - elapsed.value;
+    if (delta <= Duration.zero) return;
+    elapsed.value = totalElapsed;
+    calories.value += _caloriePolicy.kcalForTick(
+      speedKmh: _freshCalorieSpeedKmh,
+      seconds: delta.inMilliseconds / 1000,
+    );
   }
 
   @override

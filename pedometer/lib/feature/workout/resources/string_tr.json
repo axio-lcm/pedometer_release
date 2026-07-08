@@ -88,6 +88,8 @@
   "background_location_intro_title": "Arka plan konumuna izin ver",
   "background_location_intro_msg": "Açık hava antrenmanı başladıktan sonra ekran kilitliyken veya uygulama arka plandayken rota, mesafe ve mevcut konum kaydına devam ederiz. Konum yalnızca bu antrenman için kullanılır ve antrenmanı bitirdiğinizde durur.",
   "background_location_intro_continue": "Devam et",
+  "tracking_notification_title": "Antrenman rotası kaydediliyor",
+  "tracking_notification_text": "Rota, mesafe ve konumunuz kaydediliyor.",
   "step_unit": "adım",
   "target_steps": "Adım",
   "target_steps_suggestion": "1000 - 50000 adım",

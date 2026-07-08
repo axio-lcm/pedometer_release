@@ -88,6 +88,8 @@
   "background_location_intro_title": "Zezwól na lokalizację w tle",
   "background_location_intro_msg": "Po rozpoczęciu treningu na zewnątrz nadal zapisujemy trasę, dystans i bieżącą lokalizację, nawet gdy ekran jest zablokowany lub aplikacja działa w tle. Lokalizacja jest używana tylko dla tego treningu i zatrzymuje się po jego zakończeniu.",
   "background_location_intro_continue": "Kontynuuj",
+  "tracking_notification_title": "Rejestrowanie trasy treningu",
+  "tracking_notification_text": "Trasa, dystans i lokalizacja są rejestrowane.",
   "step_unit": "kroków",
   "target_steps": "Kroki",
   "target_steps_suggestion": "1000 - 50000 kroków",

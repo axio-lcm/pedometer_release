@@ -17,6 +17,7 @@ import 'package:pedometer/feature/workout/resources/workout_resource.dart';
 import 'package:pedometer/feature/workout/service/workout_location_service.dart';
 import 'package:pedometer/feature/workout/viewmodel/workout_tracking_view_model.dart';
 import 'package:pedometer/feature/workout/views/exercise_result_page.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 /// 点击「开始运动」后的运动记录中页面。
 class WorkoutTrackingPage extends StatefulWidget {
@@ -221,6 +222,8 @@ class _WorkoutTrackingPageState extends State<WorkoutTrackingPage> {
     final auth = await WorkoutLocationService().ensureAuthorized();
     if (!mounted) return;
     if (auth == WorkoutLocationAuth.authorized) {
+      await _ensureAndroidTrackingNotificationPermission();
+      if (!mounted) return;
       // 授权通过后才放行地图定位（页面打开时地图不请求权限、只占位）。
       controller.activateLocation();
       _startCountdown();
@@ -232,6 +235,13 @@ class _WorkoutTrackingPageState extends State<WorkoutTrackingPage> {
         onAction: () => _handleStartPermissionAction(auth),
       ),
     );
+  }
+
+  Future<void> _ensureAndroidTrackingNotificationPermission() async {
+    if (defaultTargetPlatform != TargetPlatform.android) return;
+    final status = await Permission.notification.status;
+    if (status.isGranted || status.isLimited) return;
+    await Permission.notification.request();
   }
 
   /// 安卓室内开始前确保活动识别权限；被拒返回 false、不开始。

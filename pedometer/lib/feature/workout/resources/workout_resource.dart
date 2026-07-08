@@ -272,6 +272,14 @@ class WorkoutResource {
     'background_location_intro_continue',
     WorkoutText.backgroundLocationIntroContinue,
   );
+  static String get trackingNotificationTitle => _string(
+    'tracking_notification_title',
+    WorkoutText.trackingNotificationTitle,
+  );
+  static String get trackingNotificationText => _string(
+    'tracking_notification_text',
+    WorkoutText.trackingNotificationText,
+  );
 
   static String trackingTarget(String value) {
     return _string(
@@ -285,9 +293,10 @@ class WorkoutResource {
     required String weekly,
     required String monthly,
   }) {
-    return _string('steps_totals_hint', WorkoutText.stepsTotalsHintTemplate)
-        .replaceAll('{{weekly}}', weekly)
-        .replaceAll('{{monthly}}', monthly);
+    return _string(
+      'steps_totals_hint',
+      WorkoutText.stepsTotalsHintTemplate,
+    ).replaceAll('{{weekly}}', weekly).replaceAll('{{monthly}}', monthly);
   }
 
   static String localizedWorkoutTypeTitle(String title) {
@@ -451,6 +460,9 @@ class WorkoutText {
   static const backgroundLocationIntroMessage =
       'After an outdoor workout starts, we keep recording your route, distance, and current location even when the screen is locked or the app is in the background. Location is used only for this workout and stops when you end it.';
   static const backgroundLocationIntroContinue = 'Continue';
+  static const trackingNotificationTitle = 'Recording workout route';
+  static const trackingNotificationText =
+      'Your route, distance, and location are being recorded.';
 }
 
 /// 运动页模块路由定义（对齐 HomeRouteTable 写法）。

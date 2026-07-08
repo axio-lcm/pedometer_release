@@ -88,6 +88,8 @@
   "background_location_intro_title": "백그라운드 위치 허용",
   "background_location_intro_msg": "야외 운동을 시작하면 화면이 잠기거나 앱이 백그라운드에 있어도 경로, 거리, 현재 위치를 계속 기록합니다. 위치 정보는 이 운동에만 사용되며 운동을 종료하면 중지됩니다.",
   "background_location_intro_continue": "계속",
+  "tracking_notification_title": "운동 경로 기록 중",
+  "tracking_notification_text": "경로, 거리, 현재 위치를 기록하고 있습니다.",
   "step_unit": "걸음",
   "target_steps": "걸음 수",
   "target_steps_suggestion": "1000 - 50000 걸음",

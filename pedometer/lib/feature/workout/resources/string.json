@@ -91,6 +91,8 @@
   "background_location_intro_title": "允许后台定位以记录完整轨迹",
   "background_location_intro_msg": "开始户外运动后，即使锁屏或切到后台，我们也会继续记录路线、距离和当前位置。定位仅用于本次运动轨迹记录，结束运动后会停止。",
   "background_location_intro_continue": "继续",
+  "tracking_notification_title": "正在记录运动轨迹",
+  "tracking_notification_text": "正在记录你的路线、距离和当前位置。",
   "badge_time_master": "时间掌控者",
   "badge_200km": "200 公里",
   "badge_calorie_master": "热量达人",

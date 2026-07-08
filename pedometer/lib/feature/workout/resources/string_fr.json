@@ -88,6 +88,8 @@
   "background_location_intro_title": "Autoriser la localisation en arrière-plan",
   "background_location_intro_msg": "Après le démarrage d'un entraînement en extérieur, nous continuons à enregistrer votre itinéraire, votre distance et votre position actuelle même si l'écran est verrouillé ou si l'app est en arrière-plan. La position sert uniquement à cet entraînement et s'arrête quand vous le terminez.",
   "background_location_intro_continue": "Continuer",
+  "tracking_notification_title": "Enregistrement de l'itinéraire",
+  "tracking_notification_text": "Votre itinéraire, distance et position sont enregistrés.",
   "step_unit": "pas",
   "target_steps": "Pas",
   "target_steps_suggestion": "1000 - 50000 pas",

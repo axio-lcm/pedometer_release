@@ -88,6 +88,8 @@
   "background_location_intro_title": "อนุญาตตำแหน่งเบื้องหลัง",
   "background_location_intro_msg": "หลังจากเริ่มออกกำลังกายกลางแจ้ง เราจะบันทึกเส้นทาง ระยะทาง และตำแหน่งปัจจุบันต่อไป แม้หน้าจอจะล็อกหรือแอปอยู่เบื้องหลัง ตำแหน่งจะใช้เฉพาะการออกกำลังกายนี้และหยุดเมื่อคุณจบการออกกำลังกาย",
   "background_location_intro_continue": "ดำเนินการต่อ",
+  "tracking_notification_title": "กำลังบันทึกเส้นทางออกกำลังกาย",
+  "tracking_notification_text": "กำลังบันทึกเส้นทาง ระยะทาง และตำแหน่งของคุณ",
   "step_unit": "ก้าว",
   "target_steps": "จำนวนก้าว",
   "target_steps_suggestion": "1000 - 50000 ก้าว",

@@ -91,6 +91,8 @@
   "background_location_intro_title": "Allow background location",
   "background_location_intro_msg": "After an outdoor workout starts, we keep recording your route, distance, and current location even when the screen is locked or the app is in the background. Location is used only for this workout and stops when you end it.",
   "background_location_intro_continue": "Continue",
+  "tracking_notification_title": "Recording workout route",
+  "tracking_notification_text": "Your route, distance, and location are being recorded.",
   "badge_time_master": "Time Master",
   "badge_200km": "200 km",
   "badge_calorie_master": "Calorie Master",

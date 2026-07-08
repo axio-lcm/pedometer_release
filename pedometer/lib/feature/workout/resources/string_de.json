@@ -88,6 +88,8 @@
   "background_location_intro_title": "Standort im Hintergrund erlauben",
   "background_location_intro_msg": "Nach dem Start eines Outdoor-Trainings zeichnen wir Route, Distanz und aktuellen Standort weiter auf, auch wenn der Bildschirm gesperrt ist oder die App im Hintergrund läuft. Der Standort wird nur für dieses Training verwendet und endet, wenn du es beendest.",
   "background_location_intro_continue": "Fortfahren",
+  "tracking_notification_title": "Trainingsroute wird aufgezeichnet",
+  "tracking_notification_text": "Route, Distanz und Standort werden aufgezeichnet.",
   "step_unit": "Schritte",
   "target_steps": "Schritte",
   "target_steps_suggestion": "1000 - 50000 Schritte",

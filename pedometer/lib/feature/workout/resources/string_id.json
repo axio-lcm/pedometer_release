@@ -88,6 +88,8 @@
   "background_location_intro_title": "Izinkan lokasi latar belakang",
   "background_location_intro_msg": "Setelah olahraga luar ruangan dimulai, kami tetap merekam rute, jarak, dan lokasi saat ini meski layar terkunci atau aplikasi berjalan di latar belakang. Lokasi hanya digunakan untuk olahraga ini dan berhenti saat Anda mengakhirinya.",
   "background_location_intro_continue": "Lanjutkan",
+  "tracking_notification_title": "Merekam rute olahraga",
+  "tracking_notification_text": "Rute, jarak, dan lokasi Anda sedang direkam.",
   "step_unit": "langkah",
   "target_steps": "Langkah",
   "target_steps_suggestion": "1000 - 50000 langkah",

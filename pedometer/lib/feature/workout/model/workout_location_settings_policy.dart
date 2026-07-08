@@ -1,6 +1,8 @@
 import 'package:flutter/foundation.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:pedometer/common/config/app_colors.dart';
 import 'package:pedometer/feature/workout/model/workout_location_startup_policy.dart';
+import 'package:pedometer/feature/workout/resources/workout_resource.dart';
 
 class WorkoutLocationSettingsPolicy {
   const WorkoutLocationSettingsPolicy._();
@@ -48,6 +50,18 @@ class WorkoutLocationSettingsPolicy {
           accuracy: LocationAccuracy.bestForNavigation,
           distanceFilter: 1,
           intervalDuration: const Duration(seconds: 1),
+          foregroundNotificationConfig: ForegroundNotificationConfig(
+            notificationTitle: WorkoutResource.trackingNotificationTitle,
+            notificationText: WorkoutResource.trackingNotificationText,
+            notificationChannelName: WorkoutResource.trackingNotificationTitle,
+            notificationIcon: const AndroidResource(
+              name: 'ic_notification',
+              defType: 'drawable',
+            ),
+            enableWakeLock: true,
+            setOngoing: true,
+            color: AppColors.brandGreen,
+          ),
         );
       case TargetPlatform.fuchsia:
       case TargetPlatform.linux:

@@ -88,6 +88,8 @@
   "background_location_intro_title": "バックグラウンド位置情報を許可",
   "background_location_intro_msg": "屋外ワークアウトを開始すると、画面ロック中やアプリがバックグラウンドにある場合でも、ルート、距離、現在地の記録を続けます。位置情報はこのワークアウトのみに使用され、終了すると停止します。",
   "background_location_intro_continue": "続ける",
+  "tracking_notification_title": "運動ルートを記録中",
+  "tracking_notification_text": "ルート、距離、現在地を記録しています。",
   "step_unit": "歩",
   "target_steps": "歩数",
   "target_steps_suggestion": "1000 - 50000 歩",

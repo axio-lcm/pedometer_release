@@ -88,6 +88,8 @@
   "background_location_intro_title": "السماح بالموقع في الخلفية",
   "background_location_intro_msg": "بعد بدء تمرين خارجي، سنواصل تسجيل المسار والمسافة والموقع الحالي حتى عند قفل الشاشة أو عمل التطبيق في الخلفية. يُستخدم الموقع لهذا التمرين فقط ويتوقف عند إنهائه.",
   "background_location_intro_continue": "متابعة",
+  "tracking_notification_title": "جارٍ تسجيل مسار التمرين",
+  "tracking_notification_text": "يتم تسجيل المسار والمسافة والموقع الحالي.",
   "step_unit": "خطوة",
   "target_steps": "الخطوات",
   "target_steps_suggestion": "1000 - 50000 خطوة",
