@@ -1,10 +1,12 @@
-import 'dart:typed_data';
+import 'dart:io';
 import 'dart:ui' as ui;
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_confetti/flutter_confetti.dart';
 import 'package:get/get.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:pedometer/common/component/app_top_navigation_bar.dart';
 import 'package:pedometer/common/config/app_colors.dart';
 import 'package:pedometer/common/config/app_dimens.dart';
@@ -175,17 +177,7 @@ class _ExerciseResultPageState extends State<ExerciseResultPage> {
       final pngBytes = await _captureResultPng();
       if (pngBytes == null || !mounted) return;
       final result = await SharePlus.instance.share(
-        ShareParams(
-          files: [
-            XFile.fromData(
-              pngBytes,
-              name: 'workout_result.png',
-              mimeType: 'image/png',
-            ),
-          ],
-          fileNameOverrides: const ['workout_result.png'],
-          sharePositionOrigin: origin,
-        ),
+        await _shareParamsFor(pngBytes, origin: origin),
       );
       debugPrint(
         '[shareWorkoutResult] status=${result.status}, raw=${result.raw}',
@@ -195,6 +187,35 @@ class _ExerciseResultPageState extends State<ExerciseResultPage> {
     } finally {
       if (mounted) setState(() => _sharing = false);
     }
+  }
+
+  /// 安卓：截图先写入应用缓存目录，按文件路径经 FileProvider 分享——
+  /// 内存数据分享在部分 ROM / 目标应用上拿不到附件。iOS 保持内存数据分享。
+  Future<ShareParams> _shareParamsFor(
+    Uint8List pngBytes, {
+    required Rect origin,
+  }) async {
+    if (defaultTargetPlatform == TargetPlatform.android) {
+      final dir = await getTemporaryDirectory();
+      final file = File(
+        '${dir.path}/workout_result_${DateTime.now().millisecondsSinceEpoch}.png',
+      );
+      await file.writeAsBytes(pngBytes, flush: true);
+      return ShareParams(
+        files: [XFile(file.path, mimeType: 'image/png')],
+      );
+    }
+    return ShareParams(
+      files: [
+        XFile.fromData(
+          pngBytes,
+          name: 'workout_result.png',
+          mimeType: 'image/png',
+        ),
+      ],
+      fileNameOverrides: const ['workout_result.png'],
+      sharePositionOrigin: origin,
+    );
   }
 
   Future<Uint8List?> _captureResultPng() async {

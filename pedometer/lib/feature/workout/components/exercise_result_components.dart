@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:pedometer/common/component/glass_card.dart';
 import 'package:pedometer/common/config/app_colors.dart';
@@ -443,7 +444,9 @@ class ExerciseResultActionButtons extends StatelessWidget {
         Expanded(
           child: GradientActionButton(
             label: WorkoutResource.resultShare,
-            icon: Icons.ios_share_rounded,
+            icon: defaultTargetPlatform == TargetPlatform.android
+                ? Icons.share_rounded
+                : Icons.ios_share_rounded,
             onTap: onShare,
           ),
         ),
