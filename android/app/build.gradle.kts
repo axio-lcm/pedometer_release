@@ -1,4 +1,17 @@
+import java.io.FileInputStream
 import java.util.Properties
+
+// 🔐 签名配置：CI自动用Release，本地自动用Debug
+val keyPropertiesFile = rootProject.file("key.properties")
+val keyProperties = Properties()
+val hasReleaseSigning = keyPropertiesFile.exists()
+
+if (hasReleaseSigning) {
+    keyProperties.load(FileInputStream(keyPropertiesFile))
+    println("✅ CI环境: 使用Release签名")
+} else {
+    println("💻 本地开发: 使用Debug签名")
+}
 
 plugins {
     id("com.android.application")
@@ -18,11 +31,6 @@ val googleMapsApiKey =
         ?: System.getenv("GOOGLE_MAPS_API_KEY")
         ?: ""
 
-val keystoreProperties = Properties()
-val keystorePropertiesFile = rootProject.file("key.properties")
-if (keystorePropertiesFile.exists()) {
-    keystorePropertiesFile.inputStream().use { keystoreProperties.load(it) }
-}
 
 android {
     namespace = "com.pedometer.step.counter.walking.tracker"
@@ -49,18 +57,25 @@ android {
         manifestPlaceholders["googleMapsApiKey"] = googleMapsApiKey
     }
 
-    signingConfigs {
+
+     signingConfigs {
         create("release") {
-            keyAlias = keystoreProperties.getProperty("keyAlias")
-            keyPassword = keystoreProperties.getProperty("keyPassword")
-            storeFile = keystoreProperties.getProperty("storeFile")?.let { file(it) }
-            storePassword = keystoreProperties.getProperty("storePassword")
+            if (hasReleaseSigning) {
+                keyAlias = keyProperties["keyAlias"] as String
+                keyPassword = keyProperties["keyPassword"] as String
+                storeFile = file(keyProperties["storeFile"] as String)
+                storePassword = keyProperties["storePassword"] as String
+            }
         }
     }
 
     buildTypes {
         release {
-            signingConfig = signingConfigs.getByName("release")
+            signingConfig = if (hasReleaseSigning) {
+                signingConfigs.getByName("release")
+            } else {
+                signingConfigs.getByName("debug")
+            }
         }
     }
 }

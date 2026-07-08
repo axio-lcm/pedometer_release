@@ -1,0 +1,130 @@
+name: Flutter Android Build & Upload
+
+# 触发条件
+on:
+  # push:
+  #   branches:
+  #     - "main"
+  #   tags:
+  #     - "v*" # 推送tag时触发，如 v1.0.0
+  workflow_dispatch:
+  # 支持手动触发
+
+  # 环境变量
+env:
+  FLUTTER_VERSION: "3.41.9" # Flutter版本
+  JAVA_VERSION: "17" # Java版本
+  PROJECT_DIR: "pedometer" # Flutter项目目录
+
+jobs:
+  # Android构建任务
+  build_android:
+    name: Build Android
+    runs-on: ubuntu-latest
+    timeout-minutes: 60 # 仅保留全局超时兜底，避免步骤级超时和重试策略互相冲突
+
+    steps:
+      # 1. 检出代码
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # 获取完整的git历史用于版本号生成
+
+      # 2. 配置Java环境
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: "temurin"
+          java-version: ${{ env.JAVA_VERSION }}
+          cache: gradle
+
+      # 3. 配置Flutter环境
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: "stable"
+          cache: true
+
+      # 4. 校验并配置签名文件
+      - name: Setup Keystore
+        working-directory: ${{ env.PROJECT_DIR }}
+        run: |
+          set -euo pipefail
+
+          : "${ANDROID_KEYSTORE_BASE64:?Missing ANDROID_KEYSTORE_BASE64 secret}"
+          : "${KEYSTORE_PASSWORD:?Missing KEYSTORE_PASSWORD secret}"
+          : "${KEY_ALIAS:?Missing KEY_ALIAS secret}"
+          : "${KEY_PASSWORD:?Missing KEY_PASSWORD secret}"
+
+          mkdir -p android/app
+          echo "${ANDROID_KEYSTORE_BASE64}" | base64 --decode > android/app/keystore.jks
+          cat > android/key.properties <<EOF
+          storeFile=keystore.jks
+          storePassword=${KEYSTORE_PASSWORD}
+          keyAlias=${KEY_ALIAS}
+          keyPassword=${KEY_PASSWORD}
+          EOF
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+
+      # 5. 获取依赖
+      - name: Get Dependencies
+        working-directory: ${{ env.PROJECT_DIR }}
+        run: flutter pub get
+
+      # 6. 构建 AAB
+      - name: Build App Bundle
+        working-directory: ${{ env.PROJECT_DIR }}
+        run: flutter build appbundle --release
+
+      # 7. 构建 APK
+      - name: Build APK
+        working-directory: ${{ env.PROJECT_DIR }}
+        run: flutter build apk --release
+
+      # 8. 获取版本号并重命名构建产物（100% 动态读取，支持所有Flutter项目）
+      - name: Prepare & Rename Artifacts
+        working-directory: ${{ env.PROJECT_DIR }}
+        run: |
+          set -euo pipefail
+
+          PROJECT_NAME=$(grep '^name:' pubspec.yaml | sed 's/name: //' | sed 's/ *#.*//' | xargs)
+          VERSION_RAW=$(grep '^version:' pubspec.yaml | sed 's/version: //' | sed 's/ *#.*//' | xargs)
+          VERSION_NAME=$(echo ${VERSION_RAW} | cut -d'+' -f1)
+          BUILD_NUMBER=$(echo ${VERSION_RAW} | cut -d'+' -f2)
+          echo "PROJECT: ${PROJECT_NAME}"
+          echo "VERSION: v${VERSION_NAME} build ${BUILD_NUMBER}"
+
+          APP_NAME="${PROJECT_NAME}-v${VERSION_NAME}-${BUILD_NUMBER}"
+          echo "APP_NAME: ${APP_NAME}"
+
+          mv build/app/outputs/bundle/release/app-release.aab build/app/outputs/bundle/release/${APP_NAME}.aab
+          mv build/app/outputs/flutter-apk/app-release.apk build/app/outputs/flutter-apk/${APP_NAME}.apk
+
+          echo "APP_NAME=${APP_NAME}" >> $GITHUB_ENV
+          ls -lh build/app/outputs/bundle/release/
+          ls -lh build/app/outputs/flutter-apk/
+
+      # 9. 上传构建产物（自动带版本号命名）
+      - name: Upload Build Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.APP_NAME }}
+          path: |
+            ${{ env.PROJECT_DIR }}/build/app/outputs/bundle/release/*.aab
+            ${{ env.PROJECT_DIR }}/build/app/outputs/flutter-apk/*.apk
+      # 10. 上传到Play Console后台（类似上传到App Store Connect / TestFlight）
+      # ✅ 仅自动上传，发布需要手动在后台操作（符合iOS开发者习惯）
+      # - name: Upload to Play Console
+      #   uses: r0adkll/upload-google-play@v1
+      #   with:
+      #     serviceAccountJsonPlainText: ${{ secrets.PLAY_STORE_CONFIG_JSON }}
+      #     packageName: ${{ secrets.ANDROID_PACKAGE_NAME }}
+      #     releaseFiles: build/app/outputs/bundle/release/${{ env.APP_NAME }}.aab
+      #     track: internal # 发布渠道：internal/alpha/beta/production
+      #     status: draft #只上传，不做任何发布。completed适用于全自动化发布(不推荐，容易风控，确保测试没问题后手动发布)
+      #     changesNotSentForReview: true
