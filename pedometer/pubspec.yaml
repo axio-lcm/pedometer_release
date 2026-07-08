@@ -88,6 +88,19 @@ dev_dependencies:
     sdk: flutter
   fake_async: ^1.3.2
   flutter_lints: ^6.0.0
+  # 应用图标生成（iOS / Android），源图 assets/app_icon.png
+  flutter_launcher_icons: ^0.14.4
+
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: "assets/app_icon.png"
+  remove_alpha_ios: true
+  # Android 8+ 自适应图标：无此配置时桌面会把传统方图缩小垫底、四周留白。
+  # 生成器会给前景自动加 16% inset，原图直接作前景即落在蒙版安全区内；
+  # 背景取图标底色，与前景图的底色无缝衔接。
+  adaptive_icon_background: "#001119"
+  adaptive_icon_foreground: "assets/app_icon.png"
 
 flutter:
   uses-material-design: true
