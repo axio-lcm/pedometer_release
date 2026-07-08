@@ -24,6 +24,7 @@
   "tracking_music_idle": "Belum ada musik diimpor",
   "tracking_distance_label": "Jarak (km)",
   "tracking_target_template": "Target {{value}} km",
+  "steps_totals_hint": "Mingguan {{weekly}} · Bulanan {{monthly}} langkah",
   "tracking_start_hint": "Mulai",
   "metric_distance": "Jarak",
   "metric_duration": "Durasi",

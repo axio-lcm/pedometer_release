@@ -280,6 +280,16 @@ class WorkoutResource {
     ).replaceAll('{{value}}', value);
   }
 
+  /// 编辑目标页步数目标下的周 / 月总步数提示。
+  static String stepsTotalsHint({
+    required String weekly,
+    required String monthly,
+  }) {
+    return _string('steps_totals_hint', WorkoutText.stepsTotalsHintTemplate)
+        .replaceAll('{{weekly}}', weekly)
+        .replaceAll('{{monthly}}', monthly);
+  }
+
   static String localizedWorkoutTypeTitle(String title) {
     if (title == outdoorRun ||
         title == WorkoutText.outdoorRun ||
@@ -361,6 +371,8 @@ class WorkoutText {
   static const trackingMusicIdle = 'No music imported';
   static const trackingDistanceLabel = 'Distance (km)';
   static const trackingTargetTemplate = 'Goal {{value}} km';
+  static const stepsTotalsHintTemplate =
+      'Weekly {{weekly}} · Monthly {{monthly}} steps';
   static const trackingStartHint = 'Start';
   static const metricDistance = 'Distance';
   static const metricDuration = 'Duration';

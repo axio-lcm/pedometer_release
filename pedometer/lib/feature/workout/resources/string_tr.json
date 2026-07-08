@@ -24,6 +24,7 @@
   "tracking_music_idle": "Müzik içe aktarılmadı",
   "tracking_distance_label": "Mesafe (km)",
   "tracking_target_template": "Hedef {{value}} km",
+  "steps_totals_hint": "Haftalık {{weekly}} · Aylık {{monthly}} adım",
   "tracking_start_hint": "Başla",
   "metric_distance": "Mesafe",
   "metric_duration": "Süre",

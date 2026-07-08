@@ -24,6 +24,7 @@
   "tracking_music_idle": "Музыка не загружена",
   "tracking_distance_label": "Дистанция (km)",
   "tracking_target_template": "Цель {{value}} km",
+  "steps_totals_hint": "В неделю {{weekly}} · в месяц {{monthly}} шагов",
   "tracking_start_hint": "Старт",
   "metric_distance": "Дистанция",
   "metric_duration": "Длительность",

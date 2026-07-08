@@ -24,6 +24,7 @@
   "tracking_music_idle": "Chưa nhập nhạc",
   "tracking_distance_label": "Quãng đường (km)",
   "tracking_target_template": "Mục tiêu {{value}} km",
+  "steps_totals_hint": "Tuần {{weekly}} · Tháng {{monthly}} bước",
   "tracking_start_hint": "Bắt đầu",
   "metric_distance": "Quãng đường",
   "metric_duration": "Thời lượng",

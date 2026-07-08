@@ -24,6 +24,7 @@
   "tracking_music_idle": "Aucune musique importée",
   "tracking_distance_label": "Distance parcourue (km)",
   "tracking_target_template": "Objectif {{value}} km",
+  "steps_totals_hint": "Hebdo {{weekly}} · Mensuel {{monthly}} pas",
   "tracking_start_hint": "Démarrer",
   "metric_distance": "Distance parcourue",
   "metric_duration": "Durée",

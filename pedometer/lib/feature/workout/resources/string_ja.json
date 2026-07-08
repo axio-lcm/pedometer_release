@@ -24,6 +24,7 @@
   "tracking_music_idle": "音楽が未読み込み",
   "tracking_distance_label": "距離 (km)",
   "tracking_target_template": "目標 {{value}} km",
+  "steps_totals_hint": "週 {{weekly}} 歩 · 月 {{monthly}} 歩",
   "tracking_start_hint": "開始",
   "metric_distance": "距離",
   "metric_duration": "時間",

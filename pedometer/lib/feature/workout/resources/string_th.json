@@ -24,6 +24,7 @@
   "tracking_music_idle": "ยังไม่ได้นำเข้าเพลง",
   "tracking_distance_label": "ระยะทาง (km)",
   "tracking_target_template": "เป้าหมาย {{value}} km",
+  "steps_totals_hint": "รายสัปดาห์ {{weekly}} · รายเดือน {{monthly}} ก้าว",
   "tracking_start_hint": "เริ่ม",
   "metric_distance": "ระยะทาง",
   "metric_duration": "ระยะเวลา",

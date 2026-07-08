@@ -24,6 +24,7 @@
   "tracking_music_idle": "Музыка импортталмаған",
   "tracking_distance_label": "Қашықтық (km)",
   "tracking_target_template": "Мақсат {{value}} km",
+  "steps_totals_hint": "Апталық {{weekly}} · Айлық {{monthly}} қадам",
   "tracking_start_hint": "Бастау",
   "metric_distance": "Қашықтық",
   "metric_duration": "Ұзақтығы",

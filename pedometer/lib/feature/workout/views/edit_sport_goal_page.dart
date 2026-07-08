@@ -5,7 +5,6 @@ import 'package:pedometer/common/component/app_top_navigation_bar.dart';
 import 'package:pedometer/common/config/app_colors.dart';
 import 'package:pedometer/common/config/app_dimens.dart';
 import 'package:pedometer/common/config/app_metric_assets.dart';
-import 'package:pedometer/common/config/localized_text.dart';
 import 'package:pedometer/feature/workout/components/edit_sport_goal_components.dart';
 import 'package:pedometer/feature/workout/components/workout_components.dart';
 import 'package:pedometer/feature/workout/resources/workout_resource.dart';
@@ -25,9 +24,10 @@ class EditSportGoalPage extends GetView<EditSportGoalViewModel> {
   /// 一周（×7）/ 一月（×当月天数）总目标步数提示。
   String _stepsTotalsHint(int weekly, int monthly) {
     final fmt = NumberFormat.decimalPattern();
-    final w = fmt.format(weekly);
-    final m = fmt.format(monthly);
-    return lt('Weekly $w · Monthly $m steps', '一周 $w 步 · 一月 $m 步');
+    return WorkoutResource.stepsTotalsHint(
+      weekly: fmt.format(weekly),
+      monthly: fmt.format(monthly),
+    );
   }
 
   void _back() {

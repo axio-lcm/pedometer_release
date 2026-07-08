@@ -24,6 +24,7 @@
   "tracking_music_idle": "가져온 음악 없음",
   "tracking_distance_label": "거리 (km)",
   "tracking_target_template": "목표 {{value}} km",
+  "steps_totals_hint": "주 {{weekly}} 걸음 · 월 {{monthly}} 걸음",
   "tracking_start_hint": "시작",
   "metric_distance": "거리",
   "metric_duration": "시간",

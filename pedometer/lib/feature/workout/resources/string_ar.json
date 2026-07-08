@@ -24,6 +24,7 @@
   "tracking_music_idle": "لم يتم استيراد موسيقى",
   "tracking_distance_label": "المسافة (km)",
   "tracking_target_template": "الهدف {{value}} km",
+  "steps_totals_hint": "أسبوعيًا {{weekly}} · شهريًا {{monthly}} خطوة",
   "tracking_start_hint": "ابدأ",
   "metric_distance": "المسافة",
   "metric_duration": "المدة",

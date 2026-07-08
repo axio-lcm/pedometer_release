@@ -24,6 +24,7 @@
   "tracking_music_idle": "未匯入音樂",
   "tracking_distance_label": "累計距離（公里）",
   "tracking_target_template": "目標 {{value}} 公里",
+  "steps_totals_hint": "一週 {{weekly}} 步 · 一月 {{monthly}} 步",
   "tracking_start_hint": "開始",
   "metric_distance": "距離",
   "metric_duration": "時長",
