@@ -251,15 +251,18 @@ class _StartupPrivacyConsent extends StatelessWidget {
     return LayoutBuilder(
       builder: (context, constraints) {
         return SingleChildScrollView(
+          // 上 / 下内边距差值决定居中内容的下移量（差值的一半）：
+          // 101 / 1 即整体下移 50，最小高度同步按总内边距 102 扣除，
+          // 大屏上不会引入多余滚动。
           padding: EdgeInsets.fromLTRB(
             AppSpacing.xxl,
-            26.h,
+            101.h,
             AppSpacing.xxl,
-            26.h,
+            1.h,
           ),
           child: ConstrainedBox(
             constraints: BoxConstraints(
-              minHeight: (constraints.maxHeight - 52.h).clamp(
+              minHeight: (constraints.maxHeight - 102.h).clamp(
                 0,
                 double.infinity,
               ),

@@ -88,6 +88,9 @@ class AppStartup {
         : await Firebase.initializeApp(
             options: DefaultFirebaseOptions.currentPlatform,
           );
+    // iOS 保持原链路：仅 initializeApp，收集开关跟随默认配置。
+    // Android 因清单里默认关闭收集，需在用户同意隐私政策后显式开启。
+    if (!Platform.isAndroid) return;
     await Future.wait([
       app.setAutomaticDataCollectionEnabled(true),
       FirebaseAnalytics.instance.setAnalyticsCollectionEnabled(true),
