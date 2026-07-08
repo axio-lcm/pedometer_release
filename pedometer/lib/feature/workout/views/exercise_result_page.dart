@@ -201,9 +201,7 @@ class _ExerciseResultPageState extends State<ExerciseResultPage> {
         '${dir.path}/workout_result_${DateTime.now().millisecondsSinceEpoch}.png',
       );
       await file.writeAsBytes(pngBytes, flush: true);
-      return ShareParams(
-        files: [XFile(file.path, mimeType: 'image/png')],
-      );
+      return ShareParams(files: [XFile(file.path, mimeType: 'image/png')]);
     }
     return ShareParams(
       files: [
@@ -223,9 +221,7 @@ class _ExerciseResultPageState extends State<ExerciseResultPage> {
     if (context == null) return null;
     final boundary = context.findRenderObject() as RenderRepaintBoundary?;
     if (boundary == null) return null;
-    if (boundary.debugNeedsPaint) {
-      await Future<void>.delayed(const Duration(milliseconds: 16));
-    }
+    await WidgetsBinding.instance.endOfFrame;
     final image = await boundary.toImage(pixelRatio: 3);
     final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
     image.dispose();
