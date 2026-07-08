@@ -71,8 +71,10 @@ class EditSportGoalViewModel extends GetxController implements IBaseViewModel {
       freeTraining.value = workout.goalFreeTraining;
     }
     // 回填当前每日步数目标（持久化的真相源）。
+    // 上次保存为「不设定目标」（0）时回填默认值，供关闭自由训练后编辑。
     if (Get.isRegistered<StepGoalService>()) {
-      steps.value = Get.find<StepGoalService>().dailyGoal.value;
+      final saved = Get.find<StepGoalService>().dailyGoal.value;
+      steps.value = saved > StepGoalService.noGoal ? saved : defaultSteps;
     }
   }
 
@@ -135,7 +137,12 @@ class EditSportGoalViewModel extends GetxController implements IBaseViewModel {
       );
     }
     if (Get.isRegistered<StepGoalService>()) {
-      unawaited(Get.find<StepGoalService>().setDailyGoal(result.steps));
+      // 自由训练（不设定目标）：每日步数目标写 0，首页圆环按 100% 展示。
+      unawaited(
+        Get.find<StepGoalService>().setDailyGoal(
+          result.freeTraining ? StepGoalService.noGoal : result.steps,
+        ),
+      );
     }
     return result;
   }

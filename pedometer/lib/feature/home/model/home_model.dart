@@ -6,8 +6,8 @@ class StepData {
   final int goal;
   const StepData({required this.steps, required this.goal});
 
-  /// 达成比例 0.0–1.0（封顶 1.0）
-  double get progress => goal <= 0 ? 0 : (steps / goal).clamp(0.0, 1.0);
+  /// 达成比例 0.0–1.0（封顶 1.0）；未设定目标（goal 为 0）按已达成处理。
+  double get progress => goal <= 0 ? 1.0 : (steps / goal).clamp(0.0, 1.0);
 
   /// 达成百分比整数
   int get percent => (progress * 100).round();

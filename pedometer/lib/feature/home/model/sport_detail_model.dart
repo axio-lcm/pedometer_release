@@ -23,8 +23,13 @@ class SportProgressData {
     required this.badgePrefix,
   });
 
-  double get progress => goal <= 0 ? 0 : (value / goal).clamp(0.0, 1.05);
-  int get percent => goal <= 0 ? 0 : (value / goal * 100).round().clamp(0, 100);
+  /// 未设定目标（goal 为 0，自由训练）时按已达成处理：圆环 100%。
+  double get progress => goal <= 0 ? 1.0 : (value / goal).clamp(0.0, 1.05);
+  int get percent =>
+      goal <= 0 ? 100 : (value / goal * 100).round().clamp(0, 100);
+
+  /// 徽章文案：未设定目标时只显示「100%」，不带「达成 / 完成」前缀。
+  String get badgeText => goal <= 0 ? '$percent%' : '$badgePrefix $percent%';
 }
 
 /// KPI 数据。

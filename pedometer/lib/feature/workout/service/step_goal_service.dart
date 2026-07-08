@@ -14,6 +14,9 @@ class StepGoalService extends GetxService {
   static const int maxDailyGoal = 50000;
   static const int stepDelta = 500;
 
+  /// 「不设定目标」（自由训练）时的目标值：首页圆环按已达成 100% 展示。
+  static const int noGoal = 0;
+
   /// 供编辑页响应式展示当前每日目标。
   final RxInt dailyGoal = defaultDailyGoal.obs;
 
@@ -25,7 +28,8 @@ class StepGoalService extends GetxService {
   }
 
   /// 设置每日步数目标：钳制到 [minDailyGoal, maxDailyGoal]、持久化、
-  /// 镜像到运行时并触发首页 / 详情刷新。
+  /// 镜像到运行时并触发首页 / 详情刷新。[noGoal]（0）表示不设定目标，
+  /// 不参与钳制。
   Future<void> setDailyGoal(int value) async {
     final clamped = _apply(value);
     final prefs = await SharedPreferences.getInstance();
@@ -33,7 +37,9 @@ class StepGoalService extends GetxService {
   }
 
   int _apply(int value) {
-    final clamped = value.clamp(minDailyGoal, maxDailyGoal);
+    final clamped = value <= noGoal
+        ? noGoal
+        : value.clamp(minDailyGoal, maxDailyGoal);
     dailyGoal.value = clamped;
     HealthSyncRuntime.dailyStepGoal = clamped;
     // 复用健康数据 revision，让监听它的首页 / 运动详情重新读取新目标。

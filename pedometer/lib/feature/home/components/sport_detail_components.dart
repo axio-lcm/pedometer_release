@@ -336,7 +336,7 @@ class _RingCenter extends StatelessWidget {
                   Icon(Icons.star_rounded, color: AppColors.brandLime, size: 9),
                   const SizedBox(width: 2),
                   Text(
-                    '${data.badgePrefix} ${data.percent}%',
+                    data.badgeText,
                     style: TextStyle(
                       color: AppColors.brandLime,
                       fontSize: 8,
